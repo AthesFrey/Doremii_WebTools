@@ -1,0 +1,17 @@
+<script defer src="/wp-content/uploads/base-converter.js?v=20250817"></script>
+
+<!-- 进制转换器 -->
+<h2 style="font-size: 22px; color: #32CD32;">进制转换器</h2>
+<doremii-base-converter
+  accent="#32CD32"
+  style="
+    --card-bg: #f0fff0; /* honeydew 颜色 */
+    --card-border: #98FB98; /* palegreen 颜色 */
+    --text: #0f172a; /* 深灰色文字 */
+    --button-bg: #32CD32; /* limegreen 按钮背景 */
+    --button-fg: #ffffff; /* 白色文字 */
+    --result-bg: #32CD32; /* limegreen 结果背景 */
+    --result-fg: #ffffff; /* 白色文字 */
+    --hist-bg: #f0fff0; /* honeydew 历史背景 */
+  ">
+</doremii-base-converter>
