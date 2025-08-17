@@ -1,4 +1,3 @@
-
 // doremii-tools.js  (WEB COMPONENTS VERSION with themeable CSS variables)
 class BaseTool extends HTMLElement {
   constructor() {
@@ -34,9 +33,9 @@ class BaseTool extends HTMLElement {
           box-shadow: var(--shadow, var(--shadow-base));
         }
         .row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-        .row label{ color: var(--muted, var(--muted-base)); }
+        .row label{ color: var(--muted, var(--muted-base)); font-size: 12px; }
         button{
-          padding:6px 12px; border:none; cursor:pointer; border-radius:6px;
+          padding:10px 20px;font-size: 16px; border:none; cursor:pointer; border-radius:6px;
           background: var(--button-bg, var(--accent, var(--accent-base)));
           color: var(--button-fg, #fff);
         }
@@ -125,7 +124,6 @@ class DorePassword extends BaseTool {
   }
 }
 customElements.define('doremii-password', DorePassword);
-
 
 
 
@@ -231,10 +229,6 @@ customElements.define('doremii-name', DoreName);
 
 
 
-
-
-
-
 /* ================= Lucky Number ================= */
 class DoreLucky extends BaseTool {
   tpl(){ return `<div class="row"><button>Generate</button></div>`; }
@@ -283,6 +277,9 @@ class DoreLucky extends BaseTool {
 customElements.define('doremii-lucky', DoreLucky);
 
 console.log('doremii-tools ready (themeable colors)');
+
+
+
 
 
 
