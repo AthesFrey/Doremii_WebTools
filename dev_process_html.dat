@@ -1,0 +1,187 @@
+<!-- 程序员计算器（火星红·窄版） -->
+<!-- 每次更新 JS 请改 ?v= 强制刷新缓存 -->
+<script defer src="/wp-content/uploads/dev-process.js?v=20250817f"></script>
+
+<style>
+  :root{
+    /* 火星红主题 */
+    --accent:#C1440E;            /* Mars red */
+    --card-bg:#FFF2EC;           /* very light mars */
+    --card-border:#E7B29F;       /* soft border */
+    --text:#0f172a;
+    --muted:#64748b;
+    --button-bg:var(--accent);
+    --button-fg:#ffffff;
+    --result-bg:#FFE1D6;
+    --result-fg:#7A2F1B;
+    --badge-bg:#FBE1D7;
+    --badge-border:#C1440E;
+    --badge-fg:#7A2F1B;
+
+    /* 尺寸（窄版） */
+    --font-title:20px;
+    --font-text:13px;
+    --font-mono:13px;
+    --radius:12px;
+    --pad-card:14px;
+    --pad-btn-y:7px;
+    --pad-btn-x:14px;
+    --pad-input:7px 9px;
+    --shadow:0 1px 2px rgba(0,0,0,.06);
+    --maxw-card:420px;      /* 卡片最大宽度 */
+    --input-basis:220px;    /* 输入框基准宽度 */
+    --input-maxw:240px;
+  }
+
+  /* 模块标题（方框外） */
+  .tool-title{
+    color:#2563EB;          /* 太空蓝 */
+    font:600 var(--font-title)/1.25 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+    margin:0 0 8px 0;
+  }
+
+  /* 容器卡片 */
+  .card{
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius);
+    padding:var(--pad-card);
+    max-width:var(--maxw-card);
+    box-shadow:var(--shadow);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+    color:var(--text);
+  }
+
+  .row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+    margin:8px 0;
+  }
+  .row .label{
+    min-width:80px;
+    color:var(--muted);
+    font-size:var(--font-text);
+  }
+
+  /* 输入框（等宽字体，小字号） */
+  .card input[type="text"]{
+    flex:1 1 var(--input-basis);
+    max-width:var(--input-maxw);
+    padding:var(--pad-input);
+    border:1px solid var(--card-border);
+    border-radius:10px;
+    font-size:var(--font-mono);
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+
+  /* 按钮（略小） */
+  .btn{
+    padding:var(--pad-btn-y) var(--pad-btn-x);
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+    font-size:var(--font-text);
+    line-height:1.1;
+  }
+  .btn.convert{ background:var(--button-bg); color:var(--button-fg); }
+  .btn.copy{ background:var(--badge-bg); color:#000; }
+
+  .divider{ height:1px; background:var(--card-border); margin:10px 0; }
+  .error{ color:#b91c1c; font-size:12px; }
+
+  /* 结果区 */
+  .muted{ color:var(--muted); margin-top:6px; font-size:var(--font-text); }
+  .result-box{
+    margin-top:8px;
+    border:1px dashed var(--card-border);
+    border-radius:10px;
+    padding:8px 10px;
+    background:#fff;
+  }
+  .result-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin:6px 0;
+    font-size:var(--font-text);
+  }
+  .result-row .val{
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:var(--font-mono);
+    word-break:break-all;
+  }
+
+  /* 因子右侧二进制徽标（由 JS 填充） */
+  .binary-badge{
+    padding:3px 8px;
+    background:var(--badge-bg);
+    color:var(--badge-fg);
+    border:1px solid var(--badge-border);
+    border-radius:999px;
+    font-size:12px;
+    white-space:nowrap;
+    max-width:100%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    vertical-align:middle;
+  }
+
+  /* 更窄屏时按钮更易换行 */
+  .ops .btn{ flex:1 1 auto; }
+</style>
+
+<!-- 标题（方框外） -->
+<h3 class="tool-title">程序员计算器</h3>
+
+<!-- 工具卡片 -->
+<div class="card">
+  <!-- Part 1：三行互转 -->
+  <div class="row">
+    <div class="label">decimal</div>
+    <input id="decimal-input" type="text" placeholder="输入十进制（非负整数）" />
+    <button id="decimal-convert" class="btn convert">Convert</button>
+    <button id="decimal-copy" class="btn copy">copy</button>
+  </div>
+  <div id="decimal-error" class="error"></div>
+
+  <div class="row">
+    <div class="label">hex</div>
+    <input id="hex-input" type="text" placeholder="输入十六进制（如: 1A3F）" />
+    <button id="hex-convert" class="btn convert">Convert</button>
+    <button id="hex-copy" class="btn copy">copy</button>
+  </div>
+  <div id="hex-error" class="error"></div>
+
+  <div class="row">
+    <div class="label">binary</div>
+    <input id="binary-input" type="text" placeholder="输入二进制（如: 101101）" />
+    <button id="binary-convert" class="btn convert">Convert</button>
+    <button id="binary-copy" class="btn copy">copy</button>
+  </div>
+  <div id="binary-error" class="error"></div>
+
+  <div class="divider"></div>
+
+  <!-- Part 2：因子 + 位运算 -->
+  <div class="row">
+    <div class="label">factor (dec)</div>
+    <input id="factor-input" type="text" placeholder="只能输入十进制（非负整数）" />
+    <!-- 右侧二进制预览徽标（JS 会写入为 ='XXX'b） -->
+    <span id="factor-binary-preview" class="binary-badge"></span>
+  </div>
+  <div id="factor-error" class="error"></div>
+
+  <div class="ops row">
+    <button id="bitand-btn" class="btn convert">bitand</button>
+    <button id="bitor-btn" class="btn convert">bitor</button>
+    <button id="bitxor-btn" class="btn convert">bitxor</button>
+  </div>
+
+  <div class="muted" id="process-label">process results:</div>
+
+  <!-- 结果区（三行，每行含 copy；由 JS 写入） -->
+  <div id="result-box" class="result-box"></div>
+</div>
