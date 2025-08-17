@@ -59,4 +59,4 @@
     --result-fg: #ffffff; /* white 白色文字 */
     --hist-bg: #B0E0E6; /* powderblue 粉蓝色背景 */
   ">
-</doremii-lucky> 
+</doremii-lucky>
