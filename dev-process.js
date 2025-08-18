@@ -1,9 +1,9 @@
-
 // dev-process.js  —  Programmer Calculator (finalized behavior)
 // - No 5s binary flash; factor input stays decimal
 // - Factor's binary is shown to the right badge as ='XXX'b
 // - Uses BigInt for correctness; supports very large non-negative integers
 // - Results area shows Decimal/Hex/Binary with working copy buttons
+
 
 document.addEventListener('DOMContentLoaded', () => {
   const $ = (id) => document.getElementById(id);
@@ -74,10 +74,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     return badge;
   }
+  
+  
+  // ----- Factor binary preview badge (right side) -----
   function showFactorBinaryPreview(B) {
     const badge = ensureFactorBadge();
-    badge.textContent = `='${toBin(B)}'b`;
+    const bin = toBin(B);      // 二进制
+    const hex = toHex(B);      // 十六进制
+    badge.textContent = `='${bin}'b ='${hex}'h`;
   }
+
 
   // ----- Results rendering and copy (event delegation) -----
   function renderResults(opName, decBI) {
