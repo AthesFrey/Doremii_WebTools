@@ -1,3 +1,4 @@
+
 // dev-process.js  —  Programmer Calculator (finalized behavior)
 // - No 5s binary flash; factor input stays decimal
 // - Factor's binary is shown to the right badge as ='XXX'b
@@ -149,3 +150,78 @@ document.addEventListener('DOMContentLoaded', () => {
     renderResults('bitxor', (A ^ B));
   });
 });
+
+
+/* === layout tweak (non-breaking): move each Convert button next to its copy below,
+   and free width for the input above. Safe to remove any time. === */
+(function(){
+  function relocateConvertButtons(){
+    var $ = function(id){ return document.getElementById(id); };
+    var pairs = [
+      { convert: 'decimal-convert', copy: 'decimal-copy', input: 'decimal-input' },
+      { convert: 'hex-convert',     copy: 'hex-copy',     input: 'hex-input'     },
+      { convert: 'binary-convert',  copy: 'binary-copy',  input: 'binary-input'  }
+    ];
+    pairs.forEach(function(p){
+      var convertBtn = $(p.convert);
+      var copyBtn    = $(p.copy);
+      var inputEl    = $(p.input);
+
+      // Move Convert to the same row as copy (to the left side)
+      if (convertBtn && copyBtn && copyBtn.parentElement) {
+        try {
+          copyBtn.parentElement.insertBefore(convertBtn, copyBtn);
+          convertBtn.style.marginRight = '8px';
+        } catch (e) { /* noop */ }
+      }
+      // Let the input field take the full width on the row above
+      if (inputEl) {
+        inputEl.style.flex = '1 1 100%';
+        inputEl.style.width = '100%';
+        inputEl.style.maxWidth = '100%';
+        inputEl.style.minWidth = '0';
+      }
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', relocateConvertButtons);
+  } else {
+    relocateConvertButtons();
+  }
+})();
+// === end layout tweak ===
+
+
+/* === style tweak: enlarge convert/copy and bitwise buttons uniformly (height-matched) === */
+(function(){
+  function injectSizingStyles(){
+    var css = ""
+    + "#decimal-convert, #hex-convert, #binary-convert,"
+    + " #decimal-copy, #hex-copy, #binary-copy,"
+    + " #result-box .btn.copy {"
+    + "  font-size: 16px;"
+    + "  line-height: 1.15;"
+    + "  min-height: 40px;"
+    + "  padding-top: 8px; padding-bottom: 8px;"
+    + "}"
+    + "#bitand-btn, #bitor-btn, #bitxor-btn {"
+    + "  font-size: 16px;"
+    + "  line-height: 1.15;"
+    + "  min-height: 40px;"
+    + "  padding-top: 8px; padding-bottom: 8px;"
+    + "  /* 不调整横向尺寸；不设 padding-left/right 保持当前宽度 */"
+    + "}";
+    var style = document.createElement('style');
+    style.setAttribute('data-progcalc-sizing','1');
+    style.textContent = css;
+    document.head.appendChild(style);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', injectSizingStyles);
+  } else {
+    injectSizingStyles();
+  }
+})();
+// === end style tweak ===
+
+
