@@ -1,4 +1,3 @@
-
 // doremii-tools.js  (WEB COMPONENTS VERSION with themeable CSS variables)
 // Updated 2025-08-20:
 // 1) Password generator: remove "capitalize first if lowercase" behavior.
@@ -133,8 +132,6 @@ class DorePassword extends BaseTool {
         b.onclick=()=>navigator.clipboard.writeText(v).then(()=>{ b.textContent='Copied!'; setTimeout(()=>b.textContent='Copy',1000); });
         row.appendChild(b); hist.appendChild(row);
       });
-    
-      placeCheckRow();
     };
 
     btn.onclick=()=>{ const pw=gen(input.value); res.textContent=pw; push(pw); paint(); };
@@ -251,7 +248,6 @@ customElements.define('doremii-name', DoreName);
 
 
 
-
 /* ================= Lucky Number ================= */
 class DoreLucky extends BaseTool {
   tpl(){
@@ -276,12 +272,13 @@ class DoreLucky extends BaseTool {
     const checkBtn = this.root.querySelector('button[data-role="check"]');
     const manualIn = this.root.querySelector('input[type="text"]');
     const msg      = this.root.querySelector('.msg');
+
     // Ensure the "Input number" row sits below the history list
     const placeCheckRow = () => {
       try {
         const checkRow = this.root.querySelector('button[data-role="check"]')?.closest('.row');
         const histEl   = this.$('.hist');
-        if (checkRow && histEl && checkRow.nextSibling !== histEl.nextSibling) {
+        if (checkRow && histEl) {
           histEl.insertAdjacentElement('afterend', checkRow);
           checkRow.style.marginTop = '8px';
         }
@@ -289,7 +286,6 @@ class DoreLucky extends BaseTool {
     };
     // Move now (and again after paint to be safe)
     placeCheckRow();
-
 
     const src  = this.getAttribute('src') || '/wp-content/uploads/luckynums.txt';
     const vtag = this.getAttribute('v') || '';
@@ -321,6 +317,7 @@ class DoreLucky extends BaseTool {
         b.onclick=()=>navigator.clipboard.writeText(v).then(()=>{ b.textContent='Copied!'; setTimeout(()=>b.textContent='Copy',1000); });
         row.appendChild(b); hist.appendChild(row);
       });
+      placeCheckRow();
     };
 
     // 生成
