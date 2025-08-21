@@ -1,10 +1,11 @@
 // doremii-tools.js  (WEB COMPONENTS VERSION with themeable CSS variables)
-// Updated 2025-08-20:
-// 1) Password generator: remove "capitalize first if lowercase" behavior.
-//    New rule: the FIRST character is ALWAYS a RANDOM UPPERCASE letter, and it stays at index 0.
-// 2) Lucky number generator: add an input box ("Input number:") and a "Check" button.
-//    - Only allows exactly N digits (N = length attribute, default 4).
-//    - On check: look up in luckynums.txt; shows "lucky!" if found, otherwise "ordinary!".
+// Updated 2025-08-21:
+// 1) Password generator: FIRST char is ALWAYS a RANDOM UPPERCASE letter (no post-shuffle move).
+// 2) Lucky number: adds "Input number" + "Check" UI. Check normalizes input by stripping
+//    leading zeros before lookup (e.g., "0068" -> "68", "0368" -> "368"). Shows "lucky!"
+//    if found in luckynums.txt; otherwise "ordinary!".
+// 3) The "Input number" row is placed in a sink right AFTER the history list so it always
+//    stays below history (even when history is initially empty).
 
 class BaseTool extends HTMLElement {
   constructor() {
@@ -273,14 +274,24 @@ class DoreLucky extends BaseTool {
     const manualIn = this.root.querySelector('input[type="text"]');
     const msg      = this.root.querySelector('.msg');
 
-    // Ensure the "Input number" row sits below the history list
+    // Ensure the "Input number" row is ALWAYS below the history list by moving it
+    // into a dedicated sink placed AFTER .hist
     const placeCheckRow = () => {
       try {
-        const checkRow = this.root.querySelector('button[data-role="check"]')?.closest('.row');
-        const histEl   = this.$('.hist');
-        if (checkRow && histEl) {
-          histEl.insertAdjacentElement('afterend', checkRow);
-          checkRow.style.marginTop = '8px';
+        // The second .row inside .card is the input/check row in the template
+        const rowsInCard = this.root.querySelectorAll('.card .row');
+        const checkRow   = rowsInCard[1];
+        const histEl     = this.$('.hist');
+        if (!checkRow || !histEl) return;
+        let sink = this.root.querySelector('#after-hist-sink');
+        if (!sink) {
+          sink = document.createElement('div');
+          sink.id = 'after-hist-sink';
+          sink.style.marginTop = '8px';
+          histEl.insertAdjacentElement('afterend', sink);
+        }
+        if (checkRow.parentNode !== sink) {
+          sink.appendChild(checkRow);
         }
       } catch (e) { /* noop */ }
     };
@@ -327,7 +338,7 @@ class DoreLucky extends BaseTool {
       catch(e){ res.textContent=e.message; }
     };
 
-    // 校验（Check）
+    // 校验（Check）：把用户输入的4位数字去掉前导0后再检索
     const showMsg = (text, ok)=>{
       msg.textContent = text;
       msg.classList.remove('ok','no');
@@ -344,9 +355,13 @@ class DoreLucky extends BaseTool {
       }
       try{
         const arr = await load();
-        const padded = raw.padStart(padL,'0');
-        // 兼容两种字典格式：直接四位 / 未补零条目
-        const found = arr.includes(raw) || arr.includes(padded);
+        // 去掉前导 0；"0000" 归一为 "0"
+        const stripped = raw.replace(/^0+/, '');
+        const normalized = stripped === '' ? '0' : stripped;
+        // 同时也考虑原值和补零值（兼容包含前导零的字典条目）
+        const padded = raw.padStart(padL,'0'); // 与 raw 等长，这里只是显式化
+        const candidates = [raw, normalized, padded];
+        const found = candidates.some(v => arr.includes(v));
         showMsg(found ? 'lucky!' : 'ordinary!', found);
       }catch(e){
         showMsg(e.message, false);
@@ -358,4 +373,4 @@ class DoreLucky extends BaseTool {
 }
 customElements.define('doremii-lucky', DoreLucky);
 
-console.log('doremii-tools ready (themeable colors) [2025-08-20]');
+console.log('doremii-tools ready (themeable colors) [2025-08-21]');
