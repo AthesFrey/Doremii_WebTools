@@ -1,11 +1,5 @@
 // doremii-tools.js  (WEB COMPONENTS VERSION with themeable CSS variables)
-// Updated 2025-08-21:
-// 1) Password generator: FIRST char is ALWAYS a RANDOM UPPERCASE letter (no post-shuffle move).
-// 2) Lucky number: adds "Input number" + "Check" UI. Check normalizes input by stripping
-//    leading zeros before lookup (e.g., "0068" -> "68", "0368" -> "368"). Shows "lucky!"
-//    if found in luckynums.txt; otherwise "ordinary!".
-// 3) The "Input number" row is placed in a sink right AFTER the history list so it always
-//    stays below history (even when history is initially empty).
+// Updated 2025-09-02: add <doremii-uuid> (UUID generator with custom constraints)
 
 class BaseTool extends HTMLElement {
   constructor() {
@@ -142,8 +136,6 @@ class DorePassword extends BaseTool {
 customElements.define('doremii-password', DorePassword);
 
 
-
-
 /* ================= Name ================= */
 class DoreName extends BaseTool {
   tpl(){ return `<div class="row"><button>Generate</button></div>`; }
@@ -184,30 +176,20 @@ class DoreName extends BaseTool {
 
     const wordLenOk = w => w && w.length > 2;
 
-    // 修改规则：根据列表顺序选择“前行”第一个词和“后行”最后一个词
+    // 规则：根据列表顺序选择“前行”第一个词和“后行”最后一个词
     const gen = async()=>{
       const list = await load();
       let tries = 0;
       while (tries++ < 1000) {
-        // 随机选择两行
         const [firstIndex, lastIndex] = pick2(list.length);
-
-        // 确保 firstIndex 小于 lastIndex，保证第一行在前
         const [firstRow, lastRow] = firstIndex < lastIndex ? [list[firstIndex], list[lastIndex]] : [list[lastIndex], list[firstIndex]];
-
-        // 按照行顺序，确定选择第一行第一个词和第二行最后一个词
-        const first = (firstRow.split(/\s+/)[0]  || '').trim();   // 选第一行的第一个单词
-        const last  = (lastRow.split(/\s+/).pop() || '').trim();   // 选最后一行的最后一个单词
-
-        // 如果选出的名字长度大于2，则返回
-        if (wordLenOk(first) && wordLenOk(last)) {
-          return `${first} ${last}`;
-        }
+        const first = (firstRow.split(/\s+/)[0]  || '').trim();
+        const last  = (lastRow.split(/\s+/).pop() || '').trim();
+        if (wordLenOk(first) && wordLenOk(last)) return `${first} ${last}`;
       }
       throw Error('多次尝试仍未找到符合长度的姓名，请检查名单内容');
     };
 
-    // 历史区
     const loadH = ()=>{ try{ return JSON.parse(localStorage.getItem(KEY))||[] }catch{return[]} };
     const save  = (x)=> localStorage.setItem(KEY, JSON.stringify(x.slice(0,MAX)));
     const push  = (v)=>{ const x=[v, ...loadH()].slice(0,MAX); save(x); return x; };
@@ -245,10 +227,6 @@ class DoreName extends BaseTool {
 customElements.define('doremii-name', DoreName);
 
 
-
-
-
-
 /* ================= Lucky Number ================= */
 class DoreLucky extends BaseTool {
   tpl(){
@@ -274,11 +252,9 @@ class DoreLucky extends BaseTool {
     const manualIn = this.root.querySelector('input[type="text"]');
     const msg      = this.root.querySelector('.msg');
 
-    // Ensure the "Input number" row is ALWAYS below the history list by moving it
-    // into a dedicated sink placed AFTER .hist
+    // 确保输入/校验行始终在历史列表下面
     const placeCheckRow = () => {
       try {
-        // The second .row inside .card is the input/check row in the template
         const rowsInCard = this.root.querySelectorAll('.card .row');
         const checkRow   = rowsInCard[1];
         const histEl     = this.$('.hist');
@@ -295,7 +271,6 @@ class DoreLucky extends BaseTool {
         }
       } catch (e) { /* noop */ }
     };
-    // Move now (and again after paint to be safe)
     placeCheckRow();
 
     const src  = this.getAttribute('src') || '/wp-content/uploads/luckynums.txt';
@@ -331,14 +306,12 @@ class DoreLucky extends BaseTool {
       placeCheckRow();
     };
 
-    // 生成
     btn.onclick = async()=>{
       res.textContent='抽取中…';
       try{ const v=await gen(); res.textContent=v; push(v); paint(); }
       catch(e){ res.textContent=e.message; }
     };
 
-    // 校验（Check）：把用户输入的4位数字去掉前导0后再检索
     const showMsg = (text, ok)=>{
       msg.textContent = text;
       msg.classList.remove('ok','no');
@@ -355,11 +328,9 @@ class DoreLucky extends BaseTool {
       }
       try{
         const arr = await load();
-        // 去掉前导 0；"0000" 归一为 "0"
         const stripped = raw.replace(/^0+/, '');
         const normalized = stripped === '' ? '0' : stripped;
-        // 同时也考虑原值和补零值（兼容包含前导零的字典条目）
-        const padded = raw.padStart(padL,'0'); // 与 raw 等长，这里只是显式化
+        const padded = raw.padStart(padL,'0');
         const candidates = [raw, normalized, padded];
         const found = candidates.some(v => arr.includes(v));
         showMsg(found ? 'lucky!' : 'ordinary!', found);
@@ -373,4 +344,78 @@ class DoreLucky extends BaseTool {
 }
 customElements.define('doremii-lucky', DoreLucky);
 
-console.log('doremii-tools ready (themeable colors) [2025-08-21]');
+
+/* ================= UUID ================= */
+class DoreUUID extends BaseTool {
+  tpl(){ return `<div class="row"><button>Generate</button></div>`; }
+
+  connectedCallback(){
+    if(this.onReady) return; this.onReady = true;
+    const btn  = this.root.querySelector('button');
+    const res  = this.$('.result');
+    const hist = this.$('.hist');
+
+    const KEY  = 'doreTools.uuidHistory';
+    const MAX  = Number(this.getAttribute('history')||5);
+
+    // 允许的十六进制字符（去掉 '4'）
+    const HEX_OTHERS = ['0','1','2','3','5','7','9','a','b','c','d','e','f']; // 不含 4/6/8
+    // 强化 6 与 8 的权重（至少 10 倍）
+    const WEIGHTED = [
+      ...HEX_OTHERS,                     // 权重 1
+      ...Array(5).fill('6'),            // 权重 5
+      ...Array(5).fill('8')             // 权重 5
+    ];
+    const rnd = (n)=>{ const b=new Uint32Array(1); crypto.getRandomValues(b); return b[0] % n; };
+    const pickWeighted = ()=> WEIGHTED[rnd(WEIGHTED.length)];
+
+    // 生成一个候选 UUID（version=1，variant 固定为 8；全程不使用 '4'）
+    const candidate = ()=>{
+      const h = [];
+      for (let i=0;i<32;i++){
+        if (i === 12) { h.push('1'); continue; }  // version 1
+        if (i === 16) { h.push('8'); continue; }  // variant '10xx' -> 8
+        h.push(pickWeighted());
+      }
+      const s = `${h.slice(0,8).join('')}-${h.slice(8,12).join('')}-${h.slice(12,16).join('')}-${h.slice(16,20).join('')}-${h.slice(20).join('')}`;
+      return s;
+    };
+
+    // 约束：不得包含 '4'；不得包含这些数字串（去掉连字符后判断）
+    const BANS = ["13","55","57","59","110","111","112","119","122","321","507","508","512","513","712"];
+    const ok = (u)=>{
+      if (u.includes('4')) return false;
+      const plain = u.replace(/-/g,'');
+      return !BANS.some(p => plain.includes(p));
+    };
+
+    const gen = ()=>{
+      let tries = 0;
+      while (++tries <= 5000) {
+        const u = candidate();
+        if (ok(u)) return u;
+      }
+      throw Error('生成受限 UUID 失败，请稍后重试或放宽限制');
+    };
+
+    const load=()=>{ try{ return JSON.parse(localStorage.getItem(KEY))||[] }catch{return[]} };
+    const save=(a)=>localStorage.setItem(KEY, JSON.stringify(a.slice(0,MAX)));
+    const push=(v)=>{ const a=[v,...load()].slice(0,MAX); save(a); return a; };
+    const paint=()=>{ const a=load(); hist.innerHTML='';
+      a.forEach((v,i)=>{
+        const row=document.createElement('div');
+        row.innerHTML=`<span>${i+1}. ${v}</span>`;
+        const b=document.createElement('button'); b.textContent='Copy';
+        b.style.marginLeft='8px';
+        b.onclick=()=>navigator.clipboard.writeText(v).then(()=>{ b.textContent='Copied!'; setTimeout(()=>b.textContent='Copy',1000); });
+        row.appendChild(b); hist.appendChild(row);
+      });
+    };
+
+    btn.onclick=()=>{ try{ const id=gen(); res.textContent=id; push(id); paint(); } catch(e){ res.textContent=e.message; } };
+    paint();
+  }
+}
+customElements.define('doremii-uuid', DoreUUID);
+
+console.log('doremii-tools ready (themeable colors) [2025-09-02]');
