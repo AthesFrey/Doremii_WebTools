@@ -1,0 +1,28 @@
+<script defer src="/wp-content/uploads/qr-creator.js?v=20250925_nobold"></script>
+
+<h2 style="font-size:22px; color:#1e3a8a;">二维码生成器</h2>
+<doremii-qr
+  accent="#1e3a8a"
+  size="420"
+  ecc="M"
+  format="svg"
+  qzone="2"
+  issuer="doremii.top"
+  account="user"
+  digits="6"
+  period="30"
+  algorithm="SHA1"
+  style="
+    --card-bg:#eff6ff;     /* 蓝50 */
+    --card-border:#93c5fd; /* 蓝300 */
+    --text:#0b1b34;        /* 深蓝文本 */
+    --muted:#1e3a8a;       /* 次级蓝 */
+    --button-bg:#1d4ed8;   /* 蓝700 */
+    --button-bg-2:#0b1b34; /* 第二按钮（更深蓝） */
+    --button-fg:#ffffff;   /* 白字 */
+    --button-weight:400;   /* 按钮文字：不加粗 */
+    --result-bg:#ffffff;   /* 白底提升扫码对比 */
+    --result-fg:#000000;
+  ">
+</doremii-qr>
+
