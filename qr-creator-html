@@ -1,4 +1,4 @@
-<script defer src="/wp-content/uploads/qr-creator-offline.js?v=20250925_offline"></script>
+<script defer src="/wp-content/uploads/qr-creator.js?v=20250925_offline"></script>
 
 <h2 style="font-size:22px; color:#1e3a8a;">二维码生成器</h2>
 <doremii-qr
