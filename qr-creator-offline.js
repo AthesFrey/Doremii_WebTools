@@ -83,7 +83,7 @@
       const font   = 'system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial';
       this.root.innerHTML = `
         <style>
-          :host{ --accent:${accent}; display:block; max-width:520px; font-family:${font}; }
+          :host{ --accent:${accent}; display:block; max-width:450px; font-family:${font}; }
           .card{
             margin:20px 0; padding:14px;
             color:var(--text, #0b1b34);
@@ -231,3 +231,4 @@
   if (!customElements.get('doremii-qr')) customElements.define('doremii-qr', DoreQROffline);
   if (!customElements.get('doremi-qr-offline')) customElements.define('doremi-qr-offline', DoreQROffline);
 })();
+
