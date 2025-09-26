@@ -7,7 +7,7 @@
 <h2 style="font-size:22px; color:#1e3a8a;">二维码生成器（离线 / Nayuki ES6）</h2>
 <doremii-qr
   accent="#1e3a8a"
-  size="450"
+  size="395"
   ecc="M"
   format="svg"
   qzone="2"
@@ -19,10 +19,10 @@
   style="
     --card-bg:#eff6ff;     /* 蓝50 */
     --card-border:#93c5fd; /* 蓝300 */
-    --text:#0b1b34;        /* 深蓝文本 */
+    --text:#0b1b36;        /* 深蓝文本 */
     --muted:#1e3a8a;       /* 次级蓝 */
-    --button-bg:#1d4ed8;   /* 蓝700 */
-    --button-bg-2:#0b1b34; /* 第二按钮更深蓝 */
+    --button-bg:#1d5ed8;   /* 蓝700 */
+    --button-bg-2:#0b1b36; /* 第二按钮更深蓝 */
     --button-fg:#ffffff;
     --button-weight:400;   /* 不加粗 */
     --result-bg:#ffffff;
