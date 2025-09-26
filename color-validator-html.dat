@@ -1,0 +1,16 @@
+<!-- 强制刷新缓存：改 ?v= -->
+<script defer src="/wp-content/uploads/color-validator.js?v=20250926d"></script>
+
+<h2 style="font-size:22px; color:#B76E79;">互联网颜色验证器</h2>
+<color-validator
+  accent="#B76E79"
+  style="
+    --card-bg:#FFF5F7;
+    --card-border:#F7CCD5;
+    --text:#2a1f22;
+    --muted:#8C5964;
+    --button-bg:#B76E79;
+    --button-fg:#ffffff;
+    --grid-border:#e5e7eb;
+  ">
+</color-validator>
