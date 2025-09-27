@@ -1,3 +1,4 @@
+// ---- DoreBaseConverter v20250927_fix ----
 class DoreBaseConverter extends BaseTool {
   tpl() {
     return `
@@ -26,106 +27,124 @@ class DoreBaseConverter extends BaseTool {
     if (this.onReady) return;
     this.onReady = true;
 
-    const decimalInput = this.root.querySelector('#decimalInput');
-    const base36Input = this.root.querySelector('#base36Input');
-    const base62Input = this.root.querySelector('#base62Input');
-    const convertDecimal = this.root.querySelector('#convertDecimal');
-    const convertBase36 = this.root.querySelector('#convertBase36');
-    const convertBase62 = this.root.querySelector('#convertBase62');
-    const copyDecimal = this.root.querySelector('#copyDecimal');
-    const copyBase36 = this.root.querySelector('#copyBase36');
-    const copyBase62 = this.root.querySelector('#copyBase62');
+    const $ = sel => this.root.querySelector(sel);
+    const decimalInput = $('#decimalInput');
+    const base36Input  = $('#base36Input');
+    const base62Input  = $('#base62Input');
+    const convertDecimal = $('#convertDecimal');
+    const convertBase36  = $('#convertBase36');
+    const convertBase62  = $('#convertBase62');
+    const copyDecimal = $('#copyDecimal');
+    const copyBase36  = $('#copyBase36');
+    const copyBase62  = $('#copyBase62');
 
-    // 保持输入框的宽度和换行功能
-    const inputs = [decimalInput, base36Input, base62Input];
-    inputs.forEach(input => {
-      input.style.width = '100%';
-      input.style.height = '4em';
-      input.style.wordWrap = 'break-word';
-      input.style.whiteSpace = 'normal';
+    // 输入框样式：保持宽度与换行
+    [decimalInput, base36Input, base62Input].forEach(t => {
+      t.style.width = '100%';
+      t.style.height = '4em';
+      t.style.wordWrap = 'break-word';
+      t.style.whiteSpace = 'normal';
     });
 
-    // 进制转换函数
-    const decimalToBase = (decimalStr, base) => {
-      const digits = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-      let result = '';
-      let remainder;
+    const DIGITS = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const DECIMAL_RE = /^(?:0|[1-9]\d*)$/;        // 非负整数字符串（禁止 + 号、前导空格、小数/科学计数等）
+    const B36_RE     = /^[0-9a-z]+$/;             // 规范化后（小写）再校验
+    const B62_RE     = /^[0-9A-Za-z]+$/;
 
-      while (decimalStr !== '0') {
-        remainder = BigInt(decimalStr) % BigInt(base);
-        result = digits[Number(remainder)] + result;
-        decimalStr = (BigInt(decimalStr) / BigInt(base)).toString();
+    // 10进制字符串 -> 任意进制
+    function decimalToBase(decStr, base) {
+      if (!DECIMAL_RE.test(decStr)) throw new Error('十进制必须为非负整数（不含小数/科学计数）。');
+      let n = BigInt(decStr);
+      if (n === 0n) return '0';
+      const B = BigInt(base);
+      let out = '';
+      while (n > 0n) {
+        const r = n % B;             // 余数 < base
+        out = DIGITS[Number(r)] + out;
+        n = n / B;
       }
+      return out;
+    }
 
-      return result || '0';
-    };
-
-    const baseToDecimal = (baseStr, base) => {
-      const digits = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-      let result = 0n;
-
-      for (let i = 0; i < baseStr.length; i++) {
-        result = result * BigInt(base) + BigInt(digits.indexOf(baseStr[i]));
+    // 任意进制字符串 -> 10进制字符串
+    function baseToDecimal(s, base) {
+      const B = BigInt(base);
+      let acc = 0n;
+      for (let i = 0; i < s.length; i++) {
+        const idx = DIGITS.indexOf(s[i]);
+        if (idx < 0 || idx >= base) throw new Error(`字符 "${s[i]}" 超出${base}进制取值范围。`);
+        acc = acc * B + BigInt(idx);
       }
+      return acc.toString();
+    }
 
-      return result.toString();
-    };
+    async function copyToClipboard(el, btn) {
+      const text = el.value;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          el.focus(); el.select();
+          document.execCommand('copy');
+          el.setSelectionRange?.(el.value.length, el.value.length); // 取消选区
+        }
+        btn.textContent = 'Copied!';
+      } catch {
+        btn.textContent = 'Failed';
+      } finally {
+        setTimeout(() => (btn.textContent = 'copy'), 1000);
+      }
+    }
 
-    // 单个转换按钮点击事件
+    // --- 事件绑定 ---
     convertDecimal.onclick = () => {
-      let decimal = decimalInput.value.trim();
-      if (decimal === '' || isNaN(decimal)) {
-        alert("请输入有效的10进制数字。");
-        return;
+      const raw = decimalInput.value.trim();
+      try {
+        const b36 = decimalToBase(raw, 36);
+        const b62 = decimalToBase(raw, 62);
+        base36Input.value = b36;
+        base62Input.value = b62;
+      } catch (e) {
+        alert(e.message || '十进制输入不合法。');
       }
-      base36Input.value = decimalToBase(decimal, 36);
-      base62Input.value = decimalToBase(decimal, 62);
     };
 
     convertBase36.onclick = () => {
-      let base36 = base36Input.value.trim();
-      if (base36 === '' || !/^[0-9a-zA-Z]+$/.test(base36)) {
-        alert("请输入有效的36进制数字。");
-        return;
+      let s = base36Input.value.trim();
+      if (s) {
+        s = s.toLowerCase();
+        base36Input.value = s; // 回写归一化
       }
-      decimalInput.value = baseToDecimal(base36, 36);
-      base62Input.value = decimalToBase(baseToDecimal(base36, 36), 62);
+      if (!s || !B36_RE.test(s)) { alert('请输入仅含 0-9 与 a-z 的 36 进制数字。'); return; }
+      try {
+        const dec = baseToDecimal(s, 36);
+        decimalInput.value = dec;
+        base62Input.value  = decimalToBase(dec, 62);
+      } catch (e) {
+        alert(e.message || '36 进制输入不合法。');
+      }
     };
 
     convertBase62.onclick = () => {
-      let base62 = base62Input.value.trim();
-      if (base62 === '' || !/^[0-9a-zA-Z]+$/.test(base62)) {
-        alert("请输入有效的62进制数字。");
-        return;
+      const s = base62Input.value.trim();
+      if (!s || !B62_RE.test(s)) { alert('请输入仅含 0-9/a-z/A-Z 的 62 进制数字。'); return; }
+      try {
+        const dec = baseToDecimal(s, 62);
+        decimalInput.value = dec;
+        base36Input.value  = decimalToBase(dec, 36);
+      } catch (e) {
+        alert(e.message || '62 进制输入不合法。');
       }
-      decimalInput.value = baseToDecimal(base62, 62);
-      base36Input.value = decimalToBase(baseToDecimal(base62, 62), 36);
     };
 
-    // 复制按钮点击事件
-    const copyToClipboard = (input) => {
-      input.select();
-      document.execCommand('copy');
-    };
-
-    copyDecimal.onclick = () => {
-      copyToClipboard(decimalInput);
-      copyDecimal.textContent = 'Copied!';
-      setTimeout(() => copyDecimal.textContent = 'copy', 1000);
-    };
-
-    copyBase36.onclick = () => {
-      copyToClipboard(base36Input);
-      copyBase36.textContent = 'Copied!';
-      setTimeout(() => copyBase36.textContent = 'copy', 1000);
-    };
-
-    copyBase62.onclick = () => {
-      copyToClipboard(base62Input);
-      copyBase62.textContent = 'Copied!';
-      setTimeout(() => copyBase62.textContent = 'copy', 1000);
-    };
+    copyDecimal.onclick = () => copyToClipboard(decimalInput, copyDecimal);
+    copyBase36.onclick  = () => copyToClipboard(base36Input,  copyBase36);
+    copyBase62.onclick  = () => copyToClipboard(base62Input,  copyBase62);
   }
 }
 
-customElements.define('doremii-base-converter', DoreBaseConverter);
+
+// 防二次注册（可重复加载，不报错）
+if (!customElements.get('doremii-base-converter')) {
+  customElements.define('doremii-base-converter', DoreBaseConverter);
+}
