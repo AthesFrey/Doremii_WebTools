@@ -1,4 +1,4 @@
-<div class="misaka-counter" style="display:inline-block;">
+<div class="misaka-counter" style="display:block; width:max-content; margin-left:auto;">
   <img
     src="/counter.php?&label=Visits%3A"
     alt="visits"
