@@ -1,4 +1,4 @@
-// ---- DoreBaseConverter v20250927_fix ----
+// ---- DoreBaseConverter v20250927_fix2 ----
 class DoreBaseConverter extends BaseTool {
   tpl() {
     return `
@@ -28,15 +28,27 @@ class DoreBaseConverter extends BaseTool {
     this.onReady = true;
 
     const $ = sel => this.root.querySelector(sel);
-    const decimalInput = $('#decimalInput');
-    const base36Input  = $('#base36Input');
-    const base62Input  = $('#base62Input');
+    const decimalInput   = $('#decimalInput');
+    const base36Input    = $('#base36Input');
+    const base62Input    = $('#base62Input');
     const convertDecimal = $('#convertDecimal');
     const convertBase36  = $('#convertBase36');
     const convertBase62  = $('#convertBase62');
-    const copyDecimal = $('#copyDecimal');
-    const copyBase36  = $('#copyBase36');
-    const copyBase62  = $('#copyBase62');
+    const copyDecimal    = $('#copyDecimal');
+    const copyBase36     = $('#copyBase36');
+    const copyBase62     = $('#copyBase62');
+
+    // —— 修复：隐藏父类模板里未使用的 .result / .hist，避免底部两条色块 ——
+    const hideIfEmpty = (el) => {
+      if (!el) return;
+      el.textContent = '';
+      el.style.display = 'none';
+      el.style.padding = '0';
+      el.style.border  = 'none';
+      el.style.margin  = '0';
+    };
+    hideIfEmpty(this.root.querySelector('.result'));
+    hideIfEmpty(this.root.querySelector('.hist'));
 
     // 输入框样式：保持宽度与换行
     [decimalInput, base36Input, base62Input].forEach(t => {
@@ -46,10 +58,10 @@ class DoreBaseConverter extends BaseTool {
       t.style.whiteSpace = 'normal';
     });
 
-    const DIGITS = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const DECIMAL_RE = /^(?:0|[1-9]\d*)$/;        // 非负整数字符串（禁止 + 号、前导空格、小数/科学计数等）
-    const B36_RE     = /^[0-9a-z]+$/;             // 规范化后（小写）再校验
-    const B62_RE     = /^[0-9A-Za-z]+$/;
+    const DIGITS    = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const DECIMAL_RE= /^(?:0|[1-9]\d*)$/;    // 非负整数字符串
+    const B36_RE    = /^[0-9a-z]+$/;         // 规范化(小写)后校验
+    const B62_RE    = /^[0-9A-Za-z]+$/;
 
     // 10进制字符串 -> 任意进制
     function decimalToBase(decStr, base) {
@@ -59,7 +71,7 @@ class DoreBaseConverter extends BaseTool {
       const B = BigInt(base);
       let out = '';
       while (n > 0n) {
-        const r = n % B;             // 余数 < base
+        const r = n % B;                 // 余数 < base
         out = DIGITS[Number(r)] + out;
         n = n / B;
       }
@@ -142,7 +154,6 @@ class DoreBaseConverter extends BaseTool {
     copyBase62.onclick  = () => copyToClipboard(base62Input,  copyBase62);
   }
 }
-
 
 // 防二次注册（可重复加载，不报错）
 if (!customElements.get('doremii-base-converter')) {
