@@ -1,27 +1,22 @@
 /* qr-creator-offline.js — 本地离线渲染 + 2FA（Nayuki ES6 外链）
- * 亮点：UI 先渲染；异步等待 qrcodegen 库；缺库时给出提示，不会整块消失
- * 主题：深蓝系；按钮不加粗；可多实例、可重复加载不冲突
+ * 回滚原始结构，仅在“2FA QR”处弹出备注对话框（留空=TEST）
+ * 本版：生成 TOTP 时不再写入 issuer 参数；label 仅为备注名
  */
 (function(){
   if (window.__QR_OFFLINE_DEFINED__) return;
   window.__QR_OFFLINE_DEFINED__ = true;
 
-  // 等待 Nayuki 的 qrcodegen 出现（最多 waitMs 毫秒）
   function waitForNayuki(waitMs = 3000){
     return new Promise(resolve=>{
       if (window.qrcodegen && window.qrcodegen.QrCode) return resolve(true);
       let t = 0, step = 50;
       const timer = setInterval(()=>{
-        if (window.qrcodegen && window.qrcodegen.QrCode) {
-          clearInterval(timer); resolve(true);
-        } else if ((t += step) >= waitMs) {
-          clearInterval(timer); resolve(false);
-        }
+        if (window.qrcodegen && window.qrcodegen.QrCode) { clearInterval(timer); resolve(true); }
+        else if ((t += step) >= waitMs) { clearInterval(timer); resolve(false); }
       }, step);
     });
   }
 
-  // Nayuki -> Arase 风格轻适配（只暴露我们需要的 API）
   function attachShimIfNeeded(){
     if (typeof window.qrcode === 'function') return;
     if (!(window.qrcodegen && window.qrcodegen.QrCode)) return;
@@ -36,7 +31,6 @@
       return {
         addData(t){ _text += String(t); },
         make(){ _qr = window.qrcodegen.QrCode.encodeText(_text, _ecc); },
-        // SVG 输出
         createSvgTag(cellSize=4, margin=2){
           const count = _qr.size;
           const dim   = (count + margin*2) * cellSize;
@@ -53,7 +47,6 @@
   <g fill="#000">${rects}</g>
 </svg>`;
         },
-        // PNG DataURL 输出
         createDataURL(cellSize=4, margin=2){
           const count = _qr.size;
           const dim   = (count + margin*2) * cellSize;
@@ -84,42 +77,18 @@
       this.root.innerHTML = `
         <style>
           :host{ --accent:${accent}; display:block; max-width:450px; font-family:${font}; }
-          .card{
-            margin:20px 0; padding:14px;
-            color:var(--text, #0b1b34);
-            background:var(--card-bg, #eff6ff);
-            border:1px solid var(--card-border, #93c5fd);
-            border-radius:12px;
-          }
+          .card{ margin:20px 0; padding:14px; color:var(--text,#0b1b34); background:var(--card-bg,#eff6ff); border:1px solid var(--card-border,#93c5fd); border-radius:12px; }
           .row{ display:flex; align-items:flex-start; gap:10px; flex-wrap:wrap; }
-          label{ font-size:13px; color:var(--muted, #1e3a8a); line-height:28px; }
-          textarea{
-            flex:1 1 100%;
-            min-height:84px; max-height:132px;
-            padding:12px; border-radius:10px; outline:none;
-            border:1px solid var(--card-border, #93c5fd);
-            background:#fff; color:#0f172a; line-height:1.4; font-size:14px;
-            resize:vertical;
-          }
+          label{ font-size:13px; color:var(--muted,#1e3a8a); line-height:28px; }
+          textarea{ flex:1 1 100%; min-height:84px; max-height:132px; padding:12px; border-radius:10px; outline:none; border:1px solid var(--card-border,#93c5fd); background:#fff; color:#0f172a; line-height:1.4; font-size:14px; resize:vertical; }
           textarea::placeholder{ color:#94a3b8; }
           .btns{ display:flex; gap:10px; flex-wrap:wrap; }
-          button{
-            padding:12px 18px; border:none; border-radius:12px; cursor:pointer;
-            background:var(--button-bg, #1d4ed8);
-            color:var(--button-fg, #ffffff);
-            font-weight:var(--button-weight, 400); /* 不加粗 */
-            font-size:16px;
-          }
-          button.secondary{ background:var(--button-bg-2, #0b1b34); color:#ffffff; }
+          button{ padding:12px 18px; border:none; border-radius:12px; cursor:pointer; background:var(--button-bg,#1d4ed8); color:var(--button-fg,#ffffff); font-weight:var(--button-weight,400); font-size:16px; }
+          button.secondary{ background:var(--button-bg-2,#0b1b34); color:#ffffff; }
           button:active{ transform:translateY(1px); }
-          .msg{ margin-top:8px; font-size:13px; color:var(--muted, #1e3a8a); word-break:break-all; }
-          .result{
-            margin-top:12px; padding:10px; border-radius:10px; display:inline-block; text-align:center;
-            background:var(--result-bg, #ffffff); color:var(--result-fg, #000000);
-            border:1px dashed var(--card-border, #93c5fd);
-            max-width:100%;
-          }
-          .result img, .result svg{ display:block; max-width:100%; height:auto; margin:0 auto; }
+          .msg{ margin-top:8px; font-size:13px; color:var(--muted,#1e3a8a); word-break:break-all; }
+          .result{ margin-top:12px; padding:10px; border-radius:10px; display:inline-block; text-align:center; background:var(--result-bg,#ffffff); color:var(--result-fg,#000000); border:1px dashed var(--card-border,#93c5fd); max-width:100%; }
+          .result img,.result svg{ display:block; max-width:100%; height:auto; margin:0 auto; }
         </style>
         <div class="card">
           <div class="row">
@@ -140,12 +109,11 @@
 
       const clamp = (v,min,max)=>Math.max(min, Math.min(max, v));
       const size  = clamp(Number(this.getAttribute('size')||420), 240, 1024);
-      const eccIn = String(this.getAttribute('ecc')||'M').toUpperCase();  // L/M/Q/H
-      const fmt   = (this.getAttribute('format')||'svg').toLowerCase();   // svg|png
+      const eccIn = String(this.getAttribute('ecc')||'M').toUpperCase();
+      const fmt   = (this.getAttribute('format')||'svg').toLowerCase();
       const qzone = clamp(Number(this.getAttribute('qzone')||2), 0, 50);
 
-      const issuerAttr    = this.getAttribute('issuer')    || (location && location.host) || 'doremii.top';
-      const accountAttr   = this.getAttribute('account')   || 'user';
+      /* 原属性保持可读（不再用于 TOTP 生成展示名） */
       const digitsAttr    = String(this.getAttribute('digits') || '6');
       const periodAttr    = String(this.getAttribute('period') || '30');
       const algorithmAttr = (this.getAttribute('algorithm') || 'SHA1').toUpperCase();
@@ -157,7 +125,6 @@
       const msg  = $('.msg');
       const res  = $('.result');
 
-      // 等库，装 shim（失败也保留 UI 并提示）
       const ok = await waitForNayuki();
       if (!ok){
         msg.textContent = '未检测到 qrcodegen 库：请确认已先加载 /wp-content/uploads/qrcodegen-v1.8.0-es6.js';
@@ -172,11 +139,9 @@
         const qr = window.qrcode(0, eccIn);
         qr.addData(t); qr.make();
 
-        // 用一次 1px+0margin 的 SVG 推算模块数，再算 cellSize
         const tmp = qr.createSvgTag(1, 0);
         const m = tmp.match(/viewBox="0 0 (\d+) \1"/);
-        const count = m ? Number(m[1]) : 21; // fallback 21
-
+        const count = m ? Number(m[1]) : 21;
         const cell  = Math.max(1, Math.floor(size / (count + qzone*2)));
 
         res.innerHTML = '';
@@ -193,24 +158,26 @@
       };
 
       const normalizeBase32 = (raw)=>String(raw||'').replace(/[\s\-]/g,'').toUpperCase().replace(/[^A-Z2-7]/g,'').replace(/=+$/,'');
-      const buildTotpUri = (raw)=>{
+      // —— 关键改动：label=备注名；URI 不再包含 issuer=
+      const buildTotpUri = (raw, accountOverride)=>{
         const s = String(raw||'').trim();
         if (!s) return '';
-        if (s.startsWith('otpauth://')) return s;
-        const issuer  = this.getAttribute('issuer')  || issuerAttr;
-        const account = this.getAttribute('account') || accountAttr;
-        const digits  = this.getAttribute('digits')  || digitsAttr;
-        const period  = this.getAttribute('period')  || periodAttr;
-        const algo    = (this.getAttribute('algorithm')|| algorithmAttr).toUpperCase();
+        if (s.startsWith('otpauth://')) return s; // 粘贴完整 URI 时仍原样使用
+        const account = (accountOverride && accountOverride.trim()) || 'TEST';
+        const digits  = digitsAttr;
+        const period  = periodAttr;
+        const algo    = algorithmAttr;
         const secret  = normalizeBase32(s);
         if (!secret) return '';
-        const label = `${issuer}:${account}`;
-        return `otpauth://totp/${encodeURIComponent(label)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&digits=${encodeURIComponent(digits)}&period=${encodeURIComponent(period)}&algorithm=${encodeURIComponent(algo)}`;
+        const label = account; // 仅备注名
+        // 不包含 issuer 参数
+        return `otpauth://totp/${encodeURIComponent(label)}?secret=${secret}&digits=${encodeURIComponent(digits)}&period=${encodeURIComponent(period)}&algorithm=${encodeURIComponent(algo)}`;
       };
 
       const onCreate   = ()=> renderQR(ta.value);
       const onCreate2F = ()=>{
-        const uri = buildTotpUri(ta.value);
+        const nick = window.prompt('请输入 2FA 备注（可留空=TEST）', '');
+        const uri = buildTotpUri(ta.value, nick);
         if (!uri){ msg.textContent = '请输入有效的 TOTP 密钥（Base32），或完整的 otpauth:// URI'; res.innerHTML=''; ta.focus(); return; }
         renderQR(uri, 'TOTP • otpauth URI');
       };
@@ -227,10 +194,8 @@
     }
   }
 
-   // 只注册 doremi-qr-offline
+  // 只注册 doremi-qr-offline
   if (!customElements.get('doremi-qr-offline')) {
     customElements.define('doremi-qr-offline', DoreQROffline);
   }
-
 })();
-
