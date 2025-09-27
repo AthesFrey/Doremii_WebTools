@@ -159,3 +159,4 @@ class DoreBaseConverter extends BaseTool {
 if (!customElements.get('doremii-base-converter')) {
   customElements.define('doremii-base-converter', DoreBaseConverter);
 }
+
