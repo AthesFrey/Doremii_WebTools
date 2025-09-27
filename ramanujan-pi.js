@@ -107,7 +107,7 @@
         <div class="frame">
           <div class="card">
             <div class="formula" aria-hidden="true">
-              <div style="margin-bottom:6px; color:#334155;">Ramanujan series (1914):</div>
+              <div style="margin-bottom:6px; color:#334155;">Ramanujan series:</div>
               <math display="block">
                 <mrow>
                   <mfrac><mn>1</mn><mi>π</mi></mfrac>
