@@ -1,4 +1,4 @@
-/* qr-offline.js — 本地离线渲染 + 2FA（Nayuki ES6 外链）
+/* qr-creator-offline.js — 本地离线渲染 + 2FA（Nayuki ES6 外链）
  * 亮点：UI 先渲染；异步等待 qrcodegen 库；缺库时给出提示，不会整块消失
  * 主题：深蓝系；按钮不加粗；可多实例、可重复加载不冲突
  */
@@ -227,8 +227,10 @@
     }
   }
 
-  // 同一页面可能已有别的版本；两个标签名都尽量注册
-  if (!customElements.get('doremii-qr')) customElements.define('doremii-qr', DoreQROffline);
-  if (!customElements.get('doremi-qr-offline')) customElements.define('doremi-qr-offline', DoreQROffline);
+   // 只注册 doremi-qr-offline
+  if (!customElements.get('doremi-qr-offline')) {
+    customElements.define('doremi-qr-offline', DoreQROffline);
+  }
+
 })();
 
