@@ -1,18 +1,18 @@
 <?php
 /**
- * DoreCounter - self-hosted tiny pageview counter
+ * MisakaCounter - self-hosted tiny pageview counter
  * Place at webroot: /counter.php
- * Data dir: /wp-content/uploads/dorecounter/
- * Author: doremii.top helper
+ * Data dir: /wp-content/uploads/misaka-counter/
+ * Author: misaka helper
  */
 
 declare(strict_types=1);
 
 // ======= 可调参数 =======
-const DATA_DIR_REL = '/wp-content/uploads/dorecounter';
+const DATA_DIR_REL = '/wp-content/uploads/misaka-counter';
 const DATA_FILE    = 'counts.json';
-const SEEN_FILE    = 'seen.json';   // 用于 unique=1 时的IP去重
-const RETENTION_SECONDS = 172800;   // 2天，清理过期去重记录
+const SEEN_FILE    = 'seen.json';      // 用于 unique=1 时的IP去重
+const RETENTION_SECONDS = 172800;      // 2天，清理过期去重记录
 const LABEL_DEFAULT = 'Visits';
 // ========================
 
@@ -25,7 +25,7 @@ function resp_svg(string $svg): void {
     exit;
 }
 function resp_pixel(): void {
-    // 1x1 透明GIF
+    // 1x1 透明GIF（内嵌base64，无外链）
     header('Content-Type: image/gif');
     header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
     echo base64_decode('R0lGODlhAQABAPAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==');
@@ -62,9 +62,9 @@ function save_json_atomic(string $file, array $data): void {
     @rename($tmp, $file);
 }
 
-/** 简单清洗 key：只保留 a-zA-Z0-9_- 和斜杠，最长64 */
+/** 仅保留 a-zA-Z0-9_- 和斜杠，最长64；空则返回 'home' */
 function sanitize_key(string $k): string {
-    $k = preg_replace('/[^a-zA-Z0-9_\\-\\/]/', '', $k);
+    $k = preg_replace('/[^a-zA-Z0-9_\-\/]/', '', $k);
     if ($k === null) $k = '';
     if (strlen($k) > 64) $k = substr($k, 0, 64);
     return $k !== '' ? $k : 'home';
@@ -76,25 +76,49 @@ function path_from_referer(): string {
     if ($ref === '') return 'home';
     $p = parse_url($ref, PHP_URL_PATH);
     if (!is_string($p) || $p === '' ) return 'home';
-    // 去掉末尾斜杠
     if ($p !== '/' && str_ends_with($p, '/')) $p = rtrim($p, '/');
     return $p;
 }
 
-/** 生成徽章SVG（可读性好，体积小） */
-function svg_badge(string $label, string $value, string $fg = '#ffffff', string $bg = '#2563eb'): string {
+/** 校验 #rrggbb */
+function sanitize_color(string $c, string $default): string {
+    $c = trim($c);
+    if (preg_match('/^#[0-9a-fA-F]{6}$/', $c)) {
+        return strtolower($c);
+    }
+    return $default;
+}
+
+/** 限长 + 转义（用于 label） */
+function sanitize_label(string $s, int $maxLen = 64): string {
+    $s = trim($s);
+    if (mb_strlen($s, 'UTF-8') > $maxLen) {
+        $s = mb_substr($s, 0, $maxLen, 'UTF-8');
+    }
+    // 作为 SVG 文本 & 属性值都要安全
+    return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
+}
+
+/** 生成徽章SVG */
+function svg_badge(string $labelEsc, string $valueEsc, string $fg = '#ffffff', string $bg = '#2563eb'): string {
     $pad = 6;
     $font = 12; // px
-    $label_w = max(ceil(strlen($label) * 7), 40);
-    $val_w   = max(ceil(strlen($value) * 7), 40);
+
+    // 粗略宽度估计：英文 7px/字；中文等可能更宽，但这里只为简单、不引入外部字体
+    $label_len = strlen($labelEsc);
+    $value_len = strlen($valueEsc);
+    $label_w = max(ceil($label_len * 7), 40);
+    $val_w   = max(ceil($value_len * 7), 40);
+
     $w = $label_w + $val_w + $pad * 2;
     $h = 20;
     $label_x = $pad;
     $val_x   = $pad + $label_w;
     $y = 14;
 
+    // 注意：aria-label 同样使用已转义的 label/value
     $svg = <<<SVG
-<svg xmlns="http://www.w3.org/2000/svg" width="$w" height="$h" role="img" aria-label="$label: $value">
+<svg xmlns="http://www.w3.org/2000/svg" width="$w" height="$h" role="img" aria-label="$labelEsc: $valueEsc">
   <linearGradient id="g" x2="0" y2="100%">
     <stop offset="0" stop-color="#fff" stop-opacity=".1"/>
     <stop offset="1" stop-opacity=".1"/>
@@ -103,24 +127,23 @@ function svg_badge(string $label, string $value, string $fg = '#ffffff', string 
   <rect rx="4" x="$label_w" width="$val_w" height="$h" fill="$bg"/>
   <rect rx="4" width="$w" height="$h" fill="url(#g)"/>
   <g fill="$fg" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="$font">
-    <text x="$label_x" y="$y" fill="#fff" opacity=".95">$label</text>
-    <text x="$val_x"   y="$y" fill="#fff" font-weight="600">$value</text>
+    <text x="$label_x" y="$y" fill="#fff" opacity=".95">$labelEsc</text>
+    <text x="$val_x"   y="$y" fill="#fff" font-weight="600">$valueEsc</text>
   </g>
 </svg>
 SVG;
     return $svg;
 }
 
-/** 纯数字SVG（无底色，用于嵌入文字风格） */
-function svg_digits(string $value): string {
+/** 纯数字SVG（无底色） */
+function svg_digits(string $valueEsc): string {
     $font = 16;
-    $w = max(ceil(strlen($value) * 10), 10);
+    $w = max(ceil(strlen($valueEsc) * 10), 10);
     $h = 18;
     $y = 14;
-    $v = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
     return <<<SVG
 <svg xmlns="http://www.w3.org/2000/svg" width="$w" height="$h">
-  <text x="0" y="$y" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="$font" fill="#111">$v</text>
+  <text x="0" y="$y" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="$font" fill="#111">$valueEsc</text>
 </svg>
 SVG;
 }
@@ -134,16 +157,21 @@ $dataFile = $datadir . DIRECTORY_SEPARATOR . DATA_FILE;
 $seenFile = $datadir . DIRECTORY_SEPARATOR . SEEN_FILE;
 
 // 参数
-$key   = isset($_GET['key']) ? sanitize_key((string)$_GET['key']) : sanitize_key(path_from_referer());
-$show  = $_GET['show']   ?? 'badge';   // badge | digits | pixel
-$label = $_GET['label']  ?? LABEL_DEFAULT;
-$bg    = $_GET['bg']     ?? '#2563eb';
-$fg    = $_GET['fg']     ?? '#ffffff';
-$unique = isset($_GET['unique']) && ($_GET['unique'] === '1' || strtolower((string)$_GET['unique']) === 'true');
-$ip    = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
-$now   = time();
+$key     = isset($_GET['key']) ? sanitize_key((string)$_GET['key']) : sanitize_key(path_from_referer());
+$show    = $_GET['show']   ?? 'badge';     // badge | digits | pixel
+$labelRaw= $_GET['label']  ?? LABEL_DEFAULT;
+$bgRaw   = $_GET['bg']     ?? '#2563eb';
+$fgRaw   = $_GET['fg']     ?? '#ffffff';
+$unique  = isset($_GET['unique']) && ($_GET['unique'] === '1' || strtolower((string)$_GET['unique']) === 'true');
+$ip      = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+$now     = time();
 
-// 读取数据（加锁保证并发安全）
+// 转义/校验（仅这三项为此次“加固”）
+$labelEsc = sanitize_label((string)$labelRaw);
+$bg       = sanitize_color((string)$bgRaw, '#2563eb');
+$fg       = sanitize_color((string)$fgRaw, '#ffffff');
+
+// 读取数据
 $counts = load_json($dataFile);
 $seen   = $unique ? load_json($seenFile) : [];
 
@@ -181,18 +209,17 @@ if ($unique) save_json_atomic($seenFile, $seen);
 
 // 输出
 $countStr = (string)$counts[$key];
+$countEsc = htmlspecialchars($countStr, ENT_QUOTES, 'UTF-8');
 
 switch ($show) {
     case 'pixel':
         resp_pixel(); // 1x1透明像素
         break;
     case 'digits':
-        resp_svg(svg_digits($countStr));
+        resp_svg(svg_digits($countEsc));
         break;
     case 'badge':
     default:
-        // 徽章
-        $svg = svg_badge(is_string($label) ? $label : LABEL_DEFAULT, $countStr, (string)$fg, (string)$bg);
+        $svg = svg_badge($labelEsc, $countEsc, $fg, $bg);
         resp_svg($svg);
 }
-
