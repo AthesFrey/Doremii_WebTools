@@ -36,7 +36,9 @@
   .tool-title{
     color:#2563EB;
     font:600 var(--font-title)/1.25 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-    margin:0 0 8px 0;
+    text-align:center;            /* ← 标题文字居中 */
+    margin:0 auto 8px;            /* ← 限宽并水平居中 */
+    max-width:var(--maxw-card);   /*   与卡片同宽视觉更整齐 */
   }
 
   .card{
@@ -45,6 +47,9 @@
     border-radius:var(--radius);
     padding:var(--pad-card);
     max-width:var(--maxw-card);      /* 420 固定 */
+    width:100%;                      /* ← 在大屏下配合 max-width 收缩 */
+    margin:0 auto;                   /* ← 卡片水平居中 */
+    box-sizing:border-box;
     box-shadow:var(--shadow);
     font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
     color:var(--text);
