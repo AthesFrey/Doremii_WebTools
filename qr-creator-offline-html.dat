@@ -1,11 +1,11 @@
 <!-- 先：Nayuki 的 ES6 库（你已放到 uploads 目录） -->
 <script defer src="/wp-content/uploads/qrcodegen-v1.8.0-es6.js?v=1"></script>
 
-<!-- 后：我们的离线组件（上面那份 qr-offline.js） -->
+<!-- 后：你的离线组件脚本（文件名保持你现在的即可） -->
 <script defer src="/wp-content/uploads/qr-creator-offline.js?v=20250926_fix"></script>
 
 <h2 style="font-size:22px; color:#1e3a8a;">二维码生成器（离线 / Nayuki ES6）</h2>
-<doremii-qr
+<doremi-qr-offline
   accent="#1e3a8a"
   size="395"
   ecc="M"
@@ -28,4 +28,4 @@
     --result-bg:#ffffff;
     --result-fg:#000000;
   ">
-</doremii-qr>
+</doremi-qr-offline>
