@@ -1,77 +1,98 @@
 <!-- 载入脚本（记得每次改 JS 就改 ?v= 强刷缓存） -->
 <script defer src="/wp-content/uploads/doremii-tools.js?v=lovegod_20250902A"></script>
 
-<!-- 密码生成器（原样，无需改动） -->
-<h2 style="font-size: 22px; color: #FF8C00;">密码生成器</h2>
-<doremii-password
-  accent="#FF8C00"
-  length="16"
-  history="5"
-  style="
-    --card-bg: #FFF8DC;
-    --card-border: #BC8F8F;
-    --text: #0f172a;
-    --muted: #64748b;
-    --button-bg: #FFA500;
-    --button-fg: #000000;
-    --result-bg: #FFA500;
-    --result-fg: #000000;
-    --hist-bg: #FFF8DC;
-"></doremii-password>
+<!-- 统一居中样式（整组工具最大宽度可按需改 420/450） -->
+<style>
+  .tool-center { max-width: 420px; margin: 0 auto; }
 
-<!-- 姓名生成器（原样，无需改动） -->
-<h2 style="font-size: 22px; color: #D50068;">姓名生成器</h2>
-<doremii-name
-  accent="#D50068"
-  src="/wp-content/uploads/forbes.txt"
-  v="20250816"
-  history="5"
-  style="
-    --card-bg: #fff7ff;
-    --card-border: #f0d5ff;
-    --text: #3b0764;
-    --muted: #7e22ce;
-    --button-bg: #D50068;
-    --button-fg: #ffffff;
-    --result-bg: #D50068;
-    --result-fg: #ffffff;
-    --hist-bg: #FFF0F5;
-"></doremii-name>
+  /* 标题全部居中，并默认与上一个组件拉开距离（18px） */
+  .tool-center > h2 { text-align: center; margin: 18px 0 10px; }
 
-<!-- 幸运数字生成器（原样，无需改动） -->
-<h2 style="font-size: 22px; color: #1E90FF;">幸运数字生成器</h2>
-<doremii-lucky
-  accent="#1E90FF"
-  src="/wp-content/uploads/luckynums.txt"
-  v="20250816"
-  length="4"
-  history="5"
-  style="
-    --card-bg: #ADD8E6;
-    --card-border: #1E90FF;
-    --text: #000000;
-    --muted: #4682B4;
-    --button-bg: #1E90FF;
-    --button-fg: #ffffff;
-    --result-bg: #1E90FF;
-    --result-fg: #ffffff;
-    --hist-bg: #B0E0E6;
-"></doremii-lucky>
+  /* 组件标签水平居中 */
+  .tool-center > doremii-password,
+  .tool-center > doremii-name,
+  .tool-center > doremii-lucky,
+  .tool-center > doremii-uuid {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+</style>
 
-<!-- UUID 生成器（新增，清爽薄荷绿主题） -->
-<h2 style="font-size: 22px; color: #00B997;">UUID 生成器</h2>
-<doremii-uuid
-  accent="#00B997"
-  history="5"
-  style="
-    --card-bg: #E8FFF5;     /* very light mint */
-    --card-border: #00B997; /* mint green */
-    --text: #0f172a;
-    --muted: #0ea5a5;       /* teal-ish */
-    --button-bg: #00B997;
-    --button-fg: #ffffff;
-    --result-bg: #00B997;
-    --result-fg: #ffffff;
-    --hist-bg: #d1fae5;     /* light emerald */
-"></doremii-uuid>
+<div class="tool-center">
 
+  <!-- 密码生成器（把第一个标题单独把 margin-top 设为 0） -->
+  <h2 style="font-size: 22px; color: #FF8C00; margin-top:0;">密码生成器</h2>
+  <doremii-password
+    accent="#FF8C00"
+    length="16"
+    history="5"
+    style="
+      --card-bg: #FFF8DC;
+      --card-border: #BC8F8F;
+      --text: #0f172a;
+      --muted: #64748b;
+      --button-bg: #FFA500;
+      --button-fg: #000000;
+      --result-bg: #FFA500;
+      --result-fg: #000000;
+      --hist-bg: #FFF8DC;
+    "></doremii-password>
+
+  <!-- 姓名生成器 -->
+  <h2 style="font-size: 22px; color: #D50068;">姓名生成器</h2>
+  <doremii-name
+    accent="#D50068"
+    src="/wp-content/uploads/forbes.txt"
+    v="20250816"
+    history="5"
+    style="
+      --card-bg: #fff7ff;
+      --card-border: #f0d5ff;
+      --text: #3b0764;
+      --muted: #7e22ce;
+      --button-bg: #D50068;
+      --button-fg: #ffffff;
+      --result-bg: #D50068;
+      --result-fg: #ffffff;
+      --hist-bg: #FFF0F5;
+    "></doremii-name>
+
+  <!-- 幸运数字生成器 -->
+  <h2 style="font-size: 22px; color: #1E90FF;">幸运数字生成器</h2>
+  <doremii-lucky
+    accent="#1E90FF"
+    src="/wp-content/uploads/luckynums.txt"
+    v="20250816"
+    length="4"
+    history="5"
+    style="
+      --card-bg: #ADD8E6;
+      --card-border: #1E90FF;
+      --text: #000000;
+      --muted: #4682B4;
+      --button-bg: #1E90FF;
+      --button-fg: #ffffff;
+      --result-bg: #1E90FF;
+      --result-fg: #ffffff;
+      --hist-bg: #B0E0E6;
+    "></doremii-lucky>
+
+  <!-- UUID 生成器 -->
+  <h2 style="font-size: 22px; color: #00B997;">UUID 生成器</h2>
+  <doremii-uuid
+    accent="#00B997"
+    history="5"
+    style="
+      --card-bg: #E8FFF5;     /* very light mint */
+      --card-border: #00B997; /* mint green */
+      --text: #0f172a;
+      --muted: #0ea5a5;       /* teal-ish */
+      --button-bg: #00B997;
+      --button-fg: #ffffff;
+      --result-bg: #00B997;
+      --result-fg: #ffffff;
+      --hist-bg: #d1fae5;     /* light emerald */
+    "></doremii-uuid>
+
+</div>
