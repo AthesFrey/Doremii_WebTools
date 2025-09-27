@@ -1,0 +1,19 @@
+<!-- 载入 Ramanujan 工具脚本（注意每次改 JS 就改 ?v= 强刷缓存） -->
+<script defer src="/wp-content/uploads/ramanujan-pi.js?v=20250927_fix"></script>
+
+<!-- 拉马努金 π 工具 -->
+<h2 style="font-size:22px;color:#0EA5A5;">Ramanujan π（拉马努金进度器）</h2>
+<doremii-ramanujan
+  accent="#0EA5A5"
+  style="
+    --card-bg:#f0fffa;         /* 薄荷青背景 */
+    --card-border:#9ee6d7;     /* 柔和青边框 */
+    --text:#0f172a;            /* 深色文字 */
+    --muted:#64748b;           /* 次要文字 */
+    --button-bg:#0EA5A5;       /* 青色按钮 */
+    --button-fg:#ffffff;       /* 白字 */
+    --result-bg:#ffffff;       /* 结果底色 */
+    --result-fg:#111111;       /* 结果文字 */
+    --hist-bg:#e6ffea;         /* 预留：与家族保持一致 */
+  ">
+</doremii-ramanujan>
