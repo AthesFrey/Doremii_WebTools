@@ -1,8 +1,8 @@
-<!-- 先：Nayuki 的 ES6 库（你已放到 uploads 目录） -->
+<!-- 先：Nayuki 的 ES6 库 -->
 <script defer src="/wp-content/uploads/qrcodegen-v1.8.0-es6.js?v=1"></script>
 
-<!-- 后：你的离线组件脚本（文件名保持你现在的即可） -->
-<script defer src="/wp-content/uploads/qr-creator-offline.js?v=20250926_fix"></script>
+<!-- 后：离线组件脚本（上面的 JS 文件） -->
+<script defer src="/wp-content/uploads/qr-creator-offline.js?v=20250927_noIssuer"></script>
 
 <h2 style="font-size:22px; color:#1e3a8a;">二维码生成器（离线 / Nayuki ES6）</h2>
 <doremi-qr-offline
@@ -11,20 +11,19 @@
   ecc="M"
   format="svg"
   qzone="2"
-  issuer="doremii.top"
   account="user"
   digits="6"
   period="30"
   algorithm="SHA1"
   style="
-    --card-bg:#eff6ff;     /* 蓝50 */
-    --card-border:#93c5fd; /* 蓝300 */
-    --text:#0b1b36;        /* 深蓝文本 */
-    --muted:#1e3a8a;       /* 次级蓝 */
-    --button-bg:#1d5ed8;   /* 蓝700 */
-    --button-bg-2:#0b1b36; /* 第二按钮更深蓝 */
+    --card-bg:#eff6ff;
+    --card-border:#93c5fd;
+    --text:#0b1b36;
+    --muted:#1e3a8a;
+    --button-bg:#1d5ed8;
+    --button-bg-2:#0b1b36;
     --button-fg:#ffffff;
-    --button-weight:400;   /* 不加粗 */
+    --button-weight:400;
     --result-bg:#ffffff;
     --result-fg:#000000;
   ">
