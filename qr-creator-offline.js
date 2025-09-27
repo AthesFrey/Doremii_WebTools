@@ -1,6 +1,6 @@
 /* qr-creator-offline.js — 本地离线渲染 + 2FA（Nayuki ES6 外链）
- * 仅在“2FA QR”处弹出备注对话框（留空=TEST）
- * 本版：20050927 生成 TOTP 时不再写入 issuer 参数；label 仅为备注名
+ * 20250927 仅在“2FA QR”处弹出备注对话框（留空=TEST）
+ * 本版：生成 TOTP 时不再写入 issuer 参数；label 仅为备注名
  */
 (function(){
   if (window.__QR_OFFLINE_DEFINED__) return;
@@ -199,4 +199,3 @@
     customElements.define('doremi-qr-offline', DoreQROffline);
   }
 })();
-
