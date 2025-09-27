@@ -1,0 +1,8 @@
+<div class="misaka-counter" style="display:inline-block;">
+  <img
+    src="/counter.php?unique=1&label=Visits%3A"
+    alt="visits"
+    referrerpolicy="strict-origin"
+    loading="lazy"
+    decoding="async">
+</div>
