@@ -1,68 +1,126 @@
-
-// dev-process.js  —  Programmer Calculator (finalized behavior)
-// - No 5s binary flash; factor input stays decimal
-// - Factor's binary is shown to the right badge as ='XXX'b
-// - Uses BigInt for correctness; supports very large non-negative integers
-// - Results area shows Decimal/Hex/Binary with working copy buttons
-
-
+// dev-process.js — split + copy保留空格 + hex ccase + 按钮同尺寸
 document.addEventListener('DOMContentLoaded', () => {
   const $ = (id) => document.getElementById(id);
 
-  // ----- Helpers -----
+  // ========== 通用工具 ==========
   function parseUintToBigInt(str) {
-    str = String(str ?? '').trim();
+    // 支持分组后有空格
+    str = String(str ?? '').replace(/\s+/g, '').trim();
     if (/^\d+$/.test(str)) return BigInt(str);
     return null;
   }
   const toHex = (bi) => bi.toString(16).toUpperCase();
   const toBin = (bi) => bi.toString(2);
-
   function alertIf(cond, msg) { if (cond) { alert(msg); return true; } return false; }
 
-  // ----- Top 3 conversions -----
+  // ========== 4位分组 ==========
+  function groupBy4(str) {
+    const raw = String(str || '').replace(/\s+/g, '');
+    if (!raw) return '';
+    let out = '';
+    let cnt = 0;
+    for (let i = raw.length - 1; i >= 0; i--) {
+      out = raw[i] + out;
+      cnt++;
+      if (cnt === 4 && i !== 0) {
+        out = ' ' + out;
+        cnt = 0;
+      }
+    }
+    return out;
+  }
+  function toggleSplitOnInput(inputId) {
+    const el = $(inputId);
+    if (!el) return;
+    const raw = (el.value || '').replace(/\s+/g, '');
+    if (!raw) return;
+    if (el.dataset.split === '1') {
+      el.value = raw;
+      el.dataset.split = '0';
+    } else {
+      el.value = groupBy4(raw);
+      el.dataset.split = '1';
+    }
+  }
+
+  // ========== 三个转换 ==========
   $('decimal-convert').addEventListener('click', () => {
     const dec = parseUintToBigInt($('decimal-input').value);
     if (alertIf(dec === null, '请输入有效的十进制非负整数')) return;
-    $('hex-input').value    = toHex(dec);
+    $('hex-input').value = toHex(dec);
+    $('hex-input').dataset.split = '0';
     $('binary-input').value = toBin(dec);
+    $('binary-input').dataset.split = '0';
   });
 
   $('hex-convert').addEventListener('click', () => {
-    const val = $('hex-input').value.trim();
+    const val = $('hex-input').value.replace(/\s+/g, '').trim();
     if (alertIf(!/^[0-9A-Fa-f]+$/.test(val), '请输入有效的十六进制（0-9 A-F）')) return;
     const dec = BigInt('0x' + val);
     $('decimal-input').value = dec.toString(10);
-    $('binary-input').value  = toBin(dec);
+    $('decimal-input').dataset.split = '0';
+    $('binary-input').value = toBin(dec);
+    $('binary-input').dataset.split = '0';
   });
 
   $('binary-convert').addEventListener('click', () => {
-    const val = $('binary-input').value.trim();
+    const val = $('binary-input').value.replace(/\s+/g, '').trim();
     if (alertIf(!/^[01]+$/.test(val), '请输入有效的二进制（0/1）')) return;
     const dec = BigInt('0b' + val);
     $('decimal-input').value = dec.toString(10);
-    $('hex-input').value     = toHex(dec);
+    $('decimal-input').dataset.split = '0';
+    $('hex-input').value = toHex(dec);
+    $('hex-input').dataset.split = '0';
   });
 
-  // ----- Copy for input fields -----
+  // ========== 复制：保留当前显示（含空格） ==========
   function copyInput(id, btn) {
     const el = $(id);
-    el.focus(); el.select();
+    const textToCopy = el.value || '';
     try {
-      const ok = document.execCommand('copy');
-      if (!ok && navigator.clipboard?.writeText) {
-        navigator.clipboard.writeText(el.value || '');
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(textToCopy);
+      } else {
+        el.focus();
+        el.select();
+        document.execCommand('copy');
       }
     } catch (e) {
-      if (navigator.clipboard?.writeText) navigator.clipboard.writeText(el.value || '');
+      /* ignore */
     }
-    if (btn) { const old = btn.textContent; btn.textContent = 'copied'; setTimeout(() => btn.textContent = 'copy', 900); }
+    if (btn) {
+      const old = btn.textContent;
+      btn.textContent = 'copied';
+      setTimeout(() => { btn.textContent = old; }, 900);
+    }
   }
   $('decimal-copy').addEventListener('click', (e) => copyInput('decimal-input', e.currentTarget));
   $('hex-copy').addEventListener('click',     (e) => copyInput('hex-input', e.currentTarget));
   $('binary-copy').addEventListener('click',  (e) => copyInput('binary-input', e.currentTarget));
 
-  // ----- Factor binary preview badge (right side) -----
+  // ========== split 按钮 ==========
+  if ($('decimal-split')) $('decimal-split').addEventListener('click', () => toggleSplitOnInput('decimal-input'));
+  if ($('hex-split'))     $('hex-split').addEventListener('click', () => toggleSplitOnInput('hex-input'));
+  if ($('binary-split'))  $('binary-split').addEventListener('click', () => toggleSplitOnInput('binary-input'));
+
+  // ========== hex ccase 按钮 ==========
+  if ($('hex-ccase')) {
+    $('hex-ccase').addEventListener('click', () => {
+      const el = $('hex-input');
+      if (!el) return;
+      const val = el.value || '';
+
+      // 有小写 -> 全变大写；否则如果有大写 -> 全变小写；都没有就不动
+      if (/[a-f]/.test(val)) {
+        el.value = val.replace(/[a-f]/g, (c) => c.toUpperCase());
+      } else if (/[A-F]/.test(val)) {
+        el.value = val.replace(/[A-F]/g, (c) => c.toLowerCase());
+      }
+      // 不改 el.dataset.split，这样你要再 split 还是手动点
+    });
+  }
+
+  // ========== factor & 位运算 ==========
   function ensureFactorBadge() {
     const input = $('factor-input');
     let badge = document.getElementById('factor-binary-preview');
@@ -75,18 +133,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     return badge;
   }
-  
-  
-  // ----- Factor binary preview badge (right side) -----
   function showFactorBinaryPreview(B) {
     const badge = ensureFactorBadge();
-    const bin = toBin(B);      // 二进制
-    const hex = toHex(B);      // 十六进制
+    const bin = toBin(B);
+    const hex = toHex(B);
     badge.textContent = `='${bin}'b ='${hex}'h`;
   }
 
-
-  // ----- Results rendering and copy (event delegation) -----
   function renderResults(opName, decBI) {
     const decStr = decBI.toString(10);
     const hexStr = toHex(decBI);
@@ -120,7 +173,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch {}
   });
 
-  // ----- Bitwise ops using BigInt (align to MATLAB style for non-negative ints) -----
   function getOperands() {
     const A = parseUintToBigInt($('decimal-input').value);
     const B = parseUintToBigInt($('factor-input').value);
@@ -152,8 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-/* === layout tweak (non-breaking): move each Convert button next to its copy below,
-   and free width for the input above. Safe to remove any time. === */
+// ========== 原来的布局补丁，保留 ==========
 (function(){
   function relocateConvertButtons(){
     var $ = function(id){ return document.getElementById(id); };
@@ -162,19 +213,16 @@ document.addEventListener('DOMContentLoaded', () => {
       { convert: 'hex-convert',     copy: 'hex-copy',     input: 'hex-input'     },
       { convert: 'binary-convert',  copy: 'binary-copy',  input: 'binary-input'  }
     ];
-    pairs.forEach(function(p){
+    pairs.forEach(function (p) {
       var convertBtn = $(p.convert);
-      var copyBtn    = $(p.copy);
-      var inputEl    = $(p.input);
-
-      // Move Convert to the same row as copy (to the left side)
+      var copyBtn = $(p.copy);
+      var inputEl = $(p.input);
       if (convertBtn && copyBtn && copyBtn.parentElement) {
         try {
           copyBtn.parentElement.insertBefore(convertBtn, copyBtn);
           convertBtn.style.marginRight = '8px';
-        } catch (e) { /* noop */ }
+        } catch (e) {}
       }
-      // Let the input field take the full width on the row above
       if (inputEl) {
         inputEl.style.flex = '1 1 100%';
         inputEl.style.width = '100%';
@@ -189,30 +237,29 @@ document.addEventListener('DOMContentLoaded', () => {
     relocateConvertButtons();
   }
 })();
-// === end layout tweak ===
 
 
-/* === style tweak: enlarge convert/copy and bitwise buttons uniformly (height-matched) === */
+// ========== 样式补丁：把 ccase 也加进去，跟 copy/split 一样大 ==========
 (function(){
   function injectSizingStyles(){
     var css = ""
     + "#decimal-convert, #hex-convert, #binary-convert,"
     + " #decimal-copy, #hex-copy, #binary-copy,"
+    + " #decimal-split, #hex-split, #binary-split,"
+    + " #hex-ccase,"
     + " #result-box .btn.copy {"
     + "  font-size: 16px;"
     + "  line-height: 1.15;"
     + "  min-height: 40px;"
     + "  padding-top: 8px; padding-bottom: 8px;"
-    + "}"
+    + " }"
     + "#bitand-btn, #bitor-btn, #bitxor-btn {"
     + "  font-size: 16px;"
     + "  line-height: 1.15;"
     + "  min-height: 40px;"
     + "  padding-top: 8px; padding-bottom: 8px;"
-    + "  /* 不调整横向尺寸；不设 padding-left/right 保持当前宽度 */"
-    + "}";
+    + " }";
     var style = document.createElement('style');
-    style.setAttribute('data-progcalc-sizing','1');
     style.textContent = css;
     document.head.appendChild(style);
   }
@@ -222,6 +269,3 @@ document.addEventListener('DOMContentLoaded', () => {
     injectSizingStyles();
   }
 })();
-// === end style tweak ===
-
-
