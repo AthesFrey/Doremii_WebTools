@@ -1,6 +1,6 @@
-<!-- 程序员计算器（太空蓝·420 版） -->
+<!-- 程序员计算器（太空蓝·426 版） -->
 <!-- 每次更新 JS 请改 ?v= 强制刷新缓存；JS 文件保持现版不变 -->
-<script defer src="/wp-content/uploads/dev-process.js?v=20250817f"></script>
+<script defer src="/wp-content/uploads/dev-process.js?v=20251106a"></script>
 
 <style>
   :root{
@@ -145,6 +145,7 @@
     <input id="decimal-input" type="text" placeholder="输入十进制（非负整数）" />
     <button id="decimal-convert" class="btn convert">Convert</button>
     <button id="decimal-copy" class="btn copy">copy</button>
+    <button id="decimal-split" class="btn copy">split</button>
   </div>
   <div id="decimal-error" class="error"></div>
 
@@ -153,7 +154,11 @@
     <input id="hex-input" type="text" placeholder="输入十六进制（如: 1A3F）" />
     <button id="hex-convert" class="btn convert">Convert</button>
     <button id="hex-copy" class="btn copy">copy</button>
+    <button id="hex-split" class="btn copy">split</button>
+    <!-- 新增：大小写切换 -->
+    <button id="hex-ccase" class="btn copy">ccase</button>
   </div>
+
   <div id="hex-error" class="error"></div>
 
   <div class="row">
@@ -161,6 +166,7 @@
     <input id="binary-input" type="text" placeholder="输入二进制（如: 101101）" />
     <button id="binary-convert" class="btn convert">Convert</button>
     <button id="binary-copy" class="btn copy">copy</button>
+    <button id="binary-split" class="btn copy">split</button>
   </div>
   <div id="binary-error" class="error"></div>
 
