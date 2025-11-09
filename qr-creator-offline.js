@@ -1,5 +1,5 @@
 /* qr-creator-offline.js — 本地离线渲染 + 2FA（Nayuki ES6 外链）
- * 20250927 仅在“2FA QR”处弹出备注对话框（留空=TEST）
+ * 20251109 仅在“2FA QR”处弹出备注对话框（留空=TEST）
  * 本版：生成 TOTP 时不再写入 issuer 参数；label 仅为备注名
  */
 (function(){
@@ -85,6 +85,8 @@
           .btns{ display:flex; gap:10px; flex-wrap:wrap; }
           button{ padding:12px 18px; border:none; border-radius:12px; cursor:pointer; background:var(--button-bg,#1d4ed8); color:var(--button-fg,#ffffff); font-weight:var(--button-weight,400); font-size:16px; }
           button.secondary{ background:var(--button-bg-2,#0b1b34); color:#ffffff; }
+          /* 新增的大小写切换按钮颜色 */
+          button.ccase{ background:#f97316; color:#ffffff; }
           button:active{ transform:translateY(1px); }
           .msg{ margin-top:8px; font-size:13px; color:var(--muted,#1e3a8a); word-break:break-all; }
           .result{ margin-top:12px; padding:10px; border-radius:10px; display:inline-block; text-align:center; background:var(--result-bg,#ffffff); color:var(--result-fg,#000000); border:1px dashed var(--card-border,#93c5fd); max-width:100%; }
@@ -97,6 +99,7 @@
             <div class="btns">
               <button class="create">Create QR</button>
               <button class="create2fa secondary" title="将输入当作TOTP密钥，拼成 otpauth://totp/... 生成二维码">2FA QR</button>
+              <button class="ccase" title="在大写/小写之间切换">ccase</button>
             </div>
           </div>
           <div class="msg"></div>
@@ -119,11 +122,12 @@
       const algorithmAttr = (this.getAttribute('algorithm') || 'SHA1').toUpperCase();
 
       const $ = s => this.root.querySelector(s);
-      const ta   = $('textarea');
-      const btn  = $('.create');
-      const btn2 = $('.create2fa');
-      const msg  = $('.msg');
-      const res  = $('.result');
+      const ta     = $('textarea');
+      const btn    = $('.create');
+      const btn2   = $('.create2fa');
+      const btn3   = $('.ccase');
+      const msg    = $('.msg');
+      const res    = $('.result');
 
       const ok = await waitForNayuki();
       if (!ok){
@@ -182,8 +186,23 @@
         renderQR(uri, 'TOTP • otpauth URI');
       };
 
+      // 新增：大小写切换
+      let _isUpper = false;
+      const onToggleCase = ()=>{
+        const v = ta.value;
+        if (!v) return;
+        if (!_isUpper) {
+          ta.value = v.toUpperCase();
+        } else {
+          ta.value = v.toLowerCase();
+        }
+        _isUpper = !_isUpper;
+      };
+
       btn.addEventListener('click', onCreate, {passive:true});
       btn2.addEventListener('click', onCreate2F, {passive:true});
+      btn3.addEventListener('click', onToggleCase, {passive:true});
+
       ta.addEventListener('keydown', e=>{
         if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); onCreate(); }
         else if (e.key === 'Enter' && e.shiftKey) { e.preventDefault(); onCreate2F(); }
