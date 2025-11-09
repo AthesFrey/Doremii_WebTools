@@ -1,15 +1,13 @@
 <!-- 先：Nayuki 的 ES6 库 -->
 <script defer src="/wp-content/uploads/qrcodegen-v1.8.0-es6.js?v=1"></script>
 
-<!-- 后：离线组件脚本（上面的 JS 文件） -->
-<script defer src="/wp-content/uploads/qr-creator-offline.js?v=20250927_noIssuer"></script>
+<!-- 后：离线组件脚本（更新后的 JS 文件） -->
+<script defer src="/wp-content/uploads/qr-creator-offline.js?v=20251109_noIssuer_ccase"></script>
 
-<!-- 标题居中 + 限宽（与卡片一致更整齐） -->
 <h2 style="font-size:22px; color:#1e3a8a; text-align:center; margin:0 auto 10px; max-width:420px;">
   二维码生成器（离线 / Nayuki ES6）
 </h2>
 
-<!-- 组件水平居中 -->
 <doremi-qr-offline
   accent="#1e3a8a"
   size="395"
@@ -32,8 +30,11 @@
     --result-bg:#ffffff;
     --result-fg:#000000;
 
-    display:block;        /* 兜底为块级元素 */
-    margin:0 auto;        /* ← 水平居中 */
-    max-width:420px;      /* 与标题一致，可按需改 450 等 */
+    display:block;
+    margin:0 auto;
+    max-width:420px;
   ">
 </doremi-qr-offline>
+
+
+
