@@ -1,0 +1,31 @@
+<!-- 引用 JS（注意版本号） -->
+<script defer src="/wp-content/uploads/text-recorder.js?v=20251116PM"></script>
+
+<h2 style="
+  font-size:22px;
+  color:#2E7D32;
+  text-align:center;
+  margin:0 auto 10px;
+  max-width:425px;
+">
+  在线 Text 记录器
+</h2>
+
+<doremii-text-recorder
+  accent="#4CAF50"
+  style="
+    /* 琥珀绿色系 */
+    --card-bg:#E8F5E9;
+    --card-border:#A5D6A7;
+    --text:#1B5E20;
+    --button-bg:#4CAF50;
+    --button-fg:#ffffff;
+    --result-bg:#FFB74D;
+    --result-fg:#3E2723;
+    --hist-bg:#F1F8E9;
+
+    display:block;
+    margin:0 auto;
+    max-width:425px;
+  ">
+</doremii-text-recorder>
