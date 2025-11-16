@@ -1,0 +1,30 @@
+<script defer src="/wp-content/uploads/file-recorder.js?v=20251116limit_multi"></script>
+
+<h2 style="
+  font-size:22px;
+  color:#4A148C;
+  text-align:center;
+  margin:0 auto 10px;
+  max-width:425px;
+">
+  临时网盘
+</h2>
+
+<doremii-file-recorder
+  accent="#7E57C2"
+  style="
+    /* 贵族紫色系 */
+    --card-bg:#F3E5F5;
+    --card-border:#CE93D8;
+    --text:#4A148C;
+    --button-bg:#7E57C2;
+    --button-fg:#ffffff;
+    --result-bg:#D1C4E9;
+    --result-fg:#311B92;
+    --hist-bg:#F8EAF6;
+
+    display:block;
+    margin:0 auto;
+    max-width:425px;
+  ">
+</doremii-file-recorder>
