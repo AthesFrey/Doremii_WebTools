@@ -122,11 +122,11 @@ if ($method === 'POST' && stripos($contentType, 'multipart/form-data') !== false
     // 确保 temp 目录存在且可写
     if (!is_dir($BASE_DIR)) {
         if (!mkdir($BASE_DIR, 0770, true) && !is_dir($BASE_DIR)) {
-            respond_error('无法创建目录 ' . $BASE_DIR . '，请检查权限。', 500);
+            respond_error('无法创建目录，请检查权限。', 500);
         }
     }
     if (!is_writable($BASE_DIR)) {
-        respond_error('目录 ' . $BASE_DIR . ' 不可写，请检查 PHP 运行用户对该目录的写权限。', 500);
+        respond_error('存储目录不可写，请检查 PHP 运行用户的写入权限。', 500);
     }
 
     // 取原始文件后缀
@@ -171,12 +171,12 @@ if ($action === 'check_fetch') {
     $code = validate_code($data['code'] ?? '', $MAX_CODE_LEN);
 
     if (!is_dir($BASE_DIR)) {
-        respond_error('目录 ' . $BASE_DIR . ' 不存在，请先通过“临时网盘”上传文件。', 500);
+        respond_error('无法创建存储目录，请检查权限。', 500);
     }
 
     $paths = find_files_by_code_all($BASE_DIR, $code);
     if (empty($paths)) {
-        respond_error('未在 ' . $BASE_DIR . ' 中找到以 "' . $code . '" 命名的文件。', 404);
+        respond_error('未找到以 "' . $code . '" 命名的文件，请检查取回密码是否正确。', 404);
     }
 
     $files = [];
@@ -205,3 +205,4 @@ if ($action === 'check_fetch') {
 
 // 其他未知 action
 respond_error('未知 action 参数。', 400);
+
