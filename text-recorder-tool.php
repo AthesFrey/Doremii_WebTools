@@ -57,7 +57,7 @@ if (!is_dir($BASE_DIR)) {
         http_response_code(500);
         echo json_encode([
             'ok'    => false,
-            'error' => '无法创建目录 ' . $BASE_DIR . '，请检查权限。',
+            'error' => '无法创建文件目录，请检查权限。',
         ], JSON_UNESCAPED_UNICODE);
         exit;
     }
@@ -68,7 +68,7 @@ if (!is_writable($BASE_DIR)) {
     http_response_code(500);
     echo json_encode([
         'ok'    => false,
-        'error' => '目录 ' . $BASE_DIR . ' 不可写，请检查 PHP 运行用户对该目录的写权限。',
+        'error' => '目录不可写，请检查 PHP 运行用户对该目录的写权限。',
     ], JSON_UNESCAPED_UNICODE);
     exit;
 }
@@ -94,7 +94,7 @@ if ($action === 'save') {
         http_response_code(500);
         echo json_encode([
             'ok'    => false,
-            'error' => '写入文件失败，请检查 ' . $BASE_DIR . ' 的权限。',
+            'error' => '写入文件失败，请检查文件目录的权限。',
         ], JSON_UNESCAPED_UNICODE);
         exit;
     }
@@ -126,3 +126,4 @@ if ($action === 'fetch') {
 http_response_code(400);
 echo json_encode(['ok' => false, 'error' => '未知 action 参数。'], JSON_UNESCAPED_UNICODE);
 exit;
+
