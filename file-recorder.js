@@ -201,7 +201,6 @@ class DoreFileRecorder extends BaseTool {
 
         alert(
           '上传成功！\n\n' +
-          '服务器保存目录：\n' + destDir + '\n' +
           '服务器文件名：\n' + serverF + '\n\n' +
           '以后可以用 fetch code：' + code + ' 取回该文件。'
         );
@@ -293,3 +292,4 @@ class DoreFileRecorder extends BaseTool {
 if (!customElements.get('doremii-file-recorder')) {
   customElements.define('doremii-file-recorder', DoreFileRecorder);
 }
+
