@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Concentration Exercise</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Microsoft YaHei", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f2f2f8;
+    }
+
+    .ce2-wrapper {
+      max-width: 960px;
+      margin: 40px auto;
+      padding: 24px;
+      background: #f7f7fb;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+
+    .ce2-canvas-container {
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    #ce2-canvas {
+      display: block;
+      width: 100%;
+      max-width: 900px;
+      height: auto;
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .ce2-controls {
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      row-gap: 12px;
+      column-gap: 16px;
+      align-items: center;
+      font-size: 16px;
+    }
+
+    .ce2-controls label {
+      white-space: nowrap;
+    }
+
+    .ce2-controls input[type="range"] {
+      width: 100%;
+    }
+
+    .ce2-row-full {
+      grid-column: 1 / 3;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .ce2-row-full select {
+      padding: 4px 8px;
+      font-size: 15px;
+    }
+
+    .ce2-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 15px;
+    }
+
+    /* 两个按钮统一样式 */
+    #ce2-reset,
+    #ce2-readme {
+      padding: 6px 16px;
+      font-size: 15px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      background: #ffffff;
+      cursor: pointer;
+    }
+
+    #ce2-reset:hover,
+    #ce2-readme:hover {
+      background: #e9e9f5;
+    }
+
+    /* Readme 弹窗 */
+    #ce2-readme-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      font-family: "Microsoft YaHei", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    #ce2-readme-overlay.active {
+      display: flex;
+    }
+
+    .ce2-readme-dialog {
+      background: #ffffff;
+      max-width: 640px;
+      width: 90%;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+    }
+
+    .ce2-readme-header {
+      padding: 10px 16px;
+      background: #f4f4fb;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    #ce2-readme-close {
+      border: none;
+      background: transparent;
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .ce2-readme-body {
+      padding: 16px 18px 18px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #333;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+
+    .ce2-readme-body p {
+      margin-top: 0;
+      margin-bottom: 10px;
+      text-indent: 2em;
+    }
+  </style>
+</head>
+<body>
+  <div class="ce2-wrapper">
+    <div class="ce2-canvas-container">
+      <canvas id="ce2-canvas" width="900" height="260"></canvas>
+    </div>
+
+    <div class="ce2-controls">
+      <label for="ce2-diameter">Diameter</label>
+      <input id="ce2-diameter" type="range" min="80" max="260" value="200">
+
+      <label for="ce2-distance">Distance</label>
+      <input id="ce2-distance" type="range" min="120" max="450" value="260">
+
+      <label for="ce2-offset">Vertical offset</label>
+      <input id="ce2-offset" type="range" min="-120" max="120" value="0">
+
+      <div class="ce2-row-full">
+        <label for="ce2-colorPair">Color</label>
+        <select id="ce2-colorPair">
+          <option value="0">Orange/blue</option>
+          <option value="1">Red/cyan</option>
+          <option value="2">Yellow/purple</option>
+          <option value="3">Green/pink</option>
+          <option value="4">Blue/red</option>
+        </select>
+
+        <label class="ce2-inline">
+          <input type="checkbox" id="ce2-swap">
+          Swap
+        </label>
+
+        <button id="ce2-reset" type="button">Reset values</button>
+        <button id="ce2-readme" type="button">Readme</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Readme 弹出层 -->
+  <div id="ce2-readme-overlay">
+    <div class="ce2-readme-dialog">
+      <div class="ce2-readme-header">
+        <span>专注力练习使用说明</span>
+        <button id="ce2-readme-close" type="button">&times;</button>
+      </div>
+      <div class="ce2-readme-body">
+        <p>将练习图放在你前方大约 1 米处，伸出一只手，让一根手指位于两个圆圈之间并略低于圆圈位置。把注意力只集中在指尖上，不要看圆圈，你会先看到 4 个圆圈。然后慢慢调整视线，使中间两个圆圈重叠，在指尖正上方、两个圆圈中间的位置，会出现一个“白色十字”。通过微调手指与眼睛的距离，让这个十字变得清晰、稳定，并尽量保持 3–5 分钟；一开始十字会晃动不稳，能稳定坚持几分钟已经很好，专注 10–15 分钟往往需要几个月的训练。</p>
+        <p>这项练习由汤姆·查尔科博士提出，目的是刺激并训练大脑左右半球之间的沟通，从而增强意识的“处理能力”，据说其灵感源自“外星文明”。当你看到那个并不存在于实际图像中的白色十字时，说明左半球（连接右眼）和右半球（连接左眼）正在同步协作，这个十字只存在于你的意识之中。练习被认为对身心非常有益，只需大约 5 分钟，就能促进身体的自我修复和再生，被视为比普通冥想更快速、更高效的一种专注与大脑整合训练。</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const canvas = document.getElementById('ce2-canvas');
+      const ctx = canvas.getContext('2d');
+
+      const diameterInput = document.getElementById('ce2-diameter');
+      const distanceInput = document.getElementById('ce2-distance');
+      const offsetInput   = document.getElementById('ce2-offset');
+      const colorSelect   = document.getElementById('ce2-colorPair');
+      const swapCheckbox  = document.getElementById('ce2-swap');
+      const resetBtn      = document.getElementById('ce2-reset');
+
+      const readmeBtn     = document.getElementById('ce2-readme');
+      const readmeOverlay = document.getElementById('ce2-readme-overlay');
+      const readmeClose   = document.getElementById('ce2-readme-close');
+
+      const colorPairs = [
+        { left: '#ff9900', right: '#0000ff' }, // Orange / blue
+        { left: '#ff0000', right: '#00ffff' }, // Red / cyan
+        { left: '#ffd800', right: '#8000ff' }, // Yellow / purple
+        { left: '#00aa00', right: '#ff66aa' }, // Green / pink
+        { left: '#0000ff', right: '#ff0000' }  // Blue / red
+      ];
+
+      const defaults = {
+        diameter: 200,
+        distance: 260,
+        offset:   0,
+        colorIdx: 0,
+        swapped:  false
+      };
+
+      function currentColors() {
+        const idx = parseInt(colorSelect.value, 10) || 0;
+        const pair = colorPairs[idx] || colorPairs[0];
+        if (swapCheckbox.checked) {
+          return { left: pair.right, right: pair.left };
+        }
+        return { left: pair.left, right: pair.right };
+      }
+
+      function drawCircleWithVerticalGap(cx, cy, radius, fillColor) {
+        const gap = radius * 0.33;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.clip();
+
+        ctx.fillStyle = fillColor;
+        ctx.fillRect(cx - radius - 2, cy - radius - 2, radius * 2 + 4, radius * 2 + 4);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(cx - gap / 2, cy - radius - 4, gap, radius * 2 + 8);
+
+        ctx.restore();
+      }
+
+      function drawCircleWithHorizontalGap(cx, cy, radius, fillColor) {
+        const gap = radius * 0.33;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.clip();
+
+        ctx.fillStyle = fillColor;
+        ctx.fillRect(cx - radius - 2, cy - radius - 2, radius * 2 + 4, radius * 2 + 4);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(cx - radius - 4, cy - gap / 2, radius * 2 + 8, gap);
+
+        ctx.restore();
+      }
+
+      function draw() {
+        const diameter = parseInt(diameterInput.value, 10);
+        const distance = parseInt(distanceInput.value, 10);
+        const offset   = parseInt(offsetInput.value, 10);
+
+        const radius = diameter / 2;
+
+        const colors = currentColors();
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+
+        const maxDistance = canvas.width - 2 * radius - 60;
+        const d = Math.min(Math.max(distance, 100), maxDistance);
+
+        const leftX  = cx - d / 2;
+        const rightX = cx + d / 2;
+        const leftY  = cy - offset / 2;
+        const rightY = cy + offset / 2;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        drawCircleWithVerticalGap(leftX,  leftY,  radius, colors.left);
+        drawCircleWithHorizontalGap(rightX, rightY, radius, colors.right);
+      }
+
+      function attachEvents() {
+        const inputs = [
+          diameterInput,
+          distanceInput,
+          offsetInput,
+          colorSelect,
+          swapCheckbox
+        ];
+
+        inputs.forEach(el => {
+          el.addEventListener('input', draw);
+          el.addEventListener('change', draw);
+        });
+
+        resetBtn.addEventListener('click', function () {
+          diameterInput.value = defaults.diameter;
+          distanceInput.value = defaults.distance;
+          offsetInput.value   = defaults.offset;
+          colorSelect.value   = String(defaults.colorIdx);
+          swapCheckbox.checked = defaults.swapped;
+          draw();
+        });
+
+        // Readme 相关事件
+        function openReadme() {
+          readmeOverlay.classList.add('active');
+        }
+
+        function closeReadme() {
+          readmeOverlay.classList.remove('active');
+        }
+
+        readmeBtn.addEventListener('click', openReadme);
+        readmeClose.addEventListener('click', closeReadme);
+
+        // 点击遮罩空白处关闭
+        readmeOverlay.addEventListener('click', function (e) {
+          if (e.target === readmeOverlay) {
+            closeReadme();
+          }
+        });
+
+        // ESC 键关闭
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') {
+            closeReadme();
+          }
+        });
+      }
+
+      function init() {
+        diameterInput.value = defaults.diameter;
+        distanceInput.value = defaults.distance;
+        offsetInput.value   = defaults.offset;
+        colorSelect.value   = String(defaults.colorIdx);
+        swapCheckbox.checked = defaults.swapped;
+
+        attachEvents();
+        draw();
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
+  </script>
+</body>
+</html>
