@@ -3,7 +3,7 @@
 
 <!-- 标题居中 + 限宽 -->
 <h2 style="font-size:22px; color:#B76E79; text-align:center; margin:0 auto 10px; max-width:450px;">
-  互联网颜色验证器
+  网页颜色验证器
 </h2>
 
 <!-- 组件水平居中 -->
@@ -23,3 +23,4 @@
     max-width:450px;      /* ← 与标题一致的可视宽度上限 */
   ">
 </color-validator>
+
