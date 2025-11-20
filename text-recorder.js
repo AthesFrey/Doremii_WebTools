@@ -1,10 +1,11 @@
 // /wp-content/uploads/text-recorder.js
-// DoreTextRecorder v20251116_lines_scrollfix + copy button
+// DoreTextRecorder v20251118A
 
 class DoreTextRecorder extends BaseTool {
   tpl() {
     return `
       <div class="row" style="justify-content:flex-end; margin-bottom:8px;">
+        <button id="clcBtn">clc</button>
         <button id="copyBtn">copy</button>
         <button id="fetchBtn">fetch_txt</button>
       </div>
@@ -27,7 +28,8 @@ class DoreTextRecorder extends BaseTool {
     const textArea = $('#textArea');
     const saveBtn  = $('#saveBtn');
     const fetchBtn = $('#fetchBtn');
-    const copyBtn  = $('#copyBtn'); // 新增 copy 按钮引用
+    const copyBtn  = $('#copyBtn');
+    const clcBtn   = $('#clcBtn');
 
     // 后端 API 地址
     const API_URL = '/wp-content/uploads/text-recorder-tool.php';
@@ -270,15 +272,19 @@ class DoreTextRecorder extends BaseTool {
       }
     };
 
-    // copy 按钮：复制文本框内容
+    // copy 按钮：复制文本框内容（不弹窗，按钮文字短暂变更）
     if (copyBtn) {
+      const originalCopyText = copyBtn.textContent || 'copy';
+
+      const setCopyLabel = (label) => {
+        copyBtn.textContent = label;
+        setTimeout(() => {
+          copyBtn.textContent = originalCopyText;
+        }, 1000);
+      };
+
       copyBtn.onclick = async () => {
         const text = textArea.value || '';
-
-        if (!text) {
-          const ok = window.confirm('当前文本为空，仍然复制空内容吗？');
-          if (!ok) return;
-        }
 
         try {
           if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -305,10 +311,43 @@ class DoreTextRecorder extends BaseTool {
             }
           }
 
-          alert('已复制到剪贴板。');
+          setCopyLabel('copied');
         } catch (e) {
-          alert('复制失败，请手动使用 Ctrl+C / ⌘+C。');
+          setCopyLabel('failed');
         }
+      };
+    }
+
+    // clc 按钮：清空文本内容（不弹窗，按钮文字短暂变更）
+    if (clcBtn) {
+      const originalClcText = clcBtn.textContent || 'clc';
+
+      const setClcLabel = (label) => {
+        clcBtn.textContent = label;
+        setTimeout(() => {
+          clcBtn.textContent = originalClcText;
+        }, 1000);
+      };
+
+      clcBtn.onclick = () => {
+        const prevX = window.scrollX || window.pageXOffset || 0;
+        const prevY = window.scrollY || window.pageYOffset || 0;
+
+        textArea.value = '';
+        lastValue = '';
+        lineLimitAlertShown = false;
+
+        autoResize();
+
+        if (typeof requestAnimationFrame === 'function') {
+          requestAnimationFrame(() => {
+            window.scrollTo(prevX, prevY);
+          });
+        } else {
+          window.scrollTo(prevX, prevY);
+        }
+
+        setClcLabel('clear');
       };
     }
   }
