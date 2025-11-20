@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
-  <title>Base64URL-X25519-密钥生成器</title>
+  <title>Base64URL-X25519-KEYS</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- 本地托管的 TweetNaCl -->
@@ -163,7 +163,7 @@
 </head>
 <body>
 
-  <h2>5 Key Pair Generator</h2>
+  <h2>Base64URL-X25519-密钥生成器</h2>
 
   <div class="x-card" id="x25519-card">
     <div class="x-sub">
