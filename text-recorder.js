@@ -1,10 +1,11 @@
 // /wp-content/uploads/text-recorder.js
-// DoreTextRecorder v20251116_lines_scrollfix
+// DoreTextRecorder v20251116_lines_scrollfix + copy button
 
 class DoreTextRecorder extends BaseTool {
   tpl() {
     return `
       <div class="row" style="justify-content:flex-end; margin-bottom:8px;">
+        <button id="copyBtn">copy</button>
         <button id="fetchBtn">fetch_txt</button>
       </div>
 
@@ -26,6 +27,7 @@ class DoreTextRecorder extends BaseTool {
     const textArea = $('#textArea');
     const saveBtn  = $('#saveBtn');
     const fetchBtn = $('#fetchBtn');
+    const copyBtn  = $('#copyBtn'); // 新增 copy 按钮引用
 
     // 后端 API 地址
     const API_URL = '/wp-content/uploads/text-recorder-tool.php';
@@ -267,6 +269,48 @@ class DoreTextRecorder extends BaseTool {
         fetchBtn.disabled = false;
       }
     };
+
+    // copy 按钮：复制文本框内容
+    if (copyBtn) {
+      copyBtn.onclick = async () => {
+        const text = textArea.value || '';
+
+        if (!text) {
+          const ok = window.confirm('当前文本为空，仍然复制空内容吗？');
+          if (!ok) return;
+        }
+
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(text);
+          } else {
+            // 兼容旧浏览器：用 execCommand('copy')
+            const selection = window.getSelection && window.getSelection();
+            const prevRanges = [];
+
+            if (selection && selection.rangeCount > 0) {
+              for (let i = 0; i < selection.rangeCount; i++) {
+                prevRanges.push(selection.getRangeAt(i));
+              }
+            }
+
+            textArea.focus();
+            textArea.select();
+            document.execCommand('copy');
+
+            // 恢复之前的选区
+            if (selection) {
+              selection.removeAllRanges();
+              prevRanges.forEach(r => selection.addRange(r));
+            }
+          }
+
+          alert('已复制到剪贴板。');
+        } catch (e) {
+          alert('复制失败，请手动使用 Ctrl+C / ⌘+C。');
+        }
+      };
+    }
   }
 }
 
