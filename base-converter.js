@@ -1,4 +1,4 @@
-// ---- DoreBaseConverter v20250927_fix2 ----
+// ---- DoreBaseConverter v20251120 ----
 class DoreBaseConverter extends BaseTool {
   tpl() {
     return `
@@ -13,6 +13,7 @@ class DoreBaseConverter extends BaseTool {
         <textarea id="base36Input" placeholder="请输入36进制"></textarea>
         <button id="convertBase36" style="color: white;">Convert</button>
         <button id="copyBase36" style="background-color: #FFDAB9; color: black;">copy</button>
+        <button id="ccaseBase36" style="background-color: #FFDAB9; color: black;">ccase</button>
       </div>
       <div class="row">
         <label>62进制</label>
@@ -37,6 +38,7 @@ class DoreBaseConverter extends BaseTool {
     const copyDecimal    = $('#copyDecimal');
     const copyBase36     = $('#copyBase36');
     const copyBase62     = $('#copyBase62');
+    const ccaseBase36    = $('#ccaseBase36');
 
     // —— 修复：隐藏父类模板里未使用的 .result / .hist，避免底部两条色块 ——
     const hideIfEmpty = (el) => {
@@ -51,14 +53,16 @@ class DoreBaseConverter extends BaseTool {
     hideIfEmpty(this.root.querySelector('.hist'));
 
     // 输入框样式：保持宽度与换行
-    [decimalInput, base36Input, base62Input].forEach(t => {
-      t.style.width = '100%';
-      t.style.height = '4em';
-      t.style.wordWrap = 'break-word';
-      t.style.whiteSpace = 'normal';
-    });
 
-    const DIGITS    = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+	[decimalInput, base36Input, base62Input].forEach(t => {
+	  t.style.width = '100%';
+	  t.style.height = '4em';
+	  t.style.fontSize = '20px';      // ← 字体稍微放大一点（含 placeholder）
+	  t.style.wordWrap = 'break-word';
+	  t.style.whiteSpace = 'normal';
+	});
+		
+	const DIGITS    = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const DECIMAL_RE= /^(?:0|[1-9]\d*)$/;    // 非负整数字符串
     const B36_RE    = /^[0-9a-z]+$/;         // 规范化(小写)后校验
     const B62_RE    = /^[0-9A-Za-z]+$/;
@@ -77,6 +81,7 @@ class DoreBaseConverter extends BaseTool {
       }
       return out;
     }
+
 
     // 任意进制字符串 -> 10进制字符串
     function baseToDecimal(s, base) {
@@ -121,13 +126,18 @@ class DoreBaseConverter extends BaseTool {
       }
     };
 
+    // 36进制 -> 10进制 & 62进制
     convertBase36.onclick = () => {
-      let s = base36Input.value.trim();
-      if (s) {
-        s = s.toLowerCase();
-        base36Input.value = s; // 回写归一化
+      const raw = base36Input.value.trim();
+      if (!raw) {
+        alert('请输入仅含 0-9 与 a-z 的 36 进制数字。');
+        return;
       }
-      if (!s || !B36_RE.test(s)) { alert('请输入仅含 0-9 与 a-z 的 36 进制数字。'); return; }
+      const s = raw.toLowerCase();   // 内部统一用小写做计算
+      if (!B36_RE.test(s)) {
+        alert('请输入仅含 0-9 与 a-z 的 36 进制数字。');
+        return;
+      }
       try {
         const dec = baseToDecimal(s, 36);
         decimalInput.value = dec;
@@ -152,6 +162,18 @@ class DoreBaseConverter extends BaseTool {
     copyDecimal.onclick = () => copyToClipboard(decimalInput, copyDecimal);
     copyBase36.onclick  = () => copyToClipboard(base36Input,  copyBase36);
     copyBase62.onclick  = () => copyToClipboard(base62Input,  copyBase62);
+
+    // 36进制字母大小写切换
+    if (ccaseBase36) {
+      ccaseBase36.onclick = () => {
+        const v = base36Input.value;
+        if (!v) return;
+        base36Input.value = v.replace(/[a-zA-Z]/g, ch =>
+          ch === ch.toLowerCase() ? ch.toUpperCase() : ch.toLowerCase()
+        );
+        base36Input.focus();
+      };
+    }
   }
 }
 
@@ -159,4 +181,5 @@ class DoreBaseConverter extends BaseTool {
 if (!customElements.get('doremii-base-converter')) {
   customElements.define('doremii-base-converter', DoreBaseConverter);
 }
+
 
