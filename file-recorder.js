@@ -1,5 +1,5 @@
 // /wp-content/uploads/file-recorder.js
-// DoreFileRecorder v20251116_file_upload_temp_limit_multi
+// DoreFileRecorder v20251122_1GB_api_fix
 
 class DoreFileRecorder extends BaseTool {
   tpl() {
@@ -22,6 +22,18 @@ class DoreFileRecorder extends BaseTool {
       </div>
 
       <div class="row" style="margin-top:8px;">
+        <div id="uploadProgressContainer"
+             style="display:none; width:100%; max-width:100%; background:#eee; border-radius:4px; overflow:hidden;">
+          <div id="uploadProgressBar"
+               style="height:8px; width:0%; background:var(--button-bg,#7E57C2); transition:width 0.2s linear;"></div>
+        </div>
+      </div>
+      <div class="row" style="margin-top:4px;">
+        <span id="uploadProgressText"
+              style="display:none; font-size:12px; color:#555;">上传进度：0%</span>
+      </div>
+
+      <div class="row" style="margin-top:8px;">
         <div id="downloadArea" style="font-size:13px; word-break:break-all;"></div>
       </div>
     `;
@@ -39,10 +51,14 @@ class DoreFileRecorder extends BaseTool {
     const fetchBtn     = $('#fetchBtn');
     const downloadArea = $('#downloadArea');
 
-    const API_URL        = '/wp-content/uploads/file-recorderapi.php';
-    const MAX_FILE_BYTES = 1170378588; // 与后端保持一致，约 1.09GB
+    const uploadProgressContainer = $('#uploadProgressContainer');
+    const uploadProgressBar       = $('#uploadProgressBar');
+    const uploadProgressText      = $('#uploadProgressText');
 
-    // 隐藏 BaseTool 默认的 result / hist 区域
+    // ⭐ 加入动态版本号，防缓存
+	const API_URL = 'https://cloudpan.doremii.top/wp-content/uploads/file-recorderapi.php?_v=' + Date.now();
+    const MAX_FILE_BYTES = 1170378588;
+
     const hideIfExists = (el) => {
       if (!el) return;
       el.textContent     = '';
@@ -55,10 +71,7 @@ class DoreFileRecorder extends BaseTool {
     hideIfExists(this.root.querySelector('.result'));
     hideIfExists(this.root.querySelector('.hist'));
 
-    // 选择文件按钮：触发文件对话框
-    chooseBtn.onclick = () => {
-      fileInput.click();
-    };
+    chooseBtn.onclick = () => fileInput.click();
 
     fileInput.addEventListener('change', () => {
       const file = fileInput.files && fileInput.files[0];
@@ -69,42 +82,26 @@ class DoreFileRecorder extends BaseTool {
 
       const size = file.size || 0;
       let sizeText = size + ' B';
-      if (size > 1024 * 1024) {
-        sizeText = (size / 1024 / 1024).toFixed(2) + ' MB';
-      } else if (size > 1024) {
-        sizeText = (size / 1024).toFixed(2) + ' KB';
-      }
+      if (size > 1024 * 1024) sizeText = (size / 1024 / 1024).toFixed(2) + ' MB';
+      else if (size > 1024) sizeText = (size / 1024).toFixed(2) + ' KB';
 
       fileNameSpan.textContent = `已选择：${file.name}（${sizeText}）`;
     });
 
-    // 公用：输入取回密码
     function askFetchCode(promptText) {
-      const msg = promptText || '请输入 fetch code（取回密码），最长 60 个字符：';
+      const msg = promptText || '请输入 fetch code（取回密码）：';
       const input = window.prompt(msg);
-      if (input === null) return null; // 取消
+      if (input === null) return null;
 
       const code = input.trim();
-      if (!code) {
-        alert('取回密码不能为空。');
-        return null;
-      }
-      if (code.length > 60) {
-        alert('取回密码不能超过 60 个字符。');
-        return null;
-      }
-      if (/[\/\s]/.test(code)) {
-        alert('取回密码不能包含斜线 "/" 或空格/换行。');
-        return null;
-      }
-      if (!/^[0-9A-Za-z._-]+$/.test(code)) {
-        alert('取回密码只能包含字母、数字、点、下划线、中划线。');
-        return null;
-      }
+      if (!code) return alert('取回密码不能为空。'), null;
+      if (code.length > 60) return alert('取回密码不能超过 60 字。'), null;
+      if (/[\/\s]/.test(code)) return alert('不能包含斜线或空白字符'), null;
+      if (!/^[0-9A-Za-z._-]+$/.test(code)) return alert('只能包含字母数字._-'), null;
+
       return code;
     }
 
-    // 公用：JSON 请求（用于 check_fetch）
     async function callJsonApi(payload) {
       const res = await fetch(API_URL, {
         method: 'POST',
@@ -113,61 +110,68 @@ class DoreFileRecorder extends BaseTool {
       });
 
       let data = null;
-      try {
-        data = await res.json();
-      } catch (e) {}
+      try { data = await res.json(); } catch (e) {}
 
       if (!res.ok || !data || data.ok === false) {
-        const msg = data && data.error
-          ? data.error
-          : ('请求失败，HTTP ' + res.status);
-        throw new Error(msg);
+        throw new Error(data?.error || ('HTTP ' + res.status));
       }
       return data;
     }
 
-    // save：上传本机文件到服务器 temp 目录
+    function uploadWithProgress(formData, onProgress) {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', API_URL, true);
+
+        xhr.timeout = 10 * 60 * 1000;
+
+        xhr.upload.onprogress = function (e) {
+          if (!e.lengthComputable) return;
+          const percent = Math.round((e.loaded * 100) / e.total);
+          if (typeof onProgress === 'function') onProgress(percent, e.loaded, e.total);
+        };
+
+        xhr.onreadystatechange = function () {
+          if (xhr.readyState !== 4) return;
+
+          let data = null;
+          try { data = JSON.parse(xhr.responseText || '{}'); } catch(err){}
+
+          const okStatus = xhr.status >= 200 && xhr.status < 300;
+
+          if (okStatus && data && data.ok !== false) resolve(data);
+          else reject(new Error(data?.error || ('HTTP ' + xhr.status)));
+        };
+
+        xhr.onerror = () => reject(new Error('网络错误'));
+        xhr.ontimeout = () => reject(new Error('上传超时'));
+
+        xhr.send(formData);
+      });
+    }
+
+    function resetProgress() {
+      uploadProgressBar.style.width = '0%';
+      uploadProgressText.textContent = '上传进度：0%';
+    }
+    function showProgressUI(show) {
+      const d = show ? 'block' : 'none';
+      uploadProgressContainer.style.display = d;
+      uploadProgressText.style.display = d;
+    }
+
+    // ---------------- SAVE ----------------
     saveBtn.onclick = async () => {
       downloadArea.innerHTML = '';
 
       const file = fileInput.files && fileInput.files[0];
-      if (!file) {
-        alert('请先选择一个本地文件。');
-        return;
+      if (!file) return alert('请先选择文件。');
+
+      if (file.size > MAX_FILE_BYTES) {
+        return alert('文件超过 1GB 限制，无法上传。');
       }
 
-      const size = file.size || 0;
-
-      // 前端大小限制
-      if (size > MAX_FILE_BYTES) {
-        let mb = size / (1024 * 1024);
-        mb = mb.toFixed(2);
-        alert(
-          '文件过大（约 ' + mb + ' MB），超过最大允许的 1.09GB。\n' +
-          '请压缩、分卷或换一个更小的文件再上传。'
-        );
-        return;
-      }
-
-      let sizeText = size + ' B';
-      if (size > 1024 * 1024) {
-        sizeText = (size / 1024 / 1024).toFixed(2) + ' MB';
-      } else if (size > 1024) {
-        sizeText = (size / 1024).toFixed(2) + ' KB';
-      }
-
-      const okConfirm = window.confirm(
-        '将上传下列本机文件到服务器：\n\n' +
-        file.name + '（' + sizeText + '）\n\n' +
-        '上传后会保存到网站根目录下的 temp 目录中，\n' +
-        '文件名 = fetch code + 原始后缀。\n\n是否继续？'
-      );
-      if (!okConfirm) return;
-
-      const code = askFetchCode(
-        '请输入 fetch code（取回密码）：\n' +
-        '将作为服务器端文件名的一部分（例如 code.zip）。'
-      );
+      const code = askFetchCode('请输入 fetch code（取回密码）');
       if (!code) return;
 
       const formData = new FormData();
@@ -176,65 +180,49 @@ class DoreFileRecorder extends BaseTool {
       formData.append('file', file);
 
       saveBtn.disabled = true;
+      const origin = saveBtn.textContent;
+
+      resetProgress();
+      showProgressUI(true);
+
       try {
-        const res = await fetch(API_URL, {
-          method: 'POST',
-          body: formData,
+        saveBtn.textContent = '上传中...';
+
+        const data = await uploadWithProgress(formData, (percent) => {
+          uploadProgressBar.style.width = percent + '%';
+          uploadProgressText.textContent = '上传进度：' + percent + '%';
         });
 
-        let data = null;
-        try {
-          data = await res.json();
-        } catch (e) {}
+        alert('上传成功！\n服务器文件名：' + data.filename);
 
-        if (!res.ok || !data || data.ok === false) {
-          const msg = data && data.error
-            ? data.error
-            : ('上传失败，HTTP ' + res.status);
-          throw new Error(msg);
-        }
-
-        const destDir   = data.dest_dir      || '（网站根目录 temp）';
-        const destPath  = data.dest_path     || '';
-        const serverF   = data.filename      || (code + '（服务器文件名）');
-        const dlUrl     = data.download_url  || '';
-
-        alert(
-          '上传成功！\n\n' +
-          '服务器文件名：\n' + serverF + '\n\n' +
-          '以后可以用 fetch code：' + code + ' 取回该文件。'
-        );
-
-        if (dlUrl) {
+        if (data.download_url) {
           downloadArea.innerHTML =
-            '<a href="' + dlUrl +
-            '" target="_blank" rel="noopener" ' +
-            'style="text-decoration:underline; cursor:pointer;">' +
-            '立即下载（服务器上的副本）：' + serverF +
-            '</a>';
-        } else {
-          downloadArea.textContent =
-            '文件已保存到服务器：' + (destPath || (destDir + '/' + serverF));
+            '<a href="' + data.download_url +
+            '" target="_blank" rel="noopener">立即下载：' + data.filename + '</a>';
         }
+
+        uploadProgressBar.style.width = '100%';
+        uploadProgressText.textContent = '上传完成：100%';
 
       } catch (e) {
-        alert(e.message || '上传失败，请稍后重试。');
+        alert(e.message || '上传失败');
+        showProgressUI(false);
+        resetProgress();
       } finally {
         saveBtn.disabled = false;
+        saveBtn.textContent = origin;
       }
     };
 
-    // fetch_file：根据 fetch code 生成一个或多个下载链接
+    // ---------------- FETCH ----------------
     fetchBtn.onclick = async () => {
       downloadArea.innerHTML = '';
 
-      const code = askFetchCode(
-        '请输入 fetch code（取回密码）：\n' +
-        '如果服务器 temp 目录中存在 code.xxx 这样的文件，就会生成下载链接。'
-      );
+      const code = askFetchCode('请输入 fetch code：');
       if (!code) return;
 
       fetchBtn.disabled = true;
+
       try {
         const data = await callJsonApi({
           action: 'check_fetch',
@@ -242,45 +230,26 @@ class DoreFileRecorder extends BaseTool {
         });
 
         const files = data.files;
-        // 多文件情况：逐个生成链接
         if (Array.isArray(files) && files.length > 0) {
           let html = '';
-          files.forEach((f, idx) => {
-            const url  = f.download_url;
-            const name = f.filename || ('文件' + (idx + 1));
-            if (!url) return;
 
-            if (html) html += '<br/>';
-            html +=
-              '<a href="' + url +
-              '" target="_blank" rel="noopener" ' +
-              'style="text-decoration:underline; cursor:pointer;">' +
-              '点击下载：' + name +
-              '</a>';
+          files.forEach((f, idx) => {
+            const url = 'https://cloudpan.doremii.top/wp-content/uploads/file-recorderdld.php?code=' + encodeURIComponent(code);
+            if (idx > 0) html += '<br/>';
+            html += '<a href="' + url + '" target="_blank" rel="noopener">下载：' + f.filename + '</a>';
           });
 
-          downloadArea.innerHTML = html || '未找到可下载的文件。';
+          downloadArea.innerHTML = html;
           return;
         }
 
-        // 兼容老字段：单文件
-        const url  = data.download_url;
-        const name = data.filename || code;
-
-        if (!url) {
-          alert('后端未返回下载地址。');
-          return;
-        }
-
+        const url = data.download_url;
         downloadArea.innerHTML =
-          '<a href="' + url +
-          '" target="_blank" rel="noopener" ' +
-          'style="text-decoration:underline; cursor:pointer;">' +
-          '点击这里下载：' + name +
-          '</a>';
+          '<a href="' + url + '" target="_blank">点击下载：' + (data.filename || code) + '</a>';
+
 
       } catch (e) {
-        alert(e.message || '检查失败，请确认网站根目录 temp 目录中是否有对应文件。');
+        alert(e.message || '未找到文件');
       } finally {
         fetchBtn.disabled = false;
       }
@@ -288,8 +257,6 @@ class DoreFileRecorder extends BaseTool {
   }
 }
 
-// 防止重复注册
 if (!customElements.get('doremii-file-recorder')) {
   customElements.define('doremii-file-recorder', DoreFileRecorder);
 }
-
