@@ -161,7 +161,7 @@
       <input id="ce2-diameter" type="range" min="80" max="260" value="200">
 
       <label for="ce2-distance">Distance</label>
-      <input id="ce2-distance" type="range" min="120" max="450" value="260">
+      <input id="ce2-distance" type="range" min="120" max="600" value="260">
 
       <label for="ce2-offset">Vertical offset</label>
       <input id="ce2-offset" type="range" min="-120" max="120" value="0">
