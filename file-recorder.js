@@ -129,7 +129,7 @@ class DoreFileRecorder extends BaseTool {
         const xhr = new XMLHttpRequest();
         xhr.open('POST', API_URL, true);
 
-        xhr.timeout = 10 * 60 * 1000;
+        xhr.timeout = 20 * 60 * 1000;
 
         xhr.upload.onprogress = function (e) {
           if (!e.lengthComputable) return;
@@ -320,3 +320,4 @@ class DoreFileRecorder extends BaseTool {
 if (!customElements.get('doremii-file-recorder')) {
   customElements.define('doremii-file-recorder', DoreFileRecorder);
 }
+
