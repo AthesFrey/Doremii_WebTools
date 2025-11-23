@@ -1,5 +1,5 @@
 // /wp-content/uploads/file-recorder.js
-// DoreFileRecorder v20251122_1GB_api_fix
+// DoreFileRecorder v20251122_1GB_api_fix + speed_eta
 
 class DoreFileRecorder extends BaseTool {
   tpl() {
@@ -56,8 +56,8 @@ class DoreFileRecorder extends BaseTool {
     const uploadProgressText      = $('#uploadProgressText');
 
     // ⭐ 加入动态版本号，防缓存
-	const API_URL = 'https://cloudpan.doremii.top/wp-content/uploads/file-recorderapi.php?_v=' + Date.now();
-    const MAX_FILE_BYTES = 1170378588;
+    const API_URL = 'https://cloudpan.doremii.top/wp-content/uploads/file-recorderapi.php?_v=' + Date.now();
+    const MAX_FILE_BYTES = 1170378588; // 约 1GB 上限
 
     const hideIfExists = (el) => {
       if (!el) return;
@@ -68,9 +68,12 @@ class DoreFileRecorder extends BaseTool {
       el.style.margin    = '0';
       el.style.minHeight = '0';
     };
+
+    // 把 BaseTool 默认结果块隐藏掉
     hideIfExists(this.root.querySelector('.result'));
     hideIfExists(this.root.querySelector('.hist'));
 
+    // 选择文件
     chooseBtn.onclick = () => fileInput.click();
 
     fileInput.addEventListener('change', () => {
@@ -82,12 +85,13 @@ class DoreFileRecorder extends BaseTool {
 
       const size = file.size || 0;
       let sizeText = size + ' B';
-      if (size > 1024 * 1024) sizeText = (size / 1024 / 1024).toFixed(2) + ' MB';
-      else if (size > 1024) sizeText = (size / 1024).toFixed(2) + ' KB';
+      if (size > 1024 * 1024)      sizeText = (size / 1024 / 1024).toFixed(2) + ' MB';
+      else if (size > 1024)        sizeText = (size / 1024).toFixed(2) + ' KB';
 
       fileNameSpan.textContent = `已选择：${file.name}（${sizeText}）`;
     });
 
+    // 统一校验 fetch code
     function askFetchCode(promptText) {
       const msg = promptText || '请输入 fetch code（取回密码）：';
       const input = window.prompt(msg);
@@ -102,6 +106,7 @@ class DoreFileRecorder extends BaseTool {
       return code;
     }
 
+    // JSON 接口封装（check_fetch 用）
     async function callJsonApi(payload) {
       const res = await fetch(API_URL, {
         method: 'POST',
@@ -118,6 +123,7 @@ class DoreFileRecorder extends BaseTool {
       return data;
     }
 
+    // 带进度的上传
     function uploadWithProgress(formData, onProgress) {
       return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
@@ -135,7 +141,7 @@ class DoreFileRecorder extends BaseTool {
           if (xhr.readyState !== 4) return;
 
           let data = null;
-          try { data = JSON.parse(xhr.responseText || '{}'); } catch(err){}
+          try { data = JSON.parse(xhr.responseText || '{}'); } catch (err) {}
 
           const okStatus = xhr.status >= 200 && xhr.status < 300;
 
@@ -143,7 +149,7 @@ class DoreFileRecorder extends BaseTool {
           else reject(new Error(data?.error || ('HTTP ' + xhr.status)));
         };
 
-        xhr.onerror = () => reject(new Error('网络错误'));
+        xhr.onerror   = () => reject(new Error('网络错误'));
         xhr.ontimeout = () => reject(new Error('上传超时'));
 
         xhr.send(formData);
@@ -154,6 +160,7 @@ class DoreFileRecorder extends BaseTool {
       uploadProgressBar.style.width = '0%';
       uploadProgressText.textContent = '上传进度：0%';
     }
+
     function showProgressUI(show) {
       const d = show ? 'block' : 'none';
       uploadProgressContainer.style.display = d;
@@ -182,15 +189,69 @@ class DoreFileRecorder extends BaseTool {
       saveBtn.disabled = true;
       const origin = saveBtn.textContent;
 
+      // 记录上传开始时间，用于估算网速和剩余时间
+      const uploadStartTime = Date.now();
+
       resetProgress();
       showProgressUI(true);
 
       try {
         saveBtn.textContent = '上传中...';
 
-        const data = await uploadWithProgress(formData, (percent) => {
+        const data = await uploadWithProgress(formData, (percent, loaded, total) => {
+          // 更新进度条宽度
           uploadProgressBar.style.width = percent + '%';
-          uploadProgressText.textContent = '上传进度：' + percent + '%';
+
+          // 默认文案：显示百分比
+          let text = '上传进度：' + percent + '%';
+
+          const now = Date.now();
+          const elapsedSec = (now - uploadStartTime) / 1000;
+
+          if (elapsedSec > 0 && loaded > 0 && total > 0) {
+            const bytesPerSec = loaded / elapsedSec;
+
+            // 换算速度
+            let speed = bytesPerSec;
+            let unit  = 'B/s';
+            if (speed > 1024) { speed /= 1024; unit = 'KB/s'; }
+            if (speed > 1024) { speed /= 1024; unit = 'MB/s'; }
+            if (speed > 1024) { speed /= 1024; unit = 'GB/s'; }
+
+            const speedDisplay = speed >= 100
+              ? Math.round(speed)
+              : Math.round(speed * 10) / 10;
+
+            text += '，速度：' + speedDisplay + unit;
+
+            // 估算剩余时间
+            const remainBytes = total - loaded;
+            if (bytesPerSec > 0 && remainBytes > 0) {
+              let remainSec = Math.round(remainBytes / bytesPerSec);
+              let etaText   = '';
+
+              if (remainSec < 60) {
+                etaText = remainSec + '秒';
+              } else if (remainSec < 3600) {
+                const m = Math.floor(remainSec / 60);
+                const s = remainSec % 60;
+                etaText = m + '分' + (s > 0 ? s + '秒' : '');
+              } else {
+                const h = Math.floor(remainSec / 3600);
+                const m = Math.round((remainSec % 3600) / 60);
+                etaText = h + '小时' + (m > 0 ? m + '分' : '');
+              }
+
+              text += '，剩余时间：' + etaText;
+            }
+          }
+
+          // 特别处理：进度 100% 但服务器尚未返回
+          if (percent >= 100) {
+            text = '已上传，服务器处理中，请稍候...';
+          }
+
+          uploadProgressText.textContent = text;
         });
 
         alert('上传成功！\n服务器文件名：' + data.filename);
@@ -246,7 +307,6 @@ class DoreFileRecorder extends BaseTool {
         const url = data.download_url;
         downloadArea.innerHTML =
           '<a href="' + url + '" target="_blank">点击下载：' + (data.filename || code) + '</a>';
-
 
       } catch (e) {
         alert(e.message || '未找到文件');
