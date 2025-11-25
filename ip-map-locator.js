@@ -1,6 +1,5 @@
 // ip-map-locator.js
 // 版本号：v20251125V6
-// 修复：手动 track 海外 IP 时，高德逆地理可能返回空 → 文字显示“定位成功（无详细地址）”
 // 方案：逆地理为空时，用坐标源(ipwho/ipapi)的 region/city/isp 兜底显示；国家用中文(按国家码映射)
 
 function safeJoin(arr) {
