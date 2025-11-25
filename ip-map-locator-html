@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
-  <title>来访 IP 定位小工具</title>
+  <title>发现你了!</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
@@ -55,6 +55,45 @@
       color: #999;
       line-height: 1.4;
     }
+
+    .manual-row {
+      margin-top: 6px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+      align-items: center;
+    }
+
+    #manual-ip-input {
+      flex: 1;
+      max-width: 220px;
+      height: 24px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid #e0e0e0;  /* 细边框 */
+      background: #ffffff;         /* 和卡片背景一致 */
+      font-size: 11px;
+      box-sizing: border-box;
+    }
+
+    #manual-ip-input::placeholder {
+      color: #bbb;
+    }
+
+    #manual-ip-btn {
+      height: 24px;
+      padding: 0 16px;             /* 稍微拉长一点 */
+      font-size: 11px;
+      border-radius: 4px;
+      border: 1px solid #dddddd;
+      background: #fafafa;
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+
+    #manual-ip-btn:hover {
+      background: #f0f0f0;
+    }
   </style>
 
   <!-- 1. 高德安全密钥：必须在加载 JSAPI 之前设置 -->
@@ -69,13 +108,12 @@
   <!-- TODO：换成你自己的 Web 端 JSAPI Key，并在高德控制台配置好当前域名白名单 -->
   <script src="https://webapi.amap.com/maps?v=2.0&key=6cd6a8409708cae39d0797b5a0c23c90"></script>
 
-  <!-- 3. 你的外部 JS 文件（放在 /wp-content/uploads/ 下） -->
-  <!-- ip-map-locator.js 里已经用 DOMContentLoaded 做延迟初始化，放在 head 里没问题 -->
-  <script src="/wp-content/uploads/ip-map-locator.js?v=20251123C"></script>
+  <!-- 3. 外部 JS 文件（新版 v20251125V2） -->
+  <script src="/wp-content/uploads/ip-map-locator.js?v=20251125V2"></script>
 </head>
 <body>
   <div class="ip-map-card">
-    <h1 class="ip-map-title">来访 IP 定位小工具</h1>
+    <h1 class="ip-map-title">发现你了!</h1>
 
     <div class="info-line">
       <span class="info-label">IP：</span>
@@ -89,7 +127,19 @@
     <div id="map"></div>
 
     <div class="tip">
-      哈哈，发现你啦！IP已经定位到你的城市/区县级别。
+      说明：<br>
+      IP 定位一般只能精确到城市 / 区县级别，并非 GPS 精确点位。
+    </div>
+
+    <!-- 手动 IP 查询行 -->
+    <div class="manual-row">
+      <input
+        type="text"
+        id="manual-ip-input"
+        autocomplete="off"
+        placeholder="在此输入 IP 后点击 track"
+      />
+      <button type="button" id="manual-ip-btn">track</button>
     </div>
   </div>
 </body>
