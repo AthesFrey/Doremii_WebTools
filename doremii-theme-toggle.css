@@ -1,0 +1,92 @@
+/* ========== 基础主题变量（只加，不改你原来的代码） ========== */
+:root{
+  --d-bg: #ffffff;
+  --d-text: #111827;
+  --d-muted: #6b7280;
+  --d-card: rgba(17,24,39,.04);
+  --d-border: rgba(17,24,39,.12);
+  color-scheme: light;
+}
+
+:root[data-theme="dark"]{
+  --d-bg: #0b1220;
+  --d-text: #e5e7eb;
+  --d-muted: #9ca3af;
+  --d-card: rgba(255,255,255,.06);
+  --d-border: rgba(255,255,255,.14);
+  color-scheme: dark;
+}
+
+/* ========== “不改原工具”的关键：用更高优先级 + 少量 !important 覆盖通用底色/文字 ========== */
+html, body{
+  background: var(--d-bg) !important;
+  color: var(--d-text) !important;
+}
+
+a{ color: inherit; }
+
+/* 覆盖常见容器/卡片（不会要求你的工具必须用某个 class） */
+:root[data-theme="dark"] body *{
+  /* 只强制文字颜色，避免页面“白底白字” */
+  color: var(--d-text);
+}
+
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] textarea,
+:root[data-theme="dark"] select{
+  background: rgba(255,255,255,.06) !important;
+  color: var(--d-text) !important;
+  border-color: var(--d-border) !important;
+}
+
+/* 代码块/预格式 */
+:root[data-theme="dark"] pre,
+:root[data-theme="dark"] code{
+  background: rgba(255,255,255,.06) !important;
+  border-color: var(--d-border) !important;
+}
+
+/* ========== 悬浮按钮样式 ========== */
+#doremiiThemeToggle{
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  top:   max(16px, env(safe-area-inset-top));
+  bottom: auto;
+  z-index: 2147483647;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--d-border);
+  background: rgba(255,255,255,.75);
+  backdrop-filter: blur(10px);
+
+  font: 14px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Microsoft YaHei",sans-serif;
+  cursor: pointer;
+  user-select: none;
+}
+
+:root[data-theme="dark"] #doremiiThemeToggle{
+  background: rgba(17,26,46,.75);
+}
+
+#doremiiThemeToggle .label{
+  opacity: .95;
+}
+
+/* 暗色下 placeholder 往往过灰，提亮一点（更清晰） */
+:root[data-theme="dark"] ::placeholder{
+  color: rgba(229,231,235,.75) !important;
+  opacity: 1 !important;
+}
+
+body.admin-bar #doremiiThemeToggle{
+  top: calc(max(16px, env(safe-area-inset-top)) + 32px);
+}
+@media (max-width: 782px){
+  body.admin-bar #doremiiThemeToggle{
+    top: calc(max(16px, env(safe-area-inset-top)) + 46px);
+  }
+}
