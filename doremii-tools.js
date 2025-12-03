@@ -1,5 +1,6 @@
 // doremii-tools.js  (WEB COMPONENTS VERSION with themeable CSS variables)
 // Updated 2025-09-02: add <doremii-uuid> (UUID generator with custom constraints)
+// Updated 2025-12-03: (1) reduce input height; (2) add SC checkbox to password generator (toggle special chars)
 
 class BaseTool extends HTMLElement {
   constructor() {
@@ -36,10 +37,16 @@ class BaseTool extends HTMLElement {
         }
         .row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
         .row label{ color: var(--muted, var(--muted-base)); font-size: 12px; }
+
+        /* ↓ 改动1：输入框高度调小一些（保守改动：只动 padding/min-height） */
         .row input[type="text"], .row input[type="number"]{
-          padding: 6px 8px; border:1px solid var(--card-border, var(--card-border-base));
-          border-radius:6px; min-height: 34px;
+          padding: 5px 8px;
+          border:1px solid var(--card-border, var(--card-border-base));
+          border-radius:6px;
+          min-height: 34px;
+          box-sizing: border-box;
         }
+
         button{
           padding:10px 20px;font-size: 16px; border:none; cursor:pointer; border-radius:6px;
           background: var(--button-bg, var(--accent, var(--accent-base)));
@@ -81,12 +88,20 @@ class DorePassword extends BaseTool {
     <div class="row">
       <label>Length</label>
       <input type="number" min="4" max="64" value="${this.getAttribute('length')||16}" style="width:5em">
+
+      <!-- 改动2：SC 复选框（Length 右侧 / Generate 左侧），默认勾选=保持原行为：含特殊字符 -->
+      <label style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap;margin:0 4px;font-size:12px;">
+        <input type="checkbox" data-role="sc" checked>
+        SC
+      </label>
+
       <button>Generate</button>
     </div>`;
   }
   connectedCallback(){
     if(this.onReady) return; this.onReady = true;
     const input = this.root.querySelector('input[type="number"]');
+    const sc    = this.root.querySelector('input[data-role="sc"]'); // 改动2：SC checkbox
     const btn   = this.root.querySelector('button');
     const res   = this.$('.result');
     const hist  = this.$('.hist');
@@ -100,16 +115,27 @@ class DorePassword extends BaseTool {
       s:'!$^&*()$$$'
     }, ALL = CH.l+CH.u+CH.d+CH.s;
 
+    const ALL_NO_S = CH.l + CH.u + CH.d; // 改动2：不含特殊字符的池
+
     const rnd = (n)=>{ const b=new Uint32Array(1); crypto.getRandomValues(b); return b[0] % n; };
     const shuffle = (arr)=>{ for(let i=arr.length-1;i>0;i--){ const j=rnd(i+1); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; };
 
     // 新规则：首字符必须为随机大写字母，且固定在 index 0
-    const gen = (L)=>{
+    // 改动2：可选是否包含特殊字符（SC 勾选=包含；不勾选=不包含）
+    const gen = (L, useSpecial)=>{
       L = Math.max(4, Math.min(64, Number(L)||12));
+      const withS = (useSpecial !== false);
+
       const first = CH.u[rnd(CH.u.length)]; // 必为大写字母
-      // 其余位：至少各 1 个小写 / 数字 / 特殊
-      let poolPart = CH.l[rnd(CH.l.length)] + CH.d[rnd(CH.d.length)] + CH.s[rnd(CH.s.length)];
-      while (1 + poolPart.length < L) poolPart += ALL[rnd(ALL.length)];
+
+      // 其余位：至少各 1 个小写 / 数字；若包含特殊则再至少 1 个特殊
+      let poolPart = CH.l[rnd(CH.l.length)] + CH.d[rnd(CH.d.length)];
+      if (withS) poolPart += CH.s[rnd(CH.s.length)];
+
+      const pool = withS ? ALL : ALL_NO_S;
+
+      while (1 + poolPart.length < L) poolPart += pool[rnd(pool.length)];
+
       // 只打乱后续部分，确保首字符位置不变
       const tail = shuffle(poolPart.split('')).join('');
       return first + tail;
@@ -129,7 +155,12 @@ class DorePassword extends BaseTool {
       });
     };
 
-    btn.onclick=()=>{ const pw=gen(input.value); res.textContent=pw; push(pw); paint(); };
+    btn.onclick=()=>{
+      const pw = gen(input.value, sc ? sc.checked : true);
+      res.textContent = pw;
+      push(pw);
+      paint();
+    };
     paint();
   }
 }
@@ -418,4 +449,4 @@ class DoreUUID extends BaseTool {
 }
 customElements.define('doremii-uuid', DoreUUID);
 
-console.log('doremii-tools ready (themeable colors) [2025-09-02]');
+console.log('doremii-tools ready (themeable colors) [2025-12-03]');
