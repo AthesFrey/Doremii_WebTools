@@ -1,7 +1,8 @@
 /* Doremii World Clock / 世界时间联动换算器
- * External JS version v2025-12-04
+ * External JS version v2025-12-04a
  * - Soft per-timezone colors (no harsh red/purple/black)
- * - Conservative changes: add Dubai + Berlin only
+ * - Conservative changes: add Dubai + Berlin
+ * - Bugfix: do NOT auto-overwrite datetime-local input if user/restored value exists or input focused
  */
 (() => {
   "use strict";
@@ -27,17 +28,11 @@
 
   const ZONES = [
     { key: "london", label: "London（伦敦）", tz: "Europe/London", brief: "冬季多为 GMT(UTC+0)，夏季为 BST(UTC+1)" },
-
     { key: "berlin", label: "Berlin（柏林）", tz: "Europe/Berlin", brief: "德国时间：冬令时 CET(UTC+1)，夏令时 CEST(UTC+2)" },
-
     { key: "utc",    label: "UTC（协调世界时）", tz: "Etc/UTC", brief: "全球时间基准；不实行夏令时" },
-
     { key: "beijing",label: "Beijing（北京时间）", tz: "Asia/Shanghai", brief: "CST(中国标准时间) = UTC+8；不实行夏令时" },
-
     { key: "dubai",  label: "Dubai（迪拜）", tz: "Asia/Dubai", brief: "海湾标准时间 GST = UTC+4；不实行夏令时" },
-
     { key: "tokyo",  label: "Tokyo（东京）", tz: "Asia/Tokyo", brief: "JST = UTC+9；不实行夏令时" },
-
     { key: "ny",     label: "US Eastern（纽约）", tz: "America/New_York", brief: "ET：冬令时 EST(UTC-5)，夏令时 EDT(UTC-4)" },
     { key: "chi",    label: "US Central（芝加哥）", tz: "America/Chicago", brief: "CT：CST(UTC-6)/CDT(UTC-5)" },
     { key: "den",    label: "US Mountain（丹佛）", tz: "America/Denver", brief: "MT：MST(UTC-7)/MDT(UTC-6)" },
@@ -106,7 +101,6 @@
         position:relative;
         overflow:hidden;
       }
-      /* zone accent strip */
       .dw-row::before{
         content:"";
         position:absolute;
@@ -167,23 +161,23 @@
     document.head.appendChild(style);
   }
 
-  function pad2(n) { return String(n).padStart(2, "0"); }
+  function pad2(n){ return String(n).padStart(2,"0"); }
 
-  function parseDTLocalValue(v) {
+  function parseDTLocalValue(v){
     const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(v || "");
     if (!m) return null;
     return { y:+m[1], mo:+m[2], d:+m[3], h:+m[4], mi:+m[5], s: m[6] ? +m[6] : 0 };
   }
 
-  function partsFromIntl(tz, utcMillis) {
+  function partsFromIntl(tz, utcMillis){
     const cache = partsFromIntl._cache ??= new Map();
     let f = cache.get(tz);
-    if (!f) {
+    if (!f){
       f = new Intl.DateTimeFormat("en-US", {
         timeZone: tz,
-        year: "numeric", month: "2-digit", day: "2-digit",
-        hour: "2-digit", minute: "2-digit", second: "2-digit",
-        hourCycle: "h23"
+        year:"numeric", month:"2-digit", day:"2-digit",
+        hour:"2-digit", minute:"2-digit", second:"2-digit",
+        hourCycle:"h23"
       });
       cache.set(tz, f);
     }
@@ -193,15 +187,15 @@
     return { y:+out.year, mo:+out.month, d:+out.day, h:+out.hour, mi:+out.minute, s:+out.second };
   }
 
-  function tzNameFromIntl(tz, utcMillis) {
+  function tzNameFromIntl(tz, utcMillis){
     const cache = tzNameFromIntl._cache ??= new Map();
     let f = cache.get(tz);
-    if (!f) {
+    if (!f){
       f = new Intl.DateTimeFormat("en-US", {
         timeZone: tz,
-        hour: "2-digit", minute: "2-digit",
-        timeZoneName: "short",
-        hourCycle: "h23"
+        hour:"2-digit", minute:"2-digit",
+        timeZoneName:"short",
+        hourCycle:"h23"
       });
       cache.set(tz, f);
     }
@@ -210,13 +204,13 @@
     return tzp ? tzp.value : "";
   }
 
-  function offsetMinutesAt(tz, utcMillis) {
+  function offsetMinutesAt(tz, utcMillis){
     const p = partsFromIntl(tz, utcMillis);
     const wallAsUTC = Date.UTC(p.y, p.mo - 1, p.d, p.h, p.mi, p.s);
     return Math.round((wallAsUTC - utcMillis) / 60000);
   }
 
-  function formatOffset(mins) {
+  function formatOffset(mins){
     const sign = mins >= 0 ? "+" : "-";
     const a = Math.abs(mins);
     const hh = Math.floor(a / 60);
@@ -224,25 +218,25 @@
     return `UTC${sign}${pad2(hh)}:${pad2(mm)}`;
   }
 
-  function toDTLocalString(p) {
+  function toDTLocalString(p){
     return `${p.y}-${pad2(p.mo)}-${pad2(p.d)}T${pad2(p.h)}:${pad2(p.mi)}`;
   }
 
-  function sameToMinute(a, b) {
+  function sameToMinute(a,b){
     return a && b &&
-      a.y === b.y && a.mo === b.mo && a.d === b.d &&
-      a.h === b.h && a.mi === b.mi;
+      a.y===b.y && a.mo===b.mo && a.d===b.d &&
+      a.h===b.h && a.mi===b.mi;
   }
 
   // Convert local time in a given TZ -> UTC millis, handling DST overlaps/gaps conservatively
-  function utcMillisFromZonedInput(tz, dtLocalValue) {
+  function utcMillisFromZonedInput(tz, dtLocalValue){
     const want = parseDTLocalValue(dtLocalValue);
     if (!want) return { ok:false, utc: NaN, adjusted:false, reason:"输入格式不对" };
 
     const wallAsUTC = Date.UTC(want.y, want.mo - 1, want.d, want.h, want.mi, want.s || 0);
 
     let utc = wallAsUTC;
-    for (let i = 0; i < 4; i++) {
+    for (let i=0;i<4;i++){
       const off = offsetMinutesAt(tz, utc);
       utc = wallAsUTC - off * 60000;
     }
@@ -252,25 +246,25 @@
 
     // search around ±180 minutes for exact match
     let best = null;
-    for (let d = 0; d <= 180; d++) {
-      for (const sgn of (d === 0 ? [0] : [-1, +1])) {
-        const cand = utc + sgn * d * 60000;
+    for (let d=0; d<=180; d++){
+      for (const sgn of (d===0 ? [0] : [-1, +1])){
+        const cand = utc + sgn*d*60000;
         const p = partsFromIntl(tz, cand);
         if (sameToMinute(p, want)) { best = cand; break; }
       }
       if (best !== null) break;
     }
-    if (best !== null) {
+    if (best !== null){
       return { ok:true, utc: best, adjusted:true, reason:"该时刻可能处于夏令时重叠/跳变，已自动选择最接近的有效时刻。" };
     }
 
     // No exact match: choose the next valid time (DST gap)
-    const num = (x) => (x.y*100000000 + x.mo*1000000 + x.d*10000 + x.h*100 + x.mi);
+    const num = (x)=> (x.y*100000000 + x.mo*1000000 + x.d*10000 + x.h*100 + x.mi);
     const wantNum = num(want);
-    for (let d = 0; d <= 360; d++) {
-      const cand = utc + d * 60000;
+    for (let d=0; d<=360; d++){
+      const cand = utc + d*60000;
       const p = partsFromIntl(tz, cand);
-      if (num(p) >= wantNum) {
+      if (num(p) >= wantNum){
         return { ok:true, utc: cand, adjusted:true, reason:"该时刻可能是夏令时“缺失时段”（不存在的本地时间），已自动跳到下一段有效时间。" };
       }
     }
@@ -278,25 +272,24 @@
     return { ok:true, utc, adjusted:true, reason:"已尽力换算（可能遇到夏令时特殊情况），请以显示结果为准。" };
   }
 
-  function hexToRgb(hex) {
+  function hexToRgb(hex){
     const h = (hex || "").trim();
     const m = /^#?([0-9a-f]{6})$/i.exec(h);
     if (!m) return null;
     const n = parseInt(m[1], 16);
     return { r:(n>>16)&255, g:(n>>8)&255, b:n&255 };
   }
-
-  function rgba(hex, a) {
+  function rgba(hex, a){
     const c = hexToRgb(hex);
     if (!c) return `rgba(17,24,39,${a})`;
     return `rgba(${c.r},${c.g},${c.b},${a})`;
   }
 
   class WorldClock {
-    constructor(el) {
+    constructor(el){
       this.el = el;
 
-      if (!(window.Intl && Intl.DateTimeFormat)) {
+      if (!(window.Intl && Intl.DateTimeFormat)){
         el.textContent = "你的浏览器不支持 Intl.DateTimeFormat，无法进行时区换算。建议升级浏览器。";
         return;
       }
@@ -309,7 +302,16 @@
       this.setLive(true);
     }
 
-    render() {
+    resetUserLocks(){
+      // allow inputs to follow the display again
+      for (const b of this._rows.values()){
+        if (b && b.input){
+          delete b.input.dataset.user;
+        }
+      }
+    }
+
+    render(){
       const card = document.createElement("div");
       card.className = "dw-card";
 
@@ -332,16 +334,15 @@
       const grid = document.createElement("div");
       grid.className = "dw-grid";
 
-      for (const z of ZONES) {
+      for (const z of ZONES){
         const row = document.createElement("div");
         row.className = "dw-row";
         row.dataset.zone = z.key;
 
-        // per-zone soft accents (conservative: only visuals)
         const color = ZONE_COLORS[z.key] || "#6B7280";
         row.style.setProperty("--z-strip", rgba(color, 0.55));
-        row.style.setProperty("--z-hl", rgba(color, 0.10));       // soft highlight behind time
-        row.style.setProperty("--z-clock", rgba(color, 0.85));    // soft colored time text
+        row.style.setProperty("--z-hl", rgba(color, 0.10));
+        row.style.setProperty("--z-clock", rgba(color, 0.85));
 
         row.innerHTML = `
           <div class="dw-meta">
@@ -372,10 +373,16 @@
           clock: row.querySelector("[data-clock]"),
           date: row.querySelector("[data-date]"),
           abbr: row.querySelector("[data-abbr]"),
-          off: row.querySelector("[data-off]"),
+          off:  row.querySelector("[data-off]"),
           input: row.querySelector("[data-input]"),
           setBtn: row.querySelector("[data-set]")
         };
+
+        // mark as user-touched so refresh() won't overwrite the input
+        const markUser = () => { bind.input.dataset.user = "1"; };
+        bind.input.addEventListener("focus", markUser);
+        bind.input.addEventListener("input", markUser);
+        bind.input.addEventListener("change", markUser);
 
         bind.setBtn.addEventListener("click", () => this.applyFromRow(bind));
         bind.input.addEventListener("keydown", (e) => {
@@ -412,12 +419,17 @@
       this.modeBadge = this.el.querySelector("[data-mode]");
       this.warnBox = this.el.querySelector("[data-warn]");
 
-      this.el.querySelector("[data-now]").addEventListener("click", () => this.setLive(true));
+      // IMPORTANT: reset locks when user explicitly returns to Live
+      this.el.querySelector("[data-now]").addEventListener("click", () => {
+        this.resetUserLocks();
+        this.setLive(true);
+      });
+
       this.el.querySelector("[data-copy]").addEventListener("click", () => this.copyBaseUtc());
     }
 
-    flashWarn(msg) {
-      if (!msg) {
+    flashWarn(msg){
+      if (!msg){
         this.warnBox.classList.remove("show");
         this.warnBox.textContent = "";
         return;
@@ -430,11 +442,11 @@
       }, 5200);
     }
 
-    setLive(on) {
+    setLive(on){
       this.state.live = !!on;
       if (this._timer) clearInterval(this._timer);
 
-      if (this.state.live) {
+      if (this.state.live){
         this.modeBadge.textContent = "模式：跟随现在";
         this._timer = setInterval(() => {
           this.state.baseUtc = Date.now();
@@ -448,17 +460,21 @@
       }
     }
 
-    applyFromRow(bind) {
+    applyFromRow(bind){
       const v = bind.input.value;
-      if (!v) {
+      if (!v){
         this.flashWarn("请输入时间后再点“以此为基准”。");
         return;
       }
       const res = utcMillisFromZonedInput(bind.zone.tz, v);
-      if (!res.ok || !Number.isFinite(res.utc)) {
+      if (!res.ok || !Number.isFinite(res.utc)){
         this.flashWarn("无法解析该时间输入，请检查格式。");
         return;
       }
+
+      // When applying a base, we want everyone to follow that base again
+      this.resetUserLocks();
+
       this.state.baseUtc = res.utc;
       this.setLive(false);
       if (res.adjusted) this.flashWarn(res.reason);
@@ -466,12 +482,12 @@
       this.refresh();
     }
 
-    copyBaseUtc() {
+    copyBaseUtc(){
       const iso = new Date(this.state.baseUtc).toISOString();
       const text = `UTC ISO: ${iso}`;
       const ok = (msg) => this.flashWarn(msg);
 
-      if (navigator.clipboard && navigator.clipboard.writeText) {
+      if (navigator.clipboard && navigator.clipboard.writeText){
         navigator.clipboard.writeText(text)
           .then(() => ok(`已复制：${text}`))
           .catch(() => this.fallbackCopy(text));
@@ -480,7 +496,7 @@
       }
     }
 
-    fallbackCopy(text) {
+    fallbackCopy(text){
       const ta = document.createElement("textarea");
       ta.value = text;
       ta.style.position = "fixed";
@@ -492,12 +508,12 @@
       this.flashWarn(`已复制：${text}`);
     }
 
-    refresh() {
+    refresh(){
       const base = this.state.baseUtc;
 
-      for (const bind of this._rows.values()) {
+      for (const bind of this._rows.values()){
         const tz = bind.zone.tz;
-        const p = partsFromIntl(tz, base);
+        const p  = partsFromIntl(tz, base);
         const ab = tzNameFromIntl(tz, base);
         const off = offsetMinutesAt(tz, base);
 
@@ -506,30 +522,38 @@
         bind.abbr.textContent  = ab || "--";
         bind.off.textContent   = formatOffset(off);
 
+        // ---- BUGFIX CORE ----
+        // If input already has a value that differs from the auto value (e.g., browser restored),
+        // treat it as user value and DO NOT overwrite.
         const dtLocal = toDTLocalString(p);
-        if (bind.input.value !== dtLocal) bind.input.value = dtLocal;
+        const inp = bind.input;
+
+        if (inp.value && inp.dataset.user !== "1" && inp.value !== dtLocal) {
+          inp.dataset.user = "1";
+        }
+
+        // Only sync the input when it's not focused and not user-locked
+        if (document.activeElement !== inp && inp.dataset.user !== "1") {
+          if (inp.value !== dtLocal) inp.value = dtLocal;
+        }
       }
     }
   }
 
-  function initAll() {
+  function initAll(){
     injectStyleOnce();
     document.querySelectorAll(`.${WIDGET_CLASS}`).forEach(el => {
-      // Avoid double init (if called multiple times)
       if (el.__doremiiWorldClockInited) return;
       el.__doremiiWorldClockInited = true;
       new WorldClock(el);
     });
   }
 
-  // Expose a tiny hook for manual re-init (optional)
   window.DoremiiWorldClock = window.DoremiiWorldClock || { init: initAll };
 
-  // Auto-init
-  if (document.readyState === "loading") {
+  if (document.readyState === "loading"){
     document.addEventListener("DOMContentLoaded", initAll);
   } else {
     initAll();
   }
 })();
-
