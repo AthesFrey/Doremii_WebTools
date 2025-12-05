@@ -1,20 +1,35 @@
 <div style="display:flex; justify-content:center;">
-  <form action="https://www.google.com/search" method="get" target="_blank" rel="noopener"
-        style="display:inline-flex; gap:10px; align-items:center; margin:0;">
+  <form action="https://www.google.com/search" method="get"
+        style="display:inline-flex; gap:10px; align-items:center; margin:0;"
+        role="search" aria-label="Google 搜索">
+        
+    <!-- 尽量让 iOS 走网页结果页（不能 100% 保证不跳 App，但通常更稳） -->
+    <input type="hidden" name="igu" value="1">
+
     <input type="search" name="q" placeholder="Google 搜索…" required
+           inputmode="search" autocapitalize="off" autocomplete="off" spellcheck="false"
            style="width:min(520px, 70vw);
                   height:44px;
                   padding:0 12px;
+                  font-size:16px;
+                  line-height:1.2;
                   border:1px solid #cbd5e1; border-radius:12px;
-                  box-sizing:border-box;">
+                  background:#fff; color:#111;
+                  box-sizing:border-box;
+                  -webkit-appearance:none; appearance:none;">
+
     <button type="submit"
             style="height:44px;
                    padding:0 18px;
+                   font-size:16px;
+                   line-height:1;
                    border:1px solid #cbd5e1; border-radius:12px;
-                   background:#fff; cursor:pointer;
+                   background:#fff; color:#111;
+                   cursor:pointer;
                    display:inline-flex; align-items:center; justify-content:center;
-                   line-height:1 !important;
-                   box-sizing:border-box;">
+                   white-space:nowrap;
+                   box-sizing:border-box;
+                   -webkit-appearance:none; appearance:none;">
       搜索
     </button>
   </form>
