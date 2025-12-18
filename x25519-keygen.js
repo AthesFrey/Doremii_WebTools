@@ -11,8 +11,6 @@
   }
 
   const doc = window.document;
-  const MAX_HISTORY = 5;
-  const STORAGE_KEY = 'x25519_keygen_pairs_v1';
 
   // ---------- Base64URL <-> bytes ----------
   function bytesToBase64Url(bytes) {
@@ -27,90 +25,62 @@
       .replace(/=+$/g, '');
   }
 
-  function base64UrlToBytes(str) {
-    let s = str.replace(/-/g, '+').replace(/_/g, '/');
-    while (s.length % 4 !== 0) s += '=';
-    const bin = window.atob(s);
+  function base64UrlToBytes(b64url) {
+    // Base64URL -> Base64
+    let b64 = String(b64url || '')
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+
+    // 补 padding 到 4 的倍数
+    while (b64.length % 4 !== 0) b64 += '=';
+
+    const bin = window.atob(b64);
     const out = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) {
-      out[i] = bin.charCodeAt(i);
-    }
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
     return out;
   }
 
-  // ---------- 受限随机私钥（43 chars, 无 4；6/8 权重更高） ----------
-  const BASE_ALL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz012356789-_'; // 去掉 4
-  const CHAR_OTHERS = BASE_ALL.split('').filter(function (c) {
-    return c !== '6' && c !== '8';
-  });
-  const WEIGHTED = CHAR_OTHERS
-    .concat(Array(3).fill('6'))
-    .concat(Array(3).fill('8'));
-
-  function rnd(max) {
-    const buf = new Uint32Array(1);
-    if (!window.crypto || !window.crypto.getRandomValues) {
-      throw new Error('当前环境不支持 crypto.getRandomValues');
-    }
-    window.crypto.getRandomValues(buf);
-    return buf[0] % max;
-  }
-
-  function pickChar() {
-    return WEIGHTED[rnd(WEIGHTED.length)];
-  }
-
+  // ---------- 私钥（32 bytes）生成：输出 43 chars Base64URL（无 padding） ----------
   function generatePrivateString() {
-    let s = '';
-    for (let i = 0; i < 43; i++) {
-      s += pickChar();
-    }
-    if (s.indexOf('4') >= 0) {
-      s = s.replace(/4/g, '6');
-    }
-    return s;
+    const priv = nacl.randomBytes(32); // 32 bytes
+    return bytesToBase64Url(priv);     // 43 chars
   }
 
-  // ---------- 历史存取 ----------
+  // ---------- 历史（localStorage） ----------
+  const LS_KEY = 'x25519_keys_history_v1';
+  const MAX_HIST = 5; // ✅ 恢复为最多 5 个 key pair
+
   function loadHistory() {
-    if (!('localStorage' in window)) return [];
     try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
+      const raw = window.localStorage.getItem(LS_KEY);
       if (!raw) return [];
       const arr = JSON.parse(raw);
-      return Array.isArray(arr) ? arr : [];
+      if (!Array.isArray(arr)) return [];
+
+      const list = arr.filter(function (x) {
+        return x && typeof x.priv === 'string' && typeof x.pub === 'string';
+      });
+
+      // ✅ 关键：读取时也裁剪，避免旧数据“无限显示”
+      return list.slice(0, MAX_HIST);
     } catch (e) {
       return [];
     }
   }
 
   function saveHistory(list) {
-    if (!('localStorage' in window)) return;
     try {
-      window.localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(list.slice(0, MAX_HISTORY))
-      );
-    } catch (e) { /* ignore */ }
+      window.localStorage.setItem(LS_KEY, JSON.stringify(list.slice(0, MAX_HIST)));
+    } catch (e) {}
   }
 
   function pushHistory(pair) {
     const list = loadHistory();
-    const merged = [pair].concat(list);
-    const seen = new Set();
-    const dedup = [];
-    for (let i = 0; i < merged.length; i++) {
-      const p = merged[i];
-      if (seen.has(p.priv)) continue;
-      seen.add(p.priv);
-      dedup.push(p);
-      if (dedup.length >= MAX_HISTORY) break;
-    }
-    saveHistory(dedup);
-    return dedup;
+    list.unshift(pair);
+    saveHistory(list);
   }
 
-  // ---------- UI 绑定 ----------
+  // ---------- UI ----------
   function bindUI() {
     const btnGen   = doc.getElementById('x-generate');
     const privEl   = doc.getElementById('x-priv');
@@ -118,6 +88,8 @@
     const btnCpSk  = doc.getElementById('x-copy-priv');
     const btnCpPk  = doc.getElementById('x-copy-pub');
     const histWrap = doc.getElementById('x-hist');
+    const privIn   = doc.getElementById('x-priv-input');
+    const btnCalc  = doc.getElementById('x-calc-pub');
 
     if (!btnGen || !privEl || !pubEl || !btnCpSk || !btnCpPk || !histWrap) {
       console.warn('x25519-keygen：找不到某些 DOM 元素，请检查 HTML 中的 id。');
@@ -129,18 +101,27 @@
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(function () {
           const old = btn.textContent;
-          btn.textContent = 'Copied!';
-          setTimeout(function () { btn.textContent = old; }, 900);
-        }).catch(function () {
-          window.alert('复制失败，请手动选择文本复制。');
-        });
+          btn.textContent = 'Copied';
+          setTimeout(function () { btn.textContent = old; }, 700);
+        }).catch(function () {});
       } else {
-        window.prompt('复制以下内容：', text);
+        // fallback
+        const ta = doc.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        doc.body.appendChild(ta);
+        ta.select();
+        try { doc.execCommand('copy'); } catch (e) {}
+        doc.body.removeChild(ta);
+        const old = btn.textContent;
+        btn.textContent = 'Copied';
+        setTimeout(function () { btn.textContent = old; }, 700);
       }
     }
 
     function renderHistory() {
-      const list = loadHistory();
+      const list = loadHistory(); // ✅ 已保证最多 5 个
       histWrap.innerHTML = '';
 
       list.forEach(function (p, i) {
@@ -157,9 +138,9 @@
         textSk.textContent = 'sk: ' + p.priv;
 
         const bSk = doc.createElement('button');
-        bSk.className = 'x-btn-ghost';
-        bSk.textContent = 'Copy sk';
-        bSk.dataset.value = p.priv;              // 用 data-value 存真实内容
+        bSk.className = 'x-hist-copy';
+        bSk.textContent = 'Copy';
+        bSk.dataset.value = p.priv;
         bSk.addEventListener('click', function () {
           copyText(bSk.dataset.value, bSk);
         });
@@ -182,8 +163,8 @@
         textPk.textContent = 'pk: ' + p.pub;
 
         const bPk = doc.createElement('button');
-        bPk.className = 'x-btn-ghost';
-        bPk.textContent = 'Copy pk';
+        bPk.className = 'x-hist-copy';
+        bPk.textContent = 'Copy';
         bPk.dataset.value = p.pub;
         bPk.addEventListener('click', function () {
           copyText(bPk.dataset.value, bPk);
@@ -203,6 +184,55 @@
     btnCpPk.addEventListener('click', function () {
       copyText(pubEl.textContent.trim(), btnCpPk);
     });
+
+    // 从输入的私钥推导公钥（不影响 Generate）
+    function calcPubFromPrivInput() {
+      try {
+        if (!privIn) throw new Error('未找到私钥输入框（x-priv-input）');
+
+        let s = String(privIn.value || '').trim();
+        s = s.replace(/\s+/g, ''); // 去掉空格/换行，方便粘贴
+        s = s.replace(/^sk\s*:\s*/i, ''); // 兼容粘贴 "sk: xxxx"
+        s = s.replace(/^private\s*key\s*:\s*/i, ''); // 兼容粘贴 "Private key: xxxx"
+        s = s.trim();
+
+        if (!s) throw new Error('请输入私钥');
+        if (s.length !== 43) throw new Error('私钥应为 43 字符 Base64URL（无填充）');
+        if (!/^[A-Za-z0-9\-_]{43}$/.test(s)) {
+          throw new Error('私钥包含非法字符，只允许 A-Z a-z 0-9 - _');
+        }
+
+        const privBytes = base64UrlToBytes(s);
+        if (privBytes.length !== 32) {
+          throw new Error('私钥解码后不是 32 字节（现在是 ' + privBytes.length + '）');
+        }
+
+        const pubBytes = nacl.scalarMult.base(privBytes);
+        const pubStr = bytesToBase64Url(pubBytes);
+
+        // 回填到原有展示区域 + 历史
+        privIn.value = s;
+        privEl.textContent = s;
+        pubEl.textContent = pubStr;
+
+        pushHistory({ priv: s, pub: pubStr });
+        renderHistory();
+      } catch (e) {
+        privEl.textContent = '错误：' + (e.message || e);
+        pubEl.textContent = '';
+        console.error(e);
+      }
+    }
+
+    if (btnCalc && privIn) {
+      btnCalc.addEventListener('click', calcPubFromPrivInput);
+      privIn.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter') {
+          ev.preventDefault();
+          calcPubFromPrivInput();
+        }
+      });
+    }
 
     // 生成一对 key
     btnGen.addEventListener('click', function () {
