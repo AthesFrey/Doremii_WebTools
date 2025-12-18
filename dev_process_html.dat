@@ -1,4 +1,4 @@
-<!-- 程序员计算器（太空蓝·426 版） -->
+<!-- 程序员计算器 -->
 <!-- 每次更新 JS 请改 ?v= 强制刷新缓存；JS 文件保持现版不变 -->
 <script defer src="/wp-content/uploads/dev-process.js?v=20251106a"></script>
 
@@ -188,3 +188,4 @@
   <div class="muted" id="process-label">process results:</div>
   <div id="result-box" class="result-box"></div>
 </div>
+
