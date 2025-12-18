@@ -10,7 +10,7 @@
   <script src="/wp-content/uploads/crypto_files/bitcoinjs-lib.standalone.min.js?v=20251218"></script>
   <script src="/wp-content/uploads/crypto_files/solana-bundle.standalone.min.js?v=20251218"></script>
 
-  <!-- 业务脚本：请把本次我给你的 bip39_offline.chainfilter.js 覆盖到这里，并把 v 参数改新以防缓存 -->
+  <!-- 业务脚本：覆盖到这里，并把 v 参数改新以防缓存 -->
   <script defer src="/wp-content/uploads/crypto_files/bip39_lucky.js?v=20251214_chainfilter"></script>
 
   <style>
@@ -187,7 +187,7 @@
     setTimeout(function(){
       if(!window.__BIP39_APP_LOADED){
         var s=document.getElementById('status');
-        if(s) s.textContent = "❌ bip39_offline.js 未执行：请看 F12 Console/Network 是否 404 或 MIME/CORS 拦截，然后 Ctrl+F5 强刷。";
+        if(s) s.textContent = "❌ bip39_lucky.js 未执行：请看 F12 Console/Network 是否 404 或 MIME/CORS 拦截，然后 Ctrl+F5 强刷。";
       }
     }, 1200);
   </script>
