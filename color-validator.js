@@ -170,9 +170,10 @@
               --button-fg: #ffffff;
               --grid-border:#e5e7eb;
 
-              display:block; max-width:450px; color:var(--text);
+              display:block; max-width:520px; color:var(--text);
               font-family:${font};
             }
+			
             .card{
               margin:16px 0; padding:12px; border-radius:12px;
               background:var(--card-bg);
@@ -335,4 +336,3 @@
     customElements.define('color-validator', ColorValidator);
   }
 })();
-
