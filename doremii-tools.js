@@ -26,7 +26,7 @@ class BaseTool extends HTMLElement {
           --hist-border-base:#eee;
           --shadow-base:0 1px 2px rgba(0,0,0,.04);
 
-          display:block; max-width:420px; font-family:${font};
+          display:block; width:100%; max-width: var(--tool-max-width, 420px); font-family:${font};
           color: var(--text, var(--text-base));
         }
         .card{
@@ -81,13 +81,15 @@ class BaseTool extends HTMLElement {
 }
 
 
+
+
 /* ================= Password ================= */
 class DorePassword extends BaseTool {
   tpl(){
     return `
     <div class="row">
       <label>Length</label>
-      <input type="number" min="4" max="64" value="${this.getAttribute('length')||16}" style="width:5em">
+      <input type="number" min="4" max="64" value="${this.getAttribute('length')||18}" style="width:5em">
 
       <!-- 改动2：SC 复选框（Length 右侧 / Generate 左侧），默认勾选=保持原行为：含特殊字符 -->
       <label style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap;margin:0 4px;font-size:12px;">
