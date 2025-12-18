@@ -8,70 +8,86 @@
   <!-- 本地托管的 TweetNaCl -->
   <script src="/wp-content/uploads/tweetnacl-fast-1.0.3.min.js"></script>
 
-  <!-- 我们自己的生成器脚本 -->
-  <script src="/wp-content/uploads/x25519-keygen.js"></script>
+  <!-- 我们自己的生成器脚本（记得每次改 JS 就改 v= 强刷缓存） -->
+  <script src="/wp-content/uploads/x25519-keygen.js?v=20251218B5"></script>
 
   <style>
     :root {
       /* 橘色系 */
-      --accent: #ff9f1a;
-      --accent-soft: #ffe4ba;
+      --accent: #ff7a00;
+      --accent-soft: rgba(255, 122, 0, 0.28);
+      --bg: #fffaf2;
+      --card: #ffffff;
+      --text: #1f2328;
+      --text-muted: #6b7280;
+      --mono-bg: #fff2df;
 
-      /* 页面背景改回白色 */
-      --bg-page: #ffffff;       /* ★ 这里从 #fff5e7 改为 #ffffff */
+      --radius: 18px;
+      --shadow: 0 8px 26px rgba(0,0,0,.08);
 
-      --card-bg: #fffaf3;       /* 模块背景仍然是浅橘 */
-      --mono-bg: #ffffff;       /* 结果区域白色 */
-
-      --text-color: #222;
-      --text-muted: #666;
-      --border-radius: 12px;
-      --btn-height: 32px;
-      --font-main: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      --font-mono: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --btn-height: 38px;
+      --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
     }
 
-    body {
-      font-family: var(--font-main);
-      background: var(--bg-page);   /* ★ 这里保持用变量，实际就是白色 */
-      margin: 0;
-      padding: 24px;
-      color: var(--text-color);
+    /* ✅ 跳出主题内容栏，铺满视口宽度 */
+    #x25519-viewport {
+      width: 100vw;
+      margin-left: calc(50% - 50vw);
+      margin-right: calc(50% - 50vw);
     }
 
-    h2 {
-      font-size: 20px;
-      margin: 0 0 16px;
+    /* ✅ 在视口宽度里居中摆放工具 */
+    #x25519-wrap {
+      width: 100%;
       text-align: center;
-      color: #ff8800;
+      padding: 2px 12px 18px;   /* 顶部空白缩小 */
+      box-sizing: border-box;
     }
 
+    /* 标题 */
+    #x25519-wrap h2 {
+      margin: 0 0 10px;          /* 标题下间距缩小 */
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: .2px;
+      text-align: center;
+    }
+
+    /* 卡片本体：inline-block + 父级 text-align:center 最稳 */
     .x-card {
-      max-width: 425px;
-      margin: 0 auto;
-      background: var(--card-bg);  /* 模块还是浅橘 */
-      border-radius: var(--border-radius);
-      padding: 16px 18px 18px;
-      box-shadow: 0 4px 12px rgba(255, 149, 0, 0.15);
-      border: 1px solid var(--accent-soft);
+      display: inline-block;
+      text-align: left;
+
+      width: 425px;            /* 固定宽度 */
+      max-width: 94vw;         /* 小屏幕不溢出 */
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px 18px 16px;
+      box-sizing: border-box;
+      border: 1px solid rgba(0,0,0,.04);
     }
 
     .x-sub {
       font-size: 13px;
+      line-height: 1.55;
       color: var(--text-muted);
-      margin-bottom: 12px;
+      margin: 6px 0 12px;
+      text-align: center;
     }
 
     .x-row {
       display: flex;
+      gap: 6px;                  /* 行内间距缩小 */
       align-items: center;
-      gap: 8px;
-      margin-top: 8px;
+      margin-top: 6px;           /* 行间距缩小 */
       flex-wrap: wrap;
+      justify-content: flex-start;
     }
 
     .x-label {
-      min-width: 110px;
+      min-width: 80px;           /* 标签宽度缩小，让右侧控件更靠近 */
       font-size: 13px;
       color: var(--text-muted);
     }
@@ -91,6 +107,22 @@
       align-items: center;
     }
 
+    .x-input {
+      flex: 1;
+      height: var(--btn-height);
+      background: var(--mono-bg);
+      border-radius: 999px;
+      padding: 0 12px;
+      border: 1px solid var(--accent-soft);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      box-sizing: border-box;
+      outline: none;
+    }
+    .x-input:focus {
+      border-color: var(--accent);
+    }
+
     .x-mono {
       font-family: var(--font-mono);
     }
@@ -102,16 +134,17 @@
       border: 1px solid transparent;
       font-size: 13px;
       cursor: pointer;
+      user-select: none;
+      transition: .12s ease;
       white-space: nowrap;
-      transition: background 0.15s ease, color 0.15s ease,
-                  border-color 0.15s ease, transform 0.05s ease;
-      font-family: var(--font-main);
     }
 
     .x-btn-main {
       background: var(--accent);
-      border-color: var(--accent);
-      color: #fff;
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 6px 18px rgba(255,122,0,.22);
+      font-weight: 700;
     }
 
     .x-btn-main:hover {
@@ -128,70 +161,124 @@
       background: #fff7eb;
       border-color: var(--accent-soft);
       color: #ff8a00;
+      font-weight: 700;
     }
 
     .x-btn-ghost:hover {
-      border-color: var(--accent);
-      background: #ffe9cf;
+      filter: brightness(1.03);
+      transform: translateY(-0.5px);
     }
 
+    .x-btn-ghost:active {
+      transform: translateY(0);
+      filter: brightness(0.98);
+    }
+
+    /* History */
     .x-hist {
       margin-top: 8px;
-      font-size: 12px;
+      background: rgba(255, 122, 0, 0.06);
+      border: 1px solid rgba(255, 122, 0, 0.16);
+      border-radius: 14px;
+      padding: 10px;
+      box-sizing: border-box;
     }
 
     .x-hist-row {
       display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 4px;
-      flex-wrap: wrap;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 6px 2px;
+      border-bottom: 1px dashed rgba(0,0,0,.08);
+    }
+    .x-hist-row:last-child {
+      border-bottom: none;
     }
 
     .x-hist-index {
-      width: 1.5em;
-      text-align: right;
+      width: 34px;
       color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.35;
+      padding-top: 1px;
     }
 
     .x-hist-text {
       flex: 1;
-      word-break: break-all;
       font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.35;
+      word-break: break-all;
+      color: #222;
+    }
+
+    .x-hist-copy {
+      height: 28px;
+      padding: 0 10px;
+      font-size: 12px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid rgba(0,0,0,.08);
+    }
+    .x-hist-copy:hover {
+      transform: translateY(-0.5px);
+    }
+
+    /* 小屏幕 */
+    @media (max-width: 520px) {
+      .x-label { min-width: 72px; }
     }
   </style>
 </head>
+
 <body>
+  <div id="x25519-viewport">
+    <div id="x25519-wrap">
+      <h2>Base64URL-X25519-密钥生成器</h2>
 
-  <h2>Base64URL-X25519-密钥生成器</h2>
+      <div class="x-card" id="x25519-card">
+        <div class="x-sub">
+          私钥：Base64URL（43 字符），公钥使用 X25519（<code>nacl.scalarMult.base</code>）推导。
+        </div>
 
-  <div class="x-card" id="x25519-card">
-    <div class="x-sub">
-      私钥：Base64URL（43 字符），公钥使用 X25519（<code>nacl.scalarMult.base</code>）推导。
+        <div class="x-row">
+          <div class="x-label">操作</div>
+          <button class="x-btn-main" id="x-generate">Generate</button>
+        </div>
+
+        <div class="x-row">
+          <div class="x-label">私钥→公钥</div>
+          <input
+            class="x-input x-mono"
+            id="x-priv-input"
+            type="text"
+            inputmode="text"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            placeholder="粘贴 43 字符 Base64URL 私钥（sk）"
+          />
+          <button class="x-btn-ghost" id="x-calc-pub">Calc pk</button>
+        </div>
+
+        <div class="x-row">
+          <div class="x-label">Private key</div>
+          <div class="x-result x-mono" id="x-priv"></div>
+          <button class="x-btn-ghost" id="x-copy-priv">Copy</button>
+        </div>
+
+        <div class="x-row">
+          <div class="x-label">Public key</div>
+          <div class="x-result x-mono" id="x-pub"></div>
+          <button class="x-btn-ghost" id="x-copy-pub">Copy</button>
+        </div>
+
+        <div class="x-row" style="margin-top:12px;">
+          <div class="x-label">results:</div>
+        </div>
+        <div class="x-hist" id="x-hist"></div>
+      </div>
     </div>
-
-    <div class="x-row">
-      <div class="x-label">操作</div>
-      <button class="x-btn-main" id="x-generate">Generate</button>
-    </div>
-
-    <div class="x-row">
-      <div class="x-label">Private key</div>
-      <div class="x-result x-mono" id="x-priv"></div>
-      <button class="x-btn-ghost" id="x-copy-priv">Copy</button>
-    </div>
-
-    <div class="x-row">
-      <div class="x-label">Public key</div>
-      <div class="x-result x-mono" id="x-pub"></div>
-      <button class="x-btn-ghost" id="x-copy-pub">Copy</button>
-    </div>
-
-    <div class="x-row" style="margin-top:12px;">
-      <div class="x-label">results:</div>
-    </div>
-    <div class="x-hist" id="x-hist"></div>
   </div>
-
 </body>
 </html>
