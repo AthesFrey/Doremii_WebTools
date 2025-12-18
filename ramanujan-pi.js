@@ -269,10 +269,9 @@
         const old = btn.textContent; btn.textContent = 'Copy failed'; setTimeout(()=>btn.textContent=old, 1200);
       }
     }
-
-
     
     // BigInt 整数平方根（牛顿法）
+    
     bigSqrt(n){
       if (n < 0n) throw new Error('negative');
       if (n < 2n) return n;
