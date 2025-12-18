@@ -1,8 +1,8 @@
 <!-- 强制刷新缓存：改 ?v= -->
-<script defer src="/wp-content/uploads/color-validator.js?v=20250927A"></script>
+<script defer src="/wp-content/uploads/color-validator.js?v=20251218B"></script>
 
 <!-- 标题居中 + 限宽 -->
-<h2 style="font-size:22px; color:#B76E79; text-align:center; margin:0 auto 10px; max-width:450px;">
+<h2 style="font-size:22px; color:#B76E79; text-align:center; margin:0 auto 10px; max-width:520px;">
   网页颜色验证器
 </h2>
 
@@ -18,9 +18,8 @@
     --button-fg:#ffffff;
     --grid-border:#e5e7eb;
 
-    display:block;        /* 兜底为块级元素 */
-    margin:0 auto;        /* ← 居中 */
-    max-width:450px;      /* ← 与标题一致的可视宽度上限 */
+    display:block;
+    margin:0 auto;
+    max-width:520px;
   ">
 </color-validator>
-
