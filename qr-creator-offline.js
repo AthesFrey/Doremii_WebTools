@@ -111,7 +111,7 @@
       if (this._inited) return; this._inited = true;
 
       const clamp = (v,min,max)=>Math.max(min, Math.min(max, v));
-      const size  = clamp(Number(this.getAttribute('size')||420), 240, 1024);
+      const size  = clamp(Number(this.getAttribute('size')||520), 240, 1024);
       const eccIn = String(this.getAttribute('ecc')||'M').toUpperCase();
       const fmt   = (this.getAttribute('format')||'svg').toLowerCase();
       const qzone = clamp(Number(this.getAttribute('qzone')||2), 0, 50);
@@ -218,4 +218,3 @@
     customElements.define('doremi-qr-offline', DoreQROffline);
   }
 })();
-
