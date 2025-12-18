@@ -1,12 +1,15 @@
 <!-- 引用 JS（注意版本号） -->
-<script defer src="/wp-content/uploads/text-recorder.js?v=20251116PM"></script>
+<script src="/wp-content/uploads/base-tool.js?v=20251218B"></script>
+<script defer src="/wp-content/uploads/text-recorder.js?v=20251118A"></script>
+<script defer src="/wp-content/uploads/file-recorder.js?v=20251123V2A"></script>
 
 <h2 style="
   font-size:22px;
   color:#2E7D32;
   text-align:center;
   margin:0 auto 10px;
-  max-width:425px;
+  width:calc(100vw - 24px);
+  max-width:520px;
 ">
   在线 Text 记录器
 </h2>
@@ -14,7 +17,8 @@
 <doremii-text-recorder
   accent="#4CAF50"
   style="
-    /* 琥珀绿色系 */
+    /* 琥珀绿色系 + 柔和背景 */
+    --bg:#F6FFF8;
     --card-bg:#E8F5E9;
     --card-border:#A5D6A7;
     --text:#1B5E20;
@@ -26,6 +30,7 @@
 
     display:block;
     margin:0 auto;
-    max-width:425px;
+    width:calc(100vw - 24px);
+    max-width:520px;
   ">
 </doremii-text-recorder>
