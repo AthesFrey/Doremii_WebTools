@@ -76,7 +76,7 @@
       const font   = 'system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial';
       this.root.innerHTML = `
         <style>
-          :host{ --accent:${accent}; display:block; max-width:450px; font-family:${font}; }
+          :host{ --accent:${accent}; display:block; max-width:520px; font-family:${font}; }
           .card{ margin:20px 0; padding:14px; color:var(--text,#0b1b34); background:var(--card-bg,#eff6ff); border:1px solid var(--card-border,#93c5fd); border-radius:12px; }
           .row{ display:flex; align-items:flex-start; gap:10px; flex-wrap:wrap; }
           label{ font-size:13px; color:var(--muted,#1e3a8a); line-height:28px; }
@@ -218,3 +218,4 @@
     customElements.define('doremi-qr-offline', DoreQROffline);
   }
 })();
+
