@@ -26,7 +26,7 @@ class BaseTool extends HTMLElement {
           --hist-border-base:#eee;
           --shadow-base:0 1px 2px rgba(0,0,0,.04);
 
-          display:block; width:100%; max-width: var(--tool-max-width, 420px); font-family:${font};
+          display:block; width:100%; max-width: var(--tool-max-width, 425px); font-family:${font};
           color: var(--text, var(--text-base));
         }
         .card{
@@ -452,3 +452,4 @@ class DoreUUID extends BaseTool {
 customElements.define('doremii-uuid', DoreUUID);
 
 console.log('doremii-tools ready (themeable colors) [2025-12-03]');
+
