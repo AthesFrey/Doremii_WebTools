@@ -270,6 +270,8 @@
       }
     }
 
+
+    
     // BigInt 整数平方根（牛顿法）
     bigSqrt(n){
       if (n < 0n) throw new Error('negative');
