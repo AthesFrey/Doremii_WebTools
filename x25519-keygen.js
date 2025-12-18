@@ -1,6 +1,7 @@
 // x25519-keygen.js
 // 依赖：先加载本地 tweetnacl-fast-1.0.3.min.js，提供 nacl.scalarMult.base(X25519)
 
+
 (function () {
   'use strict';
 
@@ -262,7 +263,6 @@
         console.error(e);
       }
     });
-
     renderHistory();
   }
 
@@ -273,3 +273,4 @@
   }
 
 })();
+
