@@ -25,6 +25,42 @@ html, body{
 
 a{ color: inherit; }
 
+/* ========== 更狠：强制把常见“工具卡变量”压成暗色（覆盖 inline style 也能生效） ========== */
+:root[data-theme="dark"] body{
+  /* 你很多工具都会用这些变量名 */
+  --bg: var(--d-bg);
+  --card: rgba(255,255,255,.06);
+  --border: rgba(255,255,255,.14);
+
+  --card-bg: rgba(255,255,255,.06);
+  --card-border: rgba(255,255,255,.14);
+
+  --text: var(--d-text);
+  --muted: var(--d-muted);
+  --grid-border: rgba(255,255,255,.14);
+}
+
+/* 只要某个工具“写过这些变量”（通常就是你的自定义组件标签），暗色时一律强行改掉 */
+:root[data-theme="dark"] [style*="--bg"],
+:root[data-theme="dark"] [style*="--card"],
+:root[data-theme="dark"] [style*="--border"],
+:root[data-theme="dark"] [style*="--card-bg"],
+:root[data-theme="dark"] [style*="--card-border"],
+:root[data-theme="dark"] [style*="--text"],
+:root[data-theme="dark"] [style*="--muted"],
+:root[data-theme="dark"] [style*="--grid-border"]{
+  --bg: var(--d-bg) !important;
+  --card: rgba(255,255,255,.06) !important;
+  --border: rgba(255,255,255,.14) !important;
+
+  --card-bg: rgba(255,255,255,.06) !important;
+  --card-border: rgba(255,255,255,.14) !important;
+
+  --text: var(--d-text) !important;
+  --muted: var(--d-muted) !important;
+  --grid-border: rgba(255,255,255,.14) !important;
+}
+
 /* 覆盖常见容器/卡片（不会要求你的工具必须用某个 class） */
 :root[data-theme="dark"] body *{
   /* 只强制文字颜色，避免页面“白底白字” */
@@ -46,27 +82,40 @@ a{ color: inherit; }
   border-color: var(--d-border) !important;
 }
 
-/* ========== 悬浮按钮样式 ========== */
+/* ========== 悬浮按钮样式（紧凑+防主页撑宽） ========== */
 #doremiiThemeToggle{
   position: fixed;
   right: max(16px, env(safe-area-inset-right));
   top:   max(16px, env(safe-area-inset-top));
   bottom: auto;
   z-index: 2147483647;
+
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 
-  padding: 10px 12px;
-  border-radius: 12px;
+  /* 更小一点 */
+  padding: 8px 10px;
+  border-radius: 10px;
+
   border: 1px solid var(--d-border);
   background: rgba(255,255,255,.75);
   backdrop-filter: blur(10px);
 
-  font: 14px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Microsoft YaHei",sans-serif;
+  font: 13px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Microsoft YaHei",sans-serif;
   cursor: pointer;
   user-select: none;
+
+  /* 关键：锁死为“内容宽度”，强行防止主页 CSS 把它撑宽 */
+  width: auto !important;
+  max-width: max-content;
+  min-width: 0 !important;
+  white-space: nowrap;
+  flex: 0 0 auto;
+
+  box-sizing: border-box;
 }
+#doremiiThemeToggle *{ box-sizing: border-box; }
 
 :root[data-theme="dark"] #doremiiThemeToggle{
   background: rgba(17,26,46,.75);
@@ -74,6 +123,13 @@ a{ color: inherit; }
 
 #doremiiThemeToggle .label{
   opacity: .95;
+  white-space: nowrap;
+}
+
+/* 手机端进一步紧凑：只留图标 */
+@media (max-width: 520px){
+  #doremiiThemeToggle .label{ display:none; }
+  #doremiiThemeToggle{ padding: 8px 9px; }
 }
 
 /* 暗色下 placeholder 往往过灰，提亮一点（更清晰） */
@@ -90,3 +146,7 @@ body.admin-bar #doremiiThemeToggle{
     top: calc(max(16px, env(safe-area-inset-top)) + 46px);
   }
 }
+
+
+
+
