@@ -1,7 +1,6 @@
 <!-- 引用 JS（注意版本号） -->
 <script src="/wp-content/uploads/base-tool.js?v=20251218B"></script>
 <script defer src="/wp-content/uploads/text-recorder.js?v=20251118A"></script>
-<script defer src="/wp-content/uploads/file-recorder.js?v=20251123V2A"></script>
 
 <h2 style="
   font-size:22px;
