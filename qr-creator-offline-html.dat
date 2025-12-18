@@ -2,9 +2,9 @@
 <script defer src="/wp-content/uploads/qrcodegen-v1.8.0-es6.js?v=1"></script>
 
 <!-- 后：离线组件脚本（更新后的 JS 文件） -->
-<script defer src="/wp-content/uploads/qr-creator-offline.js?v=20251109_noIssuer_ccase"></script>
+<script defer src="/wp-content/uploads/qr-creator-offline.js?v=20251218_width520"></script>
 
-<h2 style="font-size:22px; color:#1e3a8a; text-align:center; margin:0 auto 10px; max-width:420px;">
+<h2 style="font-size:22px; color:#1e3a8a; text-align:center; margin:0 auto 10px; max-width:520px;">
   二维码生成器（离线 / Nayuki ES6）
 </h2>
 
@@ -14,7 +14,6 @@
   ecc="M"
   format="svg"
   qzone="2"
-  account="user"
   digits="6"
   period="30"
   algorithm="SHA1"
@@ -32,9 +31,6 @@
 
     display:block;
     margin:0 auto;
-    max-width:420px;
+    max-width:520px;
   ">
 </doremi-qr-offline>
-
-
-
