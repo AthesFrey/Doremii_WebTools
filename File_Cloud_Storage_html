@@ -1,11 +1,13 @@
-<script defer src="/wp-content/uploads/file-recorder.js?v=20251123C"></script>
+<script src="/wp-content/uploads/base-tool.js?v=20251218A"></script>
+<script defer src="/wp-content/uploads/file-recorder.js?v=20251123V2A"></script>
 
 <h2 style="
   font-size:22px;
   color:#4A148C;
   text-align:center;
   margin:0 auto 10px;
-  max-width:425px;
+  width:calc(100vw - 24px);
+  max-width:520px;
 ">
   临时网盘
 </h2>
@@ -13,7 +15,8 @@
 <doremii-file-recorder
   accent="#7E57C2"
   style="
-    /* 贵族紫色系 */
+    /* 贵族紫色系 + 柔和背景（同款风格） */
+    --bg:#FBF6FF;
     --card-bg:#F3E5F5;
     --card-border:#CE93D8;
     --text:#4A148C;
@@ -25,6 +28,7 @@
 
     display:block;
     margin:0 auto;
-    max-width:425px;
+    width:calc(100vw - 24px);
+    max-width:520px;
   ">
 </doremii-file-recorder>
