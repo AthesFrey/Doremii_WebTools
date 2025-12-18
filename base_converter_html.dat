@@ -1,7 +1,7 @@
 <script defer src="/wp-content/uploads/base-converter.js?v=202511A"></script>
 
 <!-- 进制转换器（标题与组件均居中） -->
-<h2 style="font-size:22px; color:#32CD32; text-align:center; margin:0 auto 10px; max-width:420px;">
+<h2 style="font-size:22px; color:#32CD32; text-align:center; margin:0 auto 10px; max-width:520px;">
   进制转换器
 </h2>
 
@@ -19,6 +19,6 @@
 
     display:block;           /* 兜底为块级元素 */
     margin:0 auto;           /* ← 组件水平居中 */
-    max-width:420px;         /* （可按需改为 450 等） */
+    max-width:520px;         /* （可按需改为其他） */
   ">
 </doremii-base-converter>
