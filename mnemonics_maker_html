@@ -11,7 +11,7 @@
   <script src="/wp-content/uploads/crypto_files/solana-bundle.standalone.min.js?v=20251218"></script>
 
   <!-- 业务脚本：覆盖到这里，并把 v 参数改新以防缓存 -->
-  <script defer src="/wp-content/uploads/crypto_files/bip39_lucky.js?v=20251214_chainfilter"></script>
+  <script defer src="/wp-content/uploads/crypto_files/bip39_lucky.js?v=20251218"></script>
 
   <style>
     :root{
