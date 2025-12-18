@@ -18,7 +18,7 @@
     --badge-border:#C1440E;
     --badge-fg:#7A2F1B;
 
-    /* 尺寸（420 定宽 & 适配收缩） */
+    /* 尺寸（520 定宽 & 适配收缩） */
     --font-title:20px;
     --font-text:13px;
     --font-mono:13px;
@@ -28,7 +28,7 @@
     --pad-btn-x:12px;       /* 收窄按钮左右内边距 */
     --pad-input:7px 9px;
     --shadow:0 1px 2px rgba(0,0,0,.06);
-    --maxw-card:420px;      /* 卡片最大宽度：420 */
+    --maxw-card:520px;      /* 卡片最大宽度：520 */
     --input-basis:200px;    /* 输入框基准宽度略降 */
     --input-maxw:220px;
   }
@@ -46,7 +46,7 @@
     border:1px solid var(--card-border);
     border-radius:var(--radius);
     padding:var(--pad-card);
-    max-width:var(--maxw-card);      /* 420 固定 */
+    max-width:var(--maxw-card);      /* 520 固定 */
     width:100%;                      /* ← 在大屏下配合 max-width 收缩 */
     margin:0 auto;                   /* ← 卡片水平居中 */
     box-sizing:border-box;
