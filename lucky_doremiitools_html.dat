@@ -1,9 +1,16 @@
 <!-- 载入脚本（记得每次改 JS 就改 ?v= 强刷缓存） -->
-<script defer src="/wp-content/uploads/doremii-tools.js?v=lovegod_20251002C"></script>
+<script defer src="/wp-content/uploads/doremii-tools.js?v=lovegod_20251218D"></script>
 
-<!-- 统一居中样式（整组工具最大宽度可按需改 420/450） -->
+<!-- 统一居中样式（整组工具宽度 520px） -->
 <style>
-  .tool-center { max-width: 420px; margin: 0 auto; }
+  /* 固定 520px，同时兼容手机端 */
+  .tool-center{
+  width: 520px;
+  max-width: 100%;
+  margin: 0 auto;
+  --tool-max-width: 520px; /* 关键：让所有组件跟随 520 */
+  }
+
 
   /* 标题全部居中：本身不额外顶开（空白由下面“组件+标题”规则负责） */
   .tool-center > h2 { text-align: center; margin: 0 0 10px; }
@@ -16,12 +23,13 @@
     margin-top: 24px; /* 想更大就改 28/32 */
   }
 
-  /* 组件标签水平居中 */
+  /* 组件标签水平居中 + 占满容器宽度 */
   .tool-center > doremii-password,
   .tool-center > doremii-name,
   .tool-center > doremii-lucky,
   .tool-center > doremii-uuid {
     display: block;
+    width: 100%;
     margin-left: auto;
     margin-right: auto;
   }
@@ -33,7 +41,7 @@
   <h2 style="font-size: 22px; color: #FF8C00;">密码生成器</h2>
   <doremii-password
     accent="#FF8C00"
-    length="16"
+    length="18"
     history="5"
     style="
       --card-bg: #FFF8DC;
