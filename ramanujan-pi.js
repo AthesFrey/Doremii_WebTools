@@ -25,8 +25,8 @@
             --result-fg:#111;
             --shadow:0 1px 2px rgba(0,0,0,.05);
 
-            /* 模块尺寸（默认适配 450px 卡片） */
-            --max-w:450px;
+            /* 模块尺寸（默认适配 520px 卡片） */
+            --max-w:520px;
             --dsize:15px;     /* 小数位字号 */
             --rsize:10px;     /* 位数刻度字号 */
             --line-gap:4px;   /* 行距 */
@@ -143,7 +143,7 @@
             </div>
 
             <div class="result" id="result">计算中…</div>
-            <div class="note">每行 50 位；刻度（1、11、21…）与对应位绝对对齐。默认宽度 450，可在标签上以 CSS 变量覆盖。</div>
+            <div class="note">每行 50 位；刻度（1、11、21…）与对应位绝对对齐。默认宽度 520，可在标签上以 CSS 变量覆盖。</div>
           </div>
         </div>
       `;
