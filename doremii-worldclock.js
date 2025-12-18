@@ -192,7 +192,78 @@
         display:none;
       }
       .dw-warn.show{display:block;}
-    `;
+      /* =========================================================
+         ✅ Theme bridge: support global :root[data-theme="dark"]
+         说明：本工具原CSS里有多处固定 #fff 背景（行卡片/按钮/输入框等），
+         所以在暗色下看起来“不变”。这里用“追加覆盖”的方式，不改现有架构。
+         ========================================================= */
+
+      /* Android 上我们用 date + time 代替 datetime-local（原来没样式会显得突兀） */
+      .dw-input input[type="date"],
+      .dw-input input[type="time"]{
+        flex:1 1 calc((var(--dw-dt-w) - 8px)/2);
+        width:100%;
+        max-width:calc((var(--dw-dt-w) - 8px)/2);
+        min-width:0;
+        border:1px solid var(--dw-border);
+        padding:8px 10px;
+        border-radius:12px;
+        font-size:13px;
+        background:#fff;
+        height:40px;
+      }
+
+      :root[data-theme="dark"] .${WIDGET_CLASS}{
+        color-scheme: dark;
+        /* 尽量跟随你全站主题变量（如果存在），否则走 fallback */
+        --dw-bg: rgba(255,255,255,.06);
+        --dw-text: var(--d-text, #e5e7eb);
+        --dw-muted: var(--d-muted, rgba(229,231,235,.72));
+        --dw-border: var(--d-border, rgba(255,255,255,.14));
+        --dw-soft: rgba(255,255,255,.04);
+      }
+
+      :root[data-theme="dark"] .${WIDGET_CLASS} .dw-row{
+        background: rgba(255,255,255,.04);
+        border-color: var(--dw-border);
+      }
+
+      :root[data-theme="dark"] .${WIDGET_CLASS} .dw-badge{
+        background: rgba(255,255,255,.06);
+        border-color: var(--dw-border);
+        color: var(--dw-muted);
+      }
+
+      :root[data-theme="dark"] .${WIDGET_CLASS} .dw-btn{
+        background: rgba(255,255,255,.06);
+        border-color: var(--dw-border);
+        color: var(--dw-text);
+        box-shadow: 0 10px 22px rgba(0,0,0,.28);
+      }
+      :root[data-theme="dark"] .${WIDGET_CLASS} .dw-btn.dw-primary{
+        background: rgba(255,255,255,.10);
+      }
+
+      :root[data-theme="dark"] .${WIDGET_CLASS} .dw-kbd{
+        background: rgba(255,255,255,.06);
+        border-color: var(--dw-border);
+        color: var(--dw-text);
+      }
+
+      :root[data-theme="dark"] .${WIDGET_CLASS} .dw-input input[type="datetime-local"],
+      :root[data-theme="dark"] .${WIDGET_CLASS} .dw-input input[type="date"],
+      :root[data-theme="dark"] .${WIDGET_CLASS} .dw-input input[type="time"]{
+        background: rgba(255,255,255,.06);
+        border-color: var(--dw-border);
+        color: var(--dw-text);
+      }
+
+      :root[data-theme="dark"] .${WIDGET_CLASS} .dw-warn{
+        border-color: rgba(255,255,255,.18);
+        background: rgba(255,255,255,.06);
+        color: var(--dw-text);
+      }
+`;
     document.head.appendChild(style);
   }
 
