@@ -15,7 +15,7 @@
     }
 
     .ip-map-card {
-      max-width: 420px;
+      max-width: 520px;
       margin: 0 auto;
       padding: 12px 14px 16px;
       background: #ffffff;
@@ -109,7 +109,7 @@
   <script src="https://webapi.amap.com/maps?v=2.0&key=6cd6a8409708cae39d0797b5a0c23c90"></script>
 
   <!-- 3. 外部 JS 文件（新版 v20251125V2） -->
-  <script src="/wp-content/uploads/ip-map-locator.js?v=20251125V2"></script>
+  <script src="/wp-content/uploads/ip-map-locator.js?v=20251125V6"></script>
 </head>
 <body>
   <div class="ip-map-card">
