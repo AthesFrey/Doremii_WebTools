@@ -1,20 +1,20 @@
 <!-- 载入脚本 -->
 <script defer src="/wp-content/uploads/ramanujan-pi.js?v=20250927_fix3"></script>
 
-<!-- 标题（去掉 1914、不改其它文案）-->
-<h2 style="font-size:22px; color:#0EA5A5; text-align:center; margin:0 auto 10px; max-width:450px;">
+<!-- 标题 -->
+<h2 style="font-size:22px; color:#0EA5A5; text-align:center; margin:0 auto 10px; max-width:520px;">
   Ramanujan π（拉马努金进度器）
 </h2>
 
-<!-- 组件：直接设为 450px 宽 -->
+<!-- 组件：直接设为 520px 宽 -->
 <doremii-ramanujan
   accent="#0EA5A5"
   style="
     --card-bg:#f0fffa; --card-border:#9ee6d7; --text:#0f172a; --muted:#64748b;
     --button-bg:#0EA5A5; --button-fg:#ffffff; --result-bg:#ffffff; --result-fg:#111111;
 
-    /* 关键：让组件看起来就是 450px 宽 */
-    --max-w:450px;               /* 内部卡片上限 */
-    display:block; margin:0 auto; max-width:450px;  /* 外层容器上限 */
+    /* 关键：让组件看起来就是 520px 宽 */
+    --max-w:520px;               /* 内部卡片上限 */
+    display:block; margin:0 auto; max-width:520px;  /* 外层容器上限 */
   ">
 </doremii-ramanujan>
