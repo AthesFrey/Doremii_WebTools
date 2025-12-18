@@ -1,8 +1,9 @@
 /* Doremii World Clock / 世界时间联动换算器
- * External JS version v2025-12-04a
+ * External JS version v2025-12-18a
  * - Soft per-timezone colors (no harsh red/purple/black)
  * - Conservative changes: add Dubai + Berlin
  * - Bugfix: do NOT auto-overwrite datetime-local input if user/restored value exists or input focused
+ * - Android: replace datetime-local with date + time inputs to avoid tall input box
  */
 (() => {
   "use strict";
@@ -10,14 +11,19 @@
   const STYLE_ID = "doremii-worldclock-style";
   const WIDGET_CLASS = "doremii-worldclock";
 
+  const IS_ANDROID = /Android/i.test(navigator.userAgent);
+
   // Soft palette (avoid big red/purple/black)
   const ZONE_COLORS = {
     london: "#5C7FA3",  // steel blue
     berlin: "#6A8C7C",  // muted green-gray
     utc:    "#6B7280",  // muted gray
     beijing:"#B8942E",  // muted amber
+    cairo:  "#A97952",  // warm sand / bronze
+    moscow: "#7A6FA8",  // muted purple-gray
     dubai:  "#9A8F6A",  // soft sand / taupe
     tokyo:  "#4C9A6A",  // muted green
+    sydney: "#3E9AA2",  // soft teal
     ny:     "#3F7FBF",  // muted blue
     chi:    "#3D8F8B",  // muted teal
     den:    "#7A8F3A",  // olive
@@ -27,19 +33,27 @@
   };
 
   const ZONES = [
-    { key: "london", label: "London（伦敦）", tz: "Europe/London", brief: "冬季多为 GMT(UTC+0)，夏季为 BST(UTC+1)" },
-    { key: "berlin", label: "Berlin（柏林）", tz: "Europe/Berlin", brief: "德国时间：冬令时 CET(UTC+1)，夏令时 CEST(UTC+2)" },
-    { key: "utc",    label: "UTC（协调世界时）", tz: "Etc/UTC", brief: "全球时间基准；不实行夏令时" },
-    { key: "beijing",label: "Beijing（北京时间）", tz: "Asia/Shanghai", brief: "CST(中国标准时间) = UTC+8；不实行夏令时" },
-    { key: "dubai",  label: "Dubai（迪拜）", tz: "Asia/Dubai", brief: "海湾标准时间 GST = UTC+4；不实行夏令时" },
-    { key: "tokyo",  label: "Tokyo（东京）", tz: "Asia/Tokyo", brief: "JST = UTC+9；不实行夏令时" },
-    { key: "ny",     label: "US Eastern（纽约）", tz: "America/New_York", brief: "ET：冬令时 EST(UTC-5)，夏令时 EDT(UTC-4)" },
-    { key: "chi",    label: "US Central（芝加哥）", tz: "America/Chicago", brief: "CT：CST(UTC-6)/CDT(UTC-5)" },
-    { key: "den",    label: "US Mountain（丹佛）", tz: "America/Denver", brief: "MT：MST(UTC-7)/MDT(UTC-6)" },
-    { key: "la",     label: "US Pacific（洛杉矶）", tz: "America/Los_Angeles", brief: "PT：PST(UTC-8)/PDT(UTC-7)" },
-    { key: "ak",     label: "US Alaska（安克雷奇）", tz: "America/Anchorage", brief: "AKT：AKST(UTC-9)/AKDT(UTC-8)" },
-    { key: "hi",     label: "US Hawaii（檀香山）", tz: "Pacific/Honolulu", brief: "HST = UTC-10；不实行夏令时" }
+    { key: "london", label: "London（伦敦）", tz: "Europe/London", lon: 0.1278, brief: "冬季多为 GMT(UTC+0)，夏季为 BST(UTC+1)" },
+    { key: "berlin", label: "Berlin（柏林）", tz: "Europe/Berlin", lon: 13.4050, brief: "德国时间：冬令时 CET(UTC+1)，夏令时 CEST(UTC+2)" },
+    { key: "cairo",  label: "Cairo（开罗）", tz: "Africa/Cairo", lon: 31.2357, brief: "埃及时间：通常为 EET(UTC+2)，实行夏令时年份可能为 UTC+3（以当地政策为准）" },
+    { key: "moscow", label: "Moscow（莫斯科）", tz: "Europe/Moscow", lon: 37.6173, brief: "MSK = UTC+3；目前不实行夏令时" },
+    { key: "utc",    label: "UTC（协调世界时）", tz: "Etc/UTC", lon: 0.0000, brief: "全球时间基准；不实行夏令时" },
+    { key: "beijing",label: "Beijing（北京时间）", tz: "Asia/Shanghai", lon: 116.4074, brief: "CST(中国标准时间) = UTC+8；不实行夏令时" },
+    { key: "dubai",  label: "Dubai（迪拜）", tz: "Asia/Dubai", lon: 55.2708, brief: "海湾标准时间 GST = UTC+4；不实行夏令时" },
+    { key: "tokyo",  label: "Tokyo（东京）", tz: "Asia/Tokyo", lon: 139.6917, brief: "JST = UTC+9；不实行夏令时" },
+    { key: "sydney", label: "Sydney（悉尼）", tz: "Australia/Sydney", lon: 151.2093, brief: "澳大利亚东部：AEST(UTC+10)，夏令时 AEDT(UTC+11)" },
+    { key: "ny",     label: "US Eastern（纽约）", tz: "America/New_York", lon: -74.0060, brief: "ET：冬令时 EST(UTC-5)，夏令时 EDT(UTC-4)" },
+    { key: "chi",    label: "US Central（芝加哥）", tz: "America/Chicago", lon: -87.6298, brief: "CT：CST(UTC-6)/CDT(UTC-5)" },
+    { key: "den",    label: "US Mountain（丹佛）", tz: "America/Denver", lon: -104.9903, brief: "MT：MST(UTC-7)/MDT(UTC-6)" },
+    { key: "la",     label: "US Pacific（洛杉矶）", tz: "America/Los_Angeles", lon: -118.2437, brief: "PT：PST(UTC-8)/PDT(UTC-7)" },
+    { key: "ak",     label: "US Alaska（安克雷奇）", tz: "America/Anchorage", lon: -149.9003, brief: "AKT：AKST(UTC-9)/AKDT(UTC-8)" },
+    { key: "hi",     label: "US Hawaii（檀香山）", tz: "Pacific/Honolulu", lon: -157.8583, brief: "HST = UTC-10；不实行夏令时" }
   ];
+
+  function lon360(lon){
+    return (lon < 0) ? (lon + 360) : lon;
+  }
+  const ZONES_SORTED = ZONES.slice().sort((a,b)=>lon360(a.lon)-lon360(b.lon));
 
   function injectStyleOnce() {
     if (document.getElementById(STYLE_ID)) return;
@@ -54,13 +68,19 @@
         --dw-border:rgba(15, 23, 42, .12);
         --dw-soft:rgba(2,6,23,.04);
         --dw-radius:18px;
+        --dw-dt-w:280px; /* datetime 输入框统一宽度基准 */
         font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
         color:var(--dw-text);
+        padding:0 12px; /* 手机/窄屏别贴边 */
       }
       .${WIDGET_CLASS} *{box-sizing:border-box;}
       .dw-card{
-        width:min(900px,100%);
-        margin:16px auto;
+        width:calc(100vw - 24px);   /* 让卡片脱离主题窄容器，按视口变宽 */
+        max-width:1200px;           /* 超宽屏别无限拉伸（更均衡的上限） */
+        margin:16px 0;
+        position:relative;
+        left:50%;
+        transform:translateX(-50%);
         border:1px solid var(--dw-border);
         border-radius:var(--dw-radius);
         background:var(--dw-bg);
@@ -91,8 +111,10 @@
       .dw-btn:active{transform:translateY(0px);}
       .dw-btn.dw-primary{background:rgba(2,6,23,.03);}
       .dw-body{padding:12px 12px 6px;}
-      .dw-grid{display:grid; grid-template-columns:1.3fr 1.1fr 1.2fr; gap:10px;}
+      .dw-grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px;}
+      @media (max-width:1024px){.dw-grid{grid-template-columns:1fr 1fr;}}
       @media (max-width:760px){.dw-grid{grid-template-columns:1fr;}}
+      @media (max-width:420px){.dw-inputbox{flex-direction:column; align-items:stretch;} .dw-inputbox .dw-btn{width:100%;}}
       .dw-row{
         border:1px solid var(--dw-border);
         border-radius:16px;
@@ -130,14 +152,27 @@
       .dw-time .dw-date{font-variant-numeric:tabular-nums; font-size:12px; color:var(--dw-muted);}
       .dw-input{display:flex; flex-direction:column; gap:8px; justify-content:center;}
       .dw-input label{font-size:12px; color:var(--dw-muted);}
-      .dw-inputbox{display:flex; gap:8px; align-items:center;}
+      .dw-inputbox{display:flex; gap:8px; align-items:center; flex-wrap:nowrap;}
+      .dw-inputbox .dw-btn{
+        display:inline-flex; align-items:center; justify-content:center;
+        padding:8px 16px;
+        height:40px;
+        min-width:118px;
+        white-space:nowrap;
+        line-height:1;
+      }
+
       .dw-input input[type="datetime-local"]{
+        flex:1 1 var(--dw-dt-w);
         width:100%;
+        max-width:var(--dw-dt-w);
+        min-width:0;
         border:1px solid var(--dw-border);
-        padding:10px 10px;
+        padding:8px 10px;
         border-radius:12px;
         font-size:13px;
         background:#fff;
+        height:40px;
       }
       .dw-foot{
         padding:10px 14px 14px;
@@ -305,8 +340,8 @@
     resetUserLocks(){
       // allow inputs to follow the display again
       for (const b of this._rows.values()){
-        if (b && b.input){
-          delete b.input.dataset.user;
+        if (b && b._lockEl){
+          delete b._lockEl.dataset.user;
         }
       }
     }
@@ -334,7 +369,7 @@
       const grid = document.createElement("div");
       grid.className = "dw-grid";
 
-      for (const z of ZONES){
+      for (const z of ZONES_SORTED){
         const row = document.createElement("div");
         row.className = "dw-row";
         row.dataset.zone = z.key;
@@ -360,9 +395,9 @@
           </div>
 
           <div class="dw-input">
-            <label>调整此时区时间（datetime-local）</label>
+            <label>调整此时区时间</label>
             <div class="dw-inputbox">
-              <input type="datetime-local" data-input />
+              <span data-inputslot></span>
               <button class="dw-btn" data-set>以此为基准</button>
             </div>
           </div>
@@ -374,20 +409,67 @@
           date: row.querySelector("[data-date]"),
           abbr: row.querySelector("[data-abbr]"),
           off:  row.querySelector("[data-off]"),
-          input: row.querySelector("[data-input]"),
+          inputSlot: row.querySelector("[data-inputslot]"),
           setBtn: row.querySelector("[data-set]")
         };
 
-        // mark as user-touched so refresh() won't overwrite the input
-        const markUser = () => { bind.input.dataset.user = "1"; };
-        bind.input.addEventListener("focus", markUser);
-        bind.input.addEventListener("input", markUser);
-        bind.input.addEventListener("change", markUser);
+        // Build time input(s): non-Android uses datetime-local, Android uses date + time
+        const slot = bind.inputSlot;
+        // clear slot (safety)
+        while (slot.firstChild) slot.removeChild(slot.firstChild);
+
+        if (!IS_ANDROID){
+          const inp = document.createElement("input");
+          inp.type = "datetime-local";
+          inp.setAttribute("data-input", "");
+          bind.input = inp;
+          bind._inputs = [inp];
+          bind._lockEl = inp;
+          bind.getValue = () => inp.value;
+          bind.setAuto = (dtLocal) => { inp.value = dtLocal; };
+          slot.appendChild(inp);
+        } else {
+          const di = document.createElement("input");
+          di.type = "date";
+          di.setAttribute("data-input-date", "");
+
+          const ti = document.createElement("input");
+          ti.type = "time";
+          ti.step = 60; // 1-minute
+          ti.setAttribute("data-input-time", "");
+
+          bind.dateInput = di;
+          bind.timeInput = ti;
+          bind._inputs = [di, ti];
+          bind._lockEl = di; // store user-lock flag here
+          bind.getValue = () => {
+            if (!di.value) return "";
+            return di.value + "T" + (ti.value || "00:00");
+          };
+          bind.setAuto = (dtLocal) => {
+            const i = (dtLocal || "").indexOf("T");
+            const d = i >= 0 ? dtLocal.slice(0, i) : "";
+            const t = i >= 0 ? dtLocal.slice(i + 1) : "";
+            if (d) di.value = d;
+            if (t) ti.value = t;
+          };
+
+          slot.appendChild(di);
+          slot.appendChild(ti);
+        }
+
+        // mark as user-touched so refresh() won't overwrite the input(s)
+        const markUser = () => { bind._lockEl.dataset.user = "1"; };
+        for (const inp of bind._inputs){
+          inp.addEventListener("focus", markUser);
+          inp.addEventListener("input", markUser);
+          inp.addEventListener("change", markUser);
+          inp.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") this.applyFromRow(bind);
+          });
+        }
 
         bind.setBtn.addEventListener("click", () => this.applyFromRow(bind));
-        bind.input.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") this.applyFromRow(bind);
-        });
 
         this._rows.set(z.key, bind);
         grid.appendChild(row);
@@ -461,7 +543,7 @@
     }
 
     applyFromRow(bind){
-      const v = bind.input.value;
+      const v = bind.getValue ? bind.getValue() : (bind.input ? bind.input.value : "");
       if (!v){
         this.flashWarn("请输入时间后再点“以此为基准”。");
         return;
@@ -526,15 +608,19 @@
         // If input already has a value that differs from the auto value (e.g., browser restored),
         // treat it as user value and DO NOT overwrite.
         const dtLocal = toDTLocalString(p);
-        const inp = bind.input;
+        const lockEl = bind._lockEl;
+        const curVal = bind.getValue ? bind.getValue() : (bind.input ? bind.input.value : "");
 
-        if (inp.value && inp.dataset.user !== "1" && inp.value !== dtLocal) {
-          inp.dataset.user = "1";
+        // Detect "restored" values: only lock if there is a non-empty current value and it differs
+        if (curVal && lockEl && lockEl.dataset.user !== "1" && curVal !== dtLocal) {
+          lockEl.dataset.user = "1";
         }
 
-        // Only sync the input when it's not focused and not user-locked
-        if (document.activeElement !== inp && inp.dataset.user !== "1") {
-          if (inp.value !== dtLocal) inp.value = dtLocal;
+        const focused = bind._inputs && bind._inputs.includes(document.activeElement);
+
+        // Only sync the input(s) when none is focused and not user-locked
+        if (!focused && lockEl && lockEl.dataset.user !== "1") {
+          if (curVal !== dtLocal && bind.setAuto) bind.setAuto(dtLocal);
         }
       }
     }
