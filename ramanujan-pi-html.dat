@@ -1,20 +1,65 @@
 <!-- 载入脚本 -->
 <script defer src="/wp-content/uploads/ramanujan-pi.js?v=20250927_fix3"></script>
 
+<style>
+  /* 统一居中 + 宽度 520（手机端自动缩） */
+  .ramanujan-wrap{ max-width:520px; margin:0 auto; }
+
+  /* 默认：浅色主题变量 */
+  .ramanujan-wrap doremii-ramanujan{
+    --card-bg:#f0fffa;
+    --card-border:#9ee6d7;
+    --text:#0f172a;
+    --muted:#64748b;
+
+    --button-bg:#0EA5A5;
+    --button-fg:#ffffff;
+
+    --result-bg:#ffffff;
+    --result-fg:#111111;
+
+    --max-w:520px;
+
+    display:block;
+    margin:0 auto;
+    max-width:520px;
+  }
+
+  /* 你的全站主题切换通常会给 <html> 打 data-theme="dark" */
+  html[data-theme="dark"] .ramanujan-wrap doremii-ramanujan{
+    --card-bg:#0b1220;
+    --card-border:#1f2a3a;
+    --text:#f8fafc;     /* 关键：白字 */
+    --muted:#94a3b8;
+
+    --button-bg:#0EA5A5;
+    --button-fg:#ffffff;
+
+    --result-bg:#0f172a;
+    --result-fg:#f8fafc; /* 关键：白字 */
+  }
+
+  /* 兜底：如果没用 data-theme，而是跟随系统暗色 */
+  @media (prefers-color-scheme: dark){
+    html:not([data-theme]) .ramanujan-wrap doremii-ramanujan{
+      --card-bg:#0b1220;
+      --card-border:#1f2a3a;
+      --text:#f8fafc;
+      --muted:#94a3b8;
+      --button-bg:#0EA5A5;
+      --button-fg:#ffffff;
+      --result-bg:#0f172a;
+      --result-fg:#f8fafc;
+    }
+  }
+</style>
+
 <!-- 标题 -->
 <h2 style="font-size:22px; color:#0EA5A5; text-align:center; margin:0 auto 10px; max-width:520px;">
   Ramanujan π（拉马努金进度器）
 </h2>
 
-<!-- 组件：直接设为 520px 宽 -->
-<doremii-ramanujan
-  accent="#0EA5A5"
-  style="
-    --card-bg:#f0fffa; --card-border:#9ee6d7; --text:#0f172a; --muted:#64748b;
-    --button-bg:#0EA5A5; --button-fg:#ffffff; --result-bg:#ffffff; --result-fg:#111111;
-
-    /* 关键：让组件看起来就是 520px 宽 */
-    --max-w:520px;               /* 内部卡片上限 */
-    display:block; margin:0 auto; max-width:520px;  /* 外层容器上限 */
-  ">
-</doremii-ramanujan>
+<!-- 组件 -->
+<div class="ramanujan-wrap">
+  <doremii-ramanujan accent="#0EA5A5"></doremii-ramanujan>
+</div>
