@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <title>发现你了!</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
 
   <style>
     body {
@@ -94,6 +95,74 @@
     #manual-ip-btn:hover {
       background: #f0f0f0;
     }
+
+    /* ============================
+       追加：暗色主题（保守覆盖）
+       - 支持 html[data-theme="dark"]（你全站按钮常用方式）
+       - 也支持系统暗色 prefers-color-scheme
+       ============================ */
+
+    html[data-theme="dark"] body {
+      background: #0b1220;
+      color: #e5e7eb;
+    }
+    html[data-theme="dark"] .ip-map-card {
+      background: #0f172a;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+    html[data-theme="dark"] .ip-map-title { color: #e5e7eb; }
+    html[data-theme="dark"] .info-line { color: #e5e7eb; }
+    html[data-theme="dark"] .info-label { color: #a8b3c7; }
+    html[data-theme="dark"] .tip { color: #94a3b8; }
+
+    html[data-theme="dark"] #manual-ip-input {
+      background: #0b1220;
+      color: #e5e7eb;
+      border-color: rgba(255,255,255,0.14);
+    }
+    html[data-theme="dark"] #manual-ip-input::placeholder {
+      color: rgba(229,231,235,0.45);
+    }
+    html[data-theme="dark"] #manual-ip-btn {
+      background: rgba(255,255,255,0.06);
+      color: #e5e7eb;
+      border-color: rgba(255,255,255,0.14);
+    }
+    html[data-theme="dark"] #manual-ip-btn:hover {
+      background: rgba(255,255,255,0.10);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      html:not([data-theme="light"]) body {
+        background: #0b1220;
+        color: #e5e7eb;
+      }
+      html:not([data-theme="light"]) .ip-map-card {
+        background: #0f172a;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      }
+      html:not([data-theme="light"]) .ip-map-title { color: #e5e7eb; }
+      html:not([data-theme="light"]) .info-line { color: #e5e7eb; }
+      html:not([data-theme="light"]) .info-label { color: #a8b3c7; }
+      html:not([data-theme="light"]) .tip { color: #94a3b8; }
+
+      html:not([data-theme="light"]) #manual-ip-input {
+        background: #0b1220;
+        color: #e5e7eb;
+        border-color: rgba(255,255,255,0.14);
+      }
+      html:not([data-theme="light"]) #manual-ip-input::placeholder {
+        color: rgba(229,231,235,0.45);
+      }
+      html:not([data-theme="light"]) #manual-ip-btn {
+        background: rgba(255,255,255,0.06);
+        color: #e5e7eb;
+        border-color: rgba(255,255,255,0.14);
+      }
+      html:not([data-theme="light"]) #manual-ip-btn:hover {
+        background: rgba(255,255,255,0.10);
+      }
+    }
   </style>
 
   <!-- 1. 高德安全密钥：必须在加载 JSAPI 之前设置 -->
@@ -109,7 +178,8 @@
   <script src="https://webapi.amap.com/maps?v=2.0&key=6cd6a8409708cae39d0797b5a0c23c90"></script>
 
   <!-- 3. 外部 JS 文件（新版 v20251125V2） -->
-  <script src="/wp-content/uploads/ip-map-locator.js?v=20251125V6"></script>
+  <!-- 建议你改个版本号强刷缓存，比如 ?v=20251125V7 -->
+  <script src="/wp-content/uploads/ip-map-locator.js?v=20251125V7"></script>
 </head>
 <body>
   <div class="ip-map-card">
