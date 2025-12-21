@@ -1,6 +1,8 @@
 // ip-map-locator.js
-// 版本号：v20251125V6
+// 版本号：v20251125V7
+// 修复：手动 track 海外 IP 时，高德逆地理可能返回空 → 文字显示“定位成功（无详细地址）”
 // 方案：逆地理为空时，用坐标源(ipwho/ipapi)的 region/city/isp 兜底显示；国家用中文(按国家码映射)
+// 追加（保守）：暗色主题下，地图初始化使用高德暗色 mapStyle（不影响原有功能）
 
 function safeJoin(arr) {
   return (arr || []).filter(function (x) { return !!x; }).join(' ');
@@ -66,6 +68,26 @@ function countryCnFromCC(cc) {
     'MY':'马来西亚','ID':'印度尼西亚','PH':'菲律宾','BR':'巴西','MX':'墨西哥'
   };
   return m[cc] || '';
+}
+
+/* ========= 追加：主题判断（保守） ========= */
+function isDarkThemeNow() {
+  try {
+    var de = document.documentElement;
+    var b = document.body;
+
+    // 你全站按钮常见：html[data-theme="dark"]
+    var dt = de && de.getAttribute ? de.getAttribute('data-theme') : '';
+    if (dt === 'dark') return true;
+
+    // 兼容 class=dark
+    if (de && de.classList && de.classList.contains('dark')) return true;
+    if (b && b.classList && b.classList.contains('dark')) return true;
+
+    // 兜底：系统暗色
+    if (window.matchMedia) return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  } catch (e) {}
+  return false;
 }
 
 // ===== IPIP（仅当前访客）=====
@@ -303,7 +325,12 @@ function initIpMap() {
     return;
   }
 
-  var map = new AMap.Map('map', { viewMode: '2D', zoom: 4, center: [105, 35] });
+  /* 仅改这一小段：暗色主题下给地图加 mapStyle（保守，不影响其它逻辑） */
+  var mapOpts = { viewMode: '2D', zoom: 4, center: [105, 35] };
+  if (isDarkThemeNow()) {
+    mapOpts.mapStyle = 'amap://styles/dark';
+  }
+  var map = new AMap.Map('map', mapOpts);
 
   locateAutoVisitor(map, ipSpan, locSpan);
 
