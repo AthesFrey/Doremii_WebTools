@@ -13,6 +13,7 @@
     var missing = [];
 
     var elMnemonic = safeGet('mnemonic', missing);
+    var elCnPreview = safeGet('cnPreview', missing);
     var elPass = safeGet('passphrase', missing);
     var elIndex = safeGet('addrIndex', missing);
 
@@ -26,7 +27,6 @@
     var elStatus = safeGet('status', missing);
     var elOut = safeGet('out', missing);
 
-    var btnGen = safeGet('btnGen', missing);
     var btnLucky = safeGet('btnLucky', missing);
     var btnRand24 = safeGet('btnRand24', missing);
     var btnToggleSecrets = safeGet('btnToggleSecrets', missing);
@@ -70,6 +70,126 @@ function setStatus(msg, ok) {
 
     var libErr = ensureLibs();
     if (libErr) { setStatus('❌ 依赖库未就绪：' + libErr, false); return; }
+
+
+    // ---------- Mnemonic 中文对照（bip39_enwithcn.txt） ----------
+    var cnMap = null;
+    var cnReady = false;
+    var cnLoading = false;
+    var cnFailed = false;
+
+    function getSelfDir() {
+      var src = '';
+      try {
+        if (document.currentScript && document.currentScript.src) src = document.currentScript.src;
+      } catch (e) {}
+      if (!src) {
+        var ss = document.getElementsByTagName('script');
+        for (var i = ss.length - 1; i >= 0; i--) {
+          var s = ss[i] && ss[i].src ? ss[i].src : '';
+          if (s && s.indexOf('bip39_lucky.js') !== -1) { src = s; break; }
+        }
+      }
+      try {
+        if (!src) return new URL(ASSET_BASE, window.location.href).toString();
+        var u = new URL(src, window.location.href);
+        u.search = '';
+        return u.toString().replace(/[^\/]+$/, '');
+      } catch (e2) {
+        return ASSET_BASE;
+      }
+    }
+
+    function parseCnMap(txt) {
+      var m = Object.create(null);
+      var lines = String(txt || '').split(/\r?\n/);
+      for (var i = 0; i < lines.length; i++) {
+        var line = (lines[i] || '').trim();
+        if (!line) continue;
+        var sp = line.indexOf(' ');
+        if (sp < 0) continue;
+        var en = line.slice(0, sp).trim().toLowerCase();
+        var cn = line.slice(sp + 1).trim();
+        if (en) m[en] = cn;
+      }
+      return m;
+    }
+
+    function cnFromPhrase(phrase) {
+      if (!cnReady || !cnMap) return '';
+      phrase = normMnemonic(phrase);
+      if (!phrase) return '';
+      var ws = phrase.split(' ');
+      var out = [];
+      for (var i = 0; i < ws.length; i++) {
+        var w = (ws[i] || '').toLowerCase();
+        if (!w) continue;
+        var cn = cnMap[w];
+        if (!cn) cn = '未知';
+        out.push(cn);
+      }
+      if (!out.length) return '';
+      var s = '';
+      for (var j = 0; j < out.length; j++) {
+        s += out[j];
+        if (j !== out.length - 1) {
+          if (j % 6 === 5) s += '\n';
+          else s += ' ';
+        }
+      }
+      return s;
+    }
+
+    function updateCnPreview() {
+      if (!elCnPreview) return;
+      if (!cnReady) return;
+      var phrase = normMnemonic(elMnemonic.value);
+      if (!phrase) { elCnPreview.textContent = ''; return; }
+      elCnPreview.textContent = cnFromPhrase(phrase);
+    }
+
+    function loadCnMap() {
+      if (cnReady || cnLoading) return;
+      cnLoading = true;
+
+      var dir = getSelfDir();
+      var url = dir + 'bip39_enwithcn.txt?v=' + Date.now();
+
+      // 只有在加载确实慢时才显示提示，避免“卡在加载中”的错觉
+      var slowTimer = setTimeout(function(){
+        if (!cnReady && !cnFailed && elCnPreview) {
+          elCnPreview.textContent = '中文对照加载中…';
+          elCnPreview.classList.add('muted');
+        }
+      }, 450);
+
+      fetch(url, { cache: 'no-store' })
+        .then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.text();
+        })
+        .then(function (txt) {
+          cnMap = parseCnMap(txt);
+          cnReady = true;
+          cnLoading = false;
+          clearTimeout(slowTimer);
+          if (elCnPreview) { elCnPreview.classList.remove('muted'); }
+          updateCnPreview();
+          // 让历史记录也补上中文对照
+          try { renderHistory(); } catch(e) {}
+        })
+        .catch(function (e) {
+          cnFailed = true;
+          cnLoading = false;
+          clearTimeout(slowTimer);
+          if (elCnPreview) {
+            elCnPreview.textContent = '中文对照不可用';
+            elCnPreview.classList.add('muted');
+          }
+          // 不影响主功能
+        });
+    }
+
 
     function normMnemonic(s) {
       s = String(s || '').trim();
@@ -231,7 +351,8 @@ function setStatus(msg, ok) {
       }
     }
 
-    function generateUI() {
+    function generateUI(opts) {
+      opts = opts || {};
       clearOutput();
 
       var phrase = normMnemonic(elMnemonic.value);
@@ -258,15 +379,19 @@ function setStatus(msg, ok) {
       try {
         var res = generateAllOnce(phrase, pass, idx, opts);
 
-        setStatus(
-          '✅ 生成成功\n' +
-          '索引：' + idx + '\n' +
-          'BTC 路径：' + res.paths.btc + '\n' +
-          'ETH 路径：' + res.paths.eth + '\n' +
-          'SOL 路径：' + res.paths.sol + '\n' +
-          'TRX 路径：' + res.paths.trx,
-          true
-        );
+        if (opts && opts.live) {
+          setStatus('✅ 已实时生成（不入历史）', true);
+        } else {
+          setStatus(
+            `✅ 生成成功
+索引：${idx}
+BTC 路径：${res.paths.btc}
+ETH 路径：${res.paths.eth}
+SOL 路径：${res.paths.sol}
+TRX 路径：${res.paths.trx}`,
+            true
+          );
+}
 
         addKV('BTC 地址', res.btc.address, true);
         addKV('ETH 地址', res.eth.address, true);
@@ -425,6 +550,21 @@ function setStatus(msg, ok) {
         box.appendChild(k);
         box.appendChild(v);
 
+        // 中文对照（仅中文，不重复英文）
+        if (cnReady && cnMap) {
+          var cn = cnFromPhrase(it.mnemonic);
+          if (cn) {
+            var ck = document.createElement('div');
+            ck.className = 'k';
+            ck.textContent = '中文对照';
+            var cv = document.createElement('div');
+            cv.className = 'v';
+            cv.textContent = cn;
+            box.appendChild(ck);
+            box.appendChild(cv);
+          }
+        }
+
         var mini = document.createElement('div');
         mini.className = 'minirow';
 
@@ -461,7 +601,6 @@ function setStatus(msg, ok) {
     }
 
     function disableWhenLucky(running) {
-      btnGen.disabled = running;
       btnRand24.disabled = running;
       btnClear.disabled = running;
       elMnemonic.disabled = running;
@@ -781,9 +920,55 @@ function setStatus(msg, ok) {
       updateCountersUI();
     }
 
-    btnGen.addEventListener('click', generateUI);
     btnLucky.addEventListener('click', toggleLucky);
-    btnRand24.addEventListener('click', randomMnemonic24);
+    // —— 实时生成：编辑助记词时自动生成地址（不入历史）——
+    var liveTimer = null;
+    function scheduleLiveGenerate() {
+      if (luckyRunning) return;
+      if (liveTimer) clearTimeout(liveTimer);
+      liveTimer = setTimeout(function () {
+        liveTimer = null;
+
+        var phrase = normMnemonic(elMnemonic.value);
+        if (!phrase) { clearOutput(); setStatus(''); return; }
+
+        var words = phrase.split(' ');
+        var okCount = (words.length === 12 || words.length === 15 || words.length === 18 || words.length === 21 || words.length === 24);
+        if (!okCount) { clearOutput(); return; }
+
+        try { window.ethers.Mnemonic.fromPhrase(phrase); }
+        catch (e) { clearOutput(); return; }
+
+        generateUI({ live: true });
+      }, 260);
+    }
+
+    function bindLive(el, ev) {
+      if (!el) return;
+      el.addEventListener(ev || 'input', function () {
+        updateCnPreview();
+        scheduleLiveGenerate();
+      });
+    }
+
+    // mnemonic / passphrase / index / paths / network & type changes all trigger live update
+    bindLive(elMnemonic, 'input');
+    bindLive(elPass, 'input');
+    bindLive(elIndex, 'input');
+    bindLive(elBtcPath, 'input');
+    bindLive(elEthPath, 'input');
+    bindLive(elSolPath, 'input');
+    bindLive(elTrxPath, 'input');
+    bindLive(elBtcNet, 'change');
+    bindLive(elBtcType, 'change');
+
+    // 生成钱包：随机 24 词 + 立即生成地址
+    btnRand24.addEventListener('click', function () {
+      if (luckyRunning) return;
+      randomMnemonic24();
+      updateCnPreview();
+      generateUI({ live: false });
+    });
 
     btnToggleSecrets.addEventListener('click', function () {
       showSecrets = !showSecrets;
@@ -817,6 +1002,7 @@ elBtcNet.addEventListener('change', applyDefaultBtcPath);
     elBtcType.addEventListener('change', applyDefaultBtcPath);
 
     applyDefaultBtcPath();
+    loadCnMap();
     setLuckyButton(false);
     updateCountersUI();
     renderHistory();
@@ -831,5 +1017,3 @@ elBtcNet.addEventListener('change', applyDefaultBtcPath);
     console.error(e);
   }
 })();
-
-
