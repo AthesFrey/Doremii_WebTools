@@ -64,6 +64,17 @@ class BaseTool extends HTMLElement {
           background: var(--hist-bg, var(--hist-bg-base));
           border:1px solid var(--hist-border, var(--hist-border-base));
         }
+
+        /* ✅新增：暗色主题下历史记录区改为深色底（仅影响 .hist 背景，不改其它结构/逻辑） */
+        :host-context([data-theme="dark"]) .hist,
+        :host-context(html[data-theme="dark"]) .hist,
+        :host-context(body[data-theme="dark"]) .hist,
+        :host-context(html.dark) .hist,
+        :host-context(body.dark) .hist,
+        :host-context(.dark) .hist{
+          background: var(--hist-bg-dark, #0b1220);
+        }
+
         .hist div{ margin:4px 0; }
         .msg{ font-size:12px; color: var(--muted, var(--muted-base)); }
         .msg.ok{ color: #0a7b1f; }  /* lucky! */
@@ -452,4 +463,3 @@ class DoreUUID extends BaseTool {
 customElements.define('doremii-uuid', DoreUUID);
 
 console.log('doremii-tools ready (themeable colors) [2025-12-03]');
-
