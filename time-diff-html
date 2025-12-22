@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>时刻间隔（天/小时）计算器</title>
+  <style>
+    :root{
+      --accent:#2563eb;
+      --bg:#f5f7fb;
+      --card:#ffffff;
+      --border:#dbe3f0;
+      --text:#0f172a;
+      --muted:#64748b;
+      --good:#16a34a;
+      --warn:#ef4444;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    /* 兼容你全站的 data-theme="dark" */
+    html[data-theme="dark"]{
+      --bg:#0b1220;
+      --card:#0f1a2f;
+      --border:#22314f;
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --accent:#60a5fa;
+    }
+    @media (prefers-color-scheme: dark){
+      html:not([data-theme="light"]){
+        --bg:#0b1220;
+        --card:#0f1a2f;
+        --border:#22314f;
+        --text:#e5e7eb;
+        --muted:#9ca3af;
+        --accent:#60a5fa;
+      }
+    }
+
+    body{
+      margin:0;
+      padding:16px;
+      background:var(--bg);
+      color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    }
+
+    /* PC 默认 1024；移动端默认 520；更窄屏自动继续缩小 */
+    .wrap{
+      width:1024px;
+      max-width:100%;
+      margin:0 auto;
+    }
+    @media (max-width: 900px){
+      .wrap{
+        width:520px;
+        max-width:100%;
+      }
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:14px;
+      box-shadow:0 10px 26px rgba(0,0,0,.06);
+      padding:14px;
+    }
+    h2{
+      margin:0 0 10px;
+      text-align:center;
+      font-size:20px;
+      color:var(--accent);
+      letter-spacing:.2px;
+    }
+    .row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin:10px 0;
+    }
+    .label{
+      width:86px;
+      font-size:13px;
+      color:var(--muted);
+      flex:0 0 auto;
+    }
+    .input{
+      flex:1 1 220px;
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    input[type="datetime-local"]{
+      flex:1 1 210px;
+      min-width:190px;
+      padding:10px 10px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      background:transparent;
+      color:var(--text);
+      outline:none;
+    }
+    input[type="datetime-local"]:disabled{
+      opacity:.75;
+      cursor:not-allowed;
+    }
+    .btn{
+      border:1px solid var(--border);
+      background:var(--accent);
+      color:#fff;
+      padding:9px 10px;
+      border-radius:10px;
+      cursor:pointer;
+      font-size:13px;
+      white-space:nowrap;
+    }
+    .btn.secondary{
+      background:transparent;
+      color:var(--text);
+    }
+    .btn:active{ transform:translateY(1px); }
+    .chk{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      font-size:13px;
+      color:var(--muted);
+      user-select:none;
+    }
+    .hr{
+      height:1px;
+      background:var(--border);
+      margin:12px 0;
+    }
+    .result{
+      padding:12px;
+      border:1px dashed var(--border);
+      border-radius:12px;
+      background:rgba(37,99,235,.06);
+    }
+    html[data-theme="dark"] .result{
+      background:rgba(96,165,250,.10);
+    }
+    .big{
+      font-size:18px;
+      font-weight:700;
+      margin:0 0 6px;
+    }
+    .small{
+      margin:0;
+      font-size:13px;
+      color:var(--muted);
+      line-height:1.55;
+    }
+    .mono{ font-family:var(--mono); }
+    .pill{
+      display:inline-block;
+      padding:2px 8px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      font-size:12px;
+      margin-left:8px;
+      vertical-align:1px;
+    }
+    .pill.good{ color:var(--good); }
+    .pill.warn{ color:var(--warn); }
+    .footer{
+      margin-top:10px;
+      font-size:12px;
+      color:var(--muted);
+      text-align:center;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h2>时刻间隔（天 / 小时）计算器</h2>
+
+      <div class="row">
+        <div class="label">起点时刻</div>
+        <div class="input">
+          <input id="start" type="datetime-local" />
+          <button class="btn" id="startNow">设为当前</button>
+          <label class="chk">
+            <input id="startFollow" type="checkbox" />
+            跟随当前
+          </label>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="label">终点时刻</div>
+        <div class="input">
+          <input id="end" type="datetime-local" />
+          <button class="btn" id="endNow">设为当前</button>
+          <label class="chk">
+            <input id="endFollow" type="checkbox" />
+            跟随当前
+          </label>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="label">操作</div>
+        <div class="input">
+          <button class="btn secondary" id="swap">交换起点/终点</button>
+          <button class="btn secondary" id="copy">复制结果</button>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="result" id="resultBox">
+        <p class="big" id="mainLine">请先选择两个时刻</p>
+        <p class="small" id="subLine"></p>
+        <p class="small mono" id="detailLine"></p>
+      </div>
+
+      <div class="footer">说明：按“终点 - 起点”计算；为正表示“剩余”，为负表示“已过”。</div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const $ = (id) => document.getElementById(id);
+
+  const startEl = $("start");
+  const endEl = $("end");
+  const startNowBtn = $("startNow");
+  const endNowBtn = $("endNow");
+  const startFollow = $("startFollow");
+  const endFollow = $("endFollow");
+  const swapBtn = $("swap");
+  const copyBtn = $("copy");
+
+  const mainLine = $("mainLine");
+  const subLine = $("subLine");
+  const detailLine = $("detailLine");
+
+  let timer = null;
+
+  function pad(n){ return String(n).padStart(2, "0"); }
+
+  // 生成 datetime-local 的格式：YYYY-MM-DDTHH:mm
+  function toLocalInputValue(d){
+    const y = d.getFullYear();
+    const m = pad(d.getMonth()+1);
+    const da = pad(d.getDate());
+    const h = pad(d.getHours());
+    const mi = pad(d.getMinutes());
+    return `${y}-${m}-${da}T${h}:${mi}`;
+  }
+
+  // 更稳：手动解析为“本地时间”（避免少数环境 Date("YYYY-MM-DDTHH:mm") 的解析差异）
+  function parseLocalInputValue(v){
+    if(!v) return null;
+    const m = v.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/);
+    if(!m) return null;
+    const year = +m[1], mon = +m[2], day = +m[3], hh = +m[4], mm = +m[5], ss = m[6] ? +m[6] : 0;
+    const dt = new Date(year, mon - 1, day, hh, mm, ss, 0);
+    if(Number.isNaN(dt.getTime())) return null;
+    return dt;
+  }
+
+  function setStartNow(){ startEl.value = toLocalInputValue(new Date()); }
+  function setEndNow(){ endEl.value = toLocalInputValue(new Date()); }
+
+  function updateFollowStates(){
+    startEl.disabled = startFollow.checked;
+    startNowBtn.disabled = startFollow.checked;
+
+    endEl.disabled = endFollow.checked;
+    endNowBtn.disabled = endFollow.checked;
+  }
+
+  function ensureTimer(){
+    const need = startFollow.checked || endFollow.checked;
+    if(need && !timer){
+      timer = setInterval(()=>{
+        const now = new Date();
+        if(startFollow.checked) startEl.value = toLocalInputValue(now);
+        if(endFollow.checked) endEl.value = toLocalInputValue(now);
+        calc();
+      }, 1000);
+    }else if(!need && timer){
+      clearInterval(timer);
+      timer = null;
+    }
+  }
+
+  function humanDiff(ms){
+    const sign = ms >= 0 ? 1 : -1;
+    const abs = Math.abs(ms);
+
+    const dayMs = 24 * 60 * 60 * 1000;
+    const hourMs = 60 * 60 * 1000;
+
+    const days = Math.floor(abs / dayMs);
+    const hours = Math.floor((abs % dayMs) / hourMs);
+    const totalHours = abs / hourMs;
+
+    return { sign, days, hours, totalHours };
+  }
+
+  function setMainLine(status, days, hours, pillText, pillClass){
+    // 清空并用 textContent 组装，避免 innerHTML
+    mainLine.textContent = "";
+    const s1 = document.createElement("span");
+    s1.textContent = `${status}：`;
+    mainLine.appendChild(s1);
+
+    const dSpan = document.createElement("span");
+    dSpan.className = "mono";
+    dSpan.textContent = String(days);
+    mainLine.appendChild(dSpan);
+
+    mainLine.appendChild(document.createTextNode(" 天 "));
+
+    const hSpan = document.createElement("span");
+    hSpan.className = "mono";
+    hSpan.textContent = String(hours);
+    mainLine.appendChild(hSpan);
+
+    mainLine.appendChild(document.createTextNode(" 小时"));
+
+    const pill = document.createElement("span");
+    pill.className = `pill ${pillClass}`;
+    pill.textContent = pillText;
+    mainLine.appendChild(pill);
+  }
+
+  function calc(){
+    const s = parseLocalInputValue(startEl.value);
+    const e = parseLocalInputValue(endEl.value);
+
+    if(!s || !e){
+      mainLine.textContent = "请先选择两个时刻";
+      subLine.textContent = "";
+      detailLine.textContent = "";
+      return;
+    }
+
+    const diff = e.getTime() - s.getTime();
+    const { sign, days, hours, totalHours } = humanDiff(diff);
+
+    const status = sign >= 0 ? "剩余" : "已过";
+    const pillClass = sign >= 0 ? "good" : "warn";
+    const pillText = (diff === 0) ? "同一时刻" : (sign >= 0 ? "倒计时" : "已超时");
+
+    setMainLine(status, days, hours, pillText, pillClass);
+
+    subLine.textContent = `起点：${s.toLocaleString()} ｜ 终点：${e.toLocaleString()}`;
+    detailLine.textContent = `总小时（绝对值）：${totalHours.toFixed(2)} h  ｜  原始差值：${diff} ms`;
+  }
+
+  // 事件
+  startEl.addEventListener("input", calc);
+  endEl.addEventListener("input", calc);
+
+  startNowBtn.addEventListener("click", ()=>{ setStartNow(); calc(); });
+  endNowBtn.addEventListener("click", ()=>{ setEndNow(); calc(); });
+
+  startFollow.addEventListener("change", ()=>{
+    updateFollowStates();
+    ensureTimer();
+    if(startFollow.checked) setStartNow();
+    calc();
+  });
+  endFollow.addEventListener("change", ()=>{
+    updateFollowStates();
+    ensureTimer();
+    if(endFollow.checked) setEndNow();
+    calc();
+  });
+
+  swapBtn.addEventListener("click", ()=>{
+    const sv = startEl.value;
+    startEl.value = endEl.value;
+    endEl.value = sv;
+    calc();
+  });
+
+  copyBtn.addEventListener("click", async ()=>{
+    const text = [
+      mainLine.textContent || "",
+      subLine.textContent || "",
+      detailLine.textContent || ""
+    ].filter(Boolean).join("\n");
+
+    try{
+      await navigator.clipboard.writeText(text);
+      copyBtn.textContent = "已复制";
+      setTimeout(()=>copyBtn.textContent="复制结果", 800);
+    }catch(e){
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try{ document.execCommand("copy"); }catch(_){}
+      document.body.removeChild(ta);
+      copyBtn.textContent = "已复制";
+      setTimeout(()=>copyBtn.textContent="复制结果", 800);
+    }
+  });
+
+  // 默认初始化：两端都给当前时刻
+  setStartNow();
+  setEndNow();
+  updateFollowStates();
+  ensureTimer();
+  calc();
+})();
+</script>
+</body>
+</html>
