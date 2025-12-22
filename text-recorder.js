@@ -1,5 +1,5 @@
 // /wp-content/uploads/text-recorder.js
-// DoreTextRecorder v20251118A
+// DoreTextRecorder v20251222_dark_textarea + v20251116_lines_scrollfix + copy/clc buttons (fixed)
 
 class DoreTextRecorder extends BaseTool {
   tpl() {
@@ -65,6 +65,85 @@ class DoreTextRecorder extends BaseTool {
     textArea.style.whiteSpace = 'pre-wrap';
     textArea.style.overflowY  = 'hidden';
     textArea.style.resize     = 'none';
+
+    // ===== Dark mode：仅把输入框变为黑底白字（不影响按钮/布局）=====
+    // 说明：HTML/CSS 外部改不生效时，通常是组件运行在 shadowRoot 内或样式被内部覆盖。
+    // 这里在组件内部注入一段样式，并用 CSS 变量控制，以便跟随站点暗色主题切换。
+    try {
+      const themeStyle = document.createElement('style');
+      themeStyle.textContent = `
+        #textArea{
+          background: var(--dore-ta-bg, transparent);
+          color: var(--dore-ta-fg, inherit);
+          caret-color: var(--dore-ta-fg, inherit);
+          border-color: var(--dore-ta-bd, currentColor);
+        }
+        #textArea::placeholder{
+          color: var(--dore-ta-ph, rgba(100,116,139,.9));
+        }
+      `;
+      (this.root && this.root.appendChild ? this.root : this).appendChild(themeStyle);
+    } catch (e) {}
+
+    const detectDarkTheme = () => {
+      try {
+        const de = document.documentElement;
+        const bd = document.body;
+
+        const t1 = (de && de.dataset && de.dataset.theme) ? de.dataset.theme : '';
+        const t2 = (bd && bd.dataset && bd.dataset.theme) ? bd.dataset.theme : '';
+        if (t1) return t1 === 'dark';
+        if (t2) return t2 === 'dark';
+
+        if (de && de.classList && de.classList.contains('dark')) return true;
+        if (bd && bd.classList && bd.classList.contains('dark')) return true;
+
+        return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      } catch (e) {
+        return false;
+      }
+    };
+
+    const applyTextareaTheme = () => {
+      const isDark = detectDarkTheme();
+      if (isDark) {
+        // 黑底白字（你可以在这里微调色值）
+        this.style.setProperty('--dore-ta-bg', '#0b1220');
+        this.style.setProperty('--dore-ta-fg', '#f8fafc');
+        this.style.setProperty('--dore-ta-ph', '#94a3b8');
+        this.style.setProperty('--dore-ta-bd', '#1f2937');
+      } else {
+        // 回到亮色：清掉变量，交给原本主题/组件样式决定
+        this.style.removeProperty('--dore-ta-bg');
+        this.style.removeProperty('--dore-ta-fg');
+        this.style.removeProperty('--dore-ta-ph');
+        this.style.removeProperty('--dore-ta-bd');
+      }
+    };
+
+    applyTextareaTheme();
+
+    // 监听站点主题切换（data-theme / class 变化）
+    try {
+      const obs = new MutationObserver(() => applyTextareaTheme());
+      const de = document.documentElement;
+      const bd = document.body;
+      if (de) obs.observe(de, { attributes: true, attributeFilter: ['data-theme', 'class'] });
+      if (bd) obs.observe(bd, { attributes: true, attributeFilter: ['data-theme', 'class'] });
+      this._doreThemeObserver = obs;
+    } catch (e) {}
+
+    // 监听系统暗色模式变化（仅当站点没显式指定主题时也能跟随）
+    try {
+      if (window.matchMedia) {
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        const onChange = () => applyTextareaTheme();
+        if (mq.addEventListener) mq.addEventListener('change', onChange);
+        else if (mq.addListener) mq.addListener(onChange);
+        this._doreThemeMq = mq;
+        this._doreThemeMqHandler = onChange;
+      }
+    } catch (e) {}
 
     // 默认正方形：高度 = 宽度
     const setInitialSquare = () => {
