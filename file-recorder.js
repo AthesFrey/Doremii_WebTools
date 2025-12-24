@@ -106,6 +106,20 @@ class DoreFileRecorder extends BaseTool {
       return code;
     }
 
+// 简单的 HTML 转义：避免把文件名/返回值直接拼进 innerHTML 时产生 XSS
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, (ch) => {
+    switch(ch){
+      case '&': return '&amp;';
+      case '<': return '&lt;';
+      case '>': return '&gt;';
+      case '"': return '&quot;';
+      case "'": return '&#39;';
+      default: return ch;
+    }
+  });
+}
+
     // JSON 接口封装（check_fetch 用）
     async function callJsonApi(payload) {
       const res = await fetch(API_URL, {
@@ -258,9 +272,7 @@ class DoreFileRecorder extends BaseTool {
 
         if (data.download_url) {
           downloadArea.innerHTML =
-            '<a href="' + data.download_url +
-            '" target="_blank" rel="noopener">立即下载：' + data.filename + '</a>';
-        }
+            '<a href="' + escapeHtml(data.download_url) + '" target="_blank" rel="noopener">立即下载：' + escapeHtml(data.filename) + '</a>';}
 
         uploadProgressBar.style.width = '100%';
         uploadProgressText.textContent = '上传完成：100%';
@@ -295,20 +307,23 @@ class DoreFileRecorder extends BaseTool {
           let html = '';
 
           files.forEach((f, idx) => {
-            const url = 'https://cloudpan.doremii.top/wp-content/uploads/file-recorderdld.php?code=' + encodeURIComponent(code);
-            if (idx > 0) html += '<br/>';
-            html += '<a href="' + url + '" target="_blank" rel="noopener">下载：' + f.filename + '</a>';
-          });
+  const fname = (f && typeof f.filename === 'string') ? f.filename : '';
+  const url = 'https://cloudpan.doremii.top/wp-content/uploads/file-recorderdld.php'
+    + '?code=' + encodeURIComponent(code)
+    + '&filename=' + encodeURIComponent(fname);
 
-          downloadArea.innerHTML = html;
+  if (idx > 0) html += '<br/>';
+  // url/文件名都做转义，避免意外注入
+  html += '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener">下载：' + escapeHtml(fname) + '</a>';
+});
+
+downloadArea.innerHTML = html;
           return;
         }
 
         const url = data.download_url;
         downloadArea.innerHTML =
-          '<a href="' + url + '" target="_blank">点击下载：' + (data.filename || code) + '</a>';
-
-      } catch (e) {
+          '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener">点击下载：' + escapeHtml(data.filename || code) + '</a>';} catch (e) {
         alert(e.message || '未找到文件');
       } finally {
         fetchBtn.disabled = false;
@@ -320,4 +335,3 @@ class DoreFileRecorder extends BaseTool {
 if (!customElements.get('doremii-file-recorder')) {
   customElements.define('doremii-file-recorder', DoreFileRecorder);
 }
-
