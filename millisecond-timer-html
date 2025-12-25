@@ -1,0 +1,215 @@
+<div class="doremii-timer-host" data-doremii-timer aria-label="计时器">
+  <div class="doremii-timer-row">
+    <div class="doremii-timebox" aria-live="polite">
+      <span class="doremii-badge" data-role="status">运行中</span>
+      <span class="doremii-time" data-role="display">00:00:00.000</span>
+    </div>
+
+    <button class="doremii-btn doremii-primary" data-role="toggle" type="button">暂停</button>
+    <button class="doremii-btn doremii-danger"  data-role="reset"  type="button">重置</button>
+  </div>
+</div>
+
+<style>
+  .doremii-timer-host{
+    --bg:#0b1220;
+    --panel: rgba(255,255,255,.06);
+    --border: rgba(255,255,255,.12);
+    --text:#e5e7eb;
+    --muted:#9ca3af;
+    --radius: 14px;
+    --maxw: 520px;
+
+    --btn: rgba(255,255,255,.08);
+    --btn2: rgba(255,255,255,.05);
+
+    --primaryB: rgba(96,165,250,.45);
+    --dangerB: rgba(251,113,133,.45);
+    --primary: rgba(96,165,250,.20);
+    --danger: rgba(251,113,133,.16);
+
+    box-sizing: border-box;
+    width: min(var(--maxw), 100%);
+    margin: 14px auto;
+    padding: 8px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background:
+      radial-gradient(900px 520px at 25% 15%, rgba(96,165,250,.14), transparent 60%),
+      radial-gradient(720px 520px at 80% 30%, rgba(52,211,153,.10), transparent 55%),
+      linear-gradient(180deg, var(--panel), rgba(255,255,255,.03)),
+      var(--bg);
+    color: var(--text);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial;
+  }
+
+  .doremii-timer-host *{ box-sizing: border-box; }
+
+  .doremii-timer-row{
+    display:grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 6px;
+    align-items: stretch;
+  }
+
+  .doremii-timebox{
+    position: relative;
+    border: 1px solid var(--border);
+    background: rgba(0,0,0,.22);
+    border-radius: 12px;
+    padding: 7px 9px;
+    min-height: 40px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .doremii-badge{
+    position:absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 10.5px;
+    color: var(--muted);
+    padding: 3px 7px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,.05);
+    user-select:none;
+    line-height: 1.05;
+    white-space:nowrap;
+  }
+
+  .doremii-time{
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1, "liga" 0, "kern" 0;
+    font-kerning: none;
+    text-rendering: geometricPrecision;
+    -webkit-font-smoothing: antialiased;
+
+    display:block;
+    width: 100%;
+    text-align:center;
+    white-space: nowrap;
+    user-select:none;
+
+    font-size: 24px;
+    line-height: 1.05;
+    margin: 0;
+    padding-right: 56px;
+  }
+
+  .doremii-btn{
+    appearance:none;
+    border: 1px solid var(--border);
+    background: linear-gradient(180deg, var(--btn), var(--btn2));
+    color: var(--text);
+    border-radius: 12px;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 750;
+    cursor:pointer;
+    user-select:none;
+    min-height: 40px;
+    min-width: 78px;
+    transition: transform .06s ease, border-color .15s ease;
+  }
+  .doremii-btn:active{ transform: translateY(1px); }
+
+  .doremii-primary{
+    border-color: var(--primaryB);
+    background: linear-gradient(180deg, var(--primary), rgba(255,255,255,.04));
+  }
+  .doremii-danger{
+    border-color: var(--dangerB);
+    background: linear-gradient(180deg, var(--danger), rgba(255,255,255,.04));
+  }
+
+  @media (max-width: 420px){
+    .doremii-timer-host{ padding: 7px; }
+    .doremii-timer-row{ gap: 6px; }
+    .doremii-time{ font-size: 22px; padding-right: 54px; }
+    .doremii-btn{ min-width: 72px; min-height: 38px; }
+    .doremii-badge{ font-size: 10px; top: 5px; right: 5px; }
+    .doremii-timebox{ min-height: 38px; }
+  }
+
+  @media (max-width: 360px){
+    .doremii-btn{ min-width: 66px; padding: 0 10px; }
+    .doremii-time{ font-size: 20px; }
+  }
+</style>
+
+<script>
+  (function(){
+    function pad2(n){ return String(n).padStart(2, "0"); }
+    function pad3(n){ return String(n).padStart(3, "0"); }
+
+    function format(ms){
+      ms = Math.max(0, Math.floor(ms));
+      const h = Math.floor(ms / 3600000); ms %= 3600000;
+      const m = Math.floor(ms / 60000);   ms %= 60000;
+      const s = Math.floor(ms / 1000);    ms %= 1000;
+      return `${pad2(h)}:${pad2(m)}:${pad2(s)}.${pad3(ms)}`;
+    }
+
+    function init(host){
+      if (!host || host.dataset.inited === "1") return;
+      host.dataset.inited = "1";
+
+      const display = host.querySelector('[data-role="display"]');
+      const status  = host.querySelector('[data-role="status"]');
+      const toggle  = host.querySelector('[data-role="toggle"]');
+      const reset   = host.querySelector('[data-role="reset"]');
+
+      if (!display || !status || !toggle || !reset) return;
+
+      let running = true;
+      let startRef = performance.now();
+      let elapsedMs = 0;
+      let rafId = 0;
+
+      function render(now){
+        display.textContent = format(elapsedMs + (now - startRef));
+      }
+
+      function tick(now){
+        if (!running) return;
+        render(now);
+        rafId = requestAnimationFrame(tick);
+      }
+
+      function setRunning(isRunning){
+        if (running === isRunning) return;
+
+        if (isRunning){
+          startRef = performance.now();
+          running = true;
+          status.textContent = "运行中";
+          toggle.textContent = "暂停";
+          cancelAnimationFrame(rafId);
+          rafId = requestAnimationFrame(tick);
+        }else{
+          elapsedMs += (performance.now() - startRef);
+          running = false;
+          status.textContent = "已暂停";
+          toggle.textContent = "继续";
+          cancelAnimationFrame(rafId);
+          render(performance.now());
+        }
+      }
+
+      toggle.addEventListener("click", () => setRunning(!running));
+
+      reset.addEventListener("click", () => {
+        elapsedMs = 0;
+        display.textContent = "00:00:00.000";
+        if (running) startRef = performance.now();
+      });
+
+      requestAnimationFrame(tick);
+    }
+
+    document.querySelectorAll('[data-doremii-timer]').forEach(init);
+  })();
+</script>
