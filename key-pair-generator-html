@@ -10,13 +10,35 @@
 
   <style>
     :root{
+      /* 让浏览器内置控件也跟随亮/暗 */
+      color-scheme: light dark;
+
       --maxw:520px;
       --accent:#ff7a00;
+
+      /* Light 默认配色 */
       --bg:#fffaf2;
       --card:#ffffff;
+      --card-border:rgba(0,0,0,.04);
+
       --text:#1f2328;
       --muted:#6b7280;
+
       --mono-bg:#fff2df;
+      --placeholder:rgba(107,114,128,.75);
+
+      --ghost-bg:#fff7eb;
+      --ghost-border:rgba(255,122,0,.35);
+      --ghost-fg:#ff8a00;
+
+      --hist-bg:rgba(255,122,0,.06);
+      --hist-border:rgba(255,122,0,.16);
+      --hist-row-border:rgba(0,0,0,.10);
+
+      --copy-bg:#ffffff;
+      --copy-border:rgba(0,0,0,.10);
+      --copy-fg:var(--text);
+
       --r:18px;
       --btnh:38px;
       --shadow:0 10px 30px rgba(0,0,0,.10);
@@ -46,7 +68,7 @@
 
     .card{
       background:var(--card);
-      border:1px solid rgba(0,0,0,.04);
+      border:1px solid var(--card-border);
       border-radius:var(--r);
       box-shadow:var(--shadow);
       padding:18px;
@@ -63,6 +85,7 @@
       font-family:var(--mono);
       font-size:13px;
       line-height:1.2;
+      color:var(--text); /* 关键：避免暗色主题被外部样式改成白字但背景仍是浅色 */
     }
     .field{
       border:1px solid rgba(255,122,0,.30);
@@ -70,6 +93,7 @@
       padding:0 12px;
       outline:none;
     }
+    .field::placeholder{color:var(--placeholder);}
     .field:focus{border-color:var(--accent);}
     .out{
       display:flex;align-items:center;
@@ -91,21 +115,21 @@
       transition:.12s ease;
     }
     .main{background:var(--accent);color:#fff;font-weight:800;box-shadow:0 8px 18px rgba(255,122,0,.22);}
-    .ghost{background:#fff7eb;border-color:rgba(255,122,0,.35);color:#ff8a00;font-weight:800;}
+    .ghost{background:var(--ghost-bg);border-color:var(--ghost-border);color:var(--ghost-fg);font-weight:800;}
     button:active{transform:translateY(1px);}
 
     /* 历史区：按 JS 生成的 x-hist-* 类名做样式，避免主题放大导致溢出 */
     #x-hist{
       margin-top:10px;
-      background:rgba(255,122,0,.06);
-      border:1px solid rgba(255,122,0,.16);
+      background:var(--hist-bg);
+      border:1px solid var(--hist-border);
       border-radius:14px;
       padding:10px;
       box-sizing:border-box;
       font-size:12px;
       line-height:1.35;
     }
-    .x-hist-row{display:flex;gap:10px;align-items:flex-start;padding:6px 2px;border-bottom:1px dashed rgba(0,0,0,.10);}
+    .x-hist-row{display:flex;gap:10px;align-items:flex-start;padding:6px 2px;border-bottom:1px dashed var(--hist-row-border);}
     .x-hist-row:last-child{border-bottom:none;}
     .x-hist-index{width:34px;flex:0 0 auto;color:var(--muted);font-size:12px;line-height:1.35;padding-top:1px;}
     .x-hist-text{
@@ -115,13 +139,69 @@
       white-space:normal;
       overflow-wrap:anywhere;
       word-break:break-word;
-      color:#222;
+      color:var(--text); /* 关键：别写死 #222，避免暗色下发黑 */
     }
     .x-hist-copy{
       height:28px;padding:0 10px;
       font-size:12px;border-radius:999px;
-      background:#fff;border:1px solid rgba(0,0,0,.10);
+      background:var(--copy-bg);
+      border:1px solid var(--copy-border);
+      color:var(--copy-fg);
       flex:0 0 auto;
+    }
+
+    /* ===== Dark mode：系统暗色 + 常见主题切换（data-theme/class）都兼容 ===== */
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg:#0b1220;
+        --card:#0f172a;
+        --card-border:rgba(255,255,255,.06);
+
+        --text:#e5e7eb;
+        --muted:#9ca3af;
+
+        --mono-bg:#0b1a2e;
+        --placeholder:rgba(229,231,235,.55);
+
+        --ghost-bg:#0f172a;
+        --ghost-border:rgba(255,122,0,.40);
+        --ghost-fg:#ffd0a1;
+
+        --hist-bg:rgba(255,122,0,.10);
+        --hist-border:rgba(255,122,0,.22);
+        --hist-row-border:rgba(255,255,255,.12);
+
+        --copy-bg:#111827;
+        --copy-border:rgba(255,255,255,.16);
+        --copy-fg:#e5e7eb;
+
+        --shadow:0 12px 34px rgba(0,0,0,.55);
+      }
+    }
+    html[data-theme="dark"], body[data-theme="dark"], html.dark, body.dark, body.theme-dark, .doremii-dark{
+      --bg:#0b1220;
+      --card:#0f172a;
+      --card-border:rgba(255,255,255,.06);
+
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+
+      --mono-bg:#0b1a2e;
+      --placeholder:rgba(229,231,235,.55);
+
+      --ghost-bg:#0f172a;
+      --ghost-border:rgba(255,122,0,.40);
+      --ghost-fg:#ffd0a1;
+
+      --hist-bg:rgba(255,122,0,.10);
+      --hist-border:rgba(255,122,0,.22);
+      --hist-row-border:rgba(255,255,255,.12);
+
+      --copy-bg:#111827;
+      --copy-border:rgba(255,255,255,.16);
+      --copy-fg:#e5e7eb;
+
+      --shadow:0 12px 34px rgba(0,0,0,.55);
     }
   </style>
 </head>
