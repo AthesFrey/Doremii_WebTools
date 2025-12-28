@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>离线 BIP39 → BTC / ETH / SOL / TRX 地址生成器</title>
+
+  <!-- 依赖与业务脚本（放在前几行；用于嵌入 WordPress 页面时也不会跑到站点根目录之外） -->
+  <script src="/wp-content/uploads/crypto_files/ethers.umd.min.js?v=20251218"></script>
+  <script src="/wp-content/uploads/crypto_files/bitcoinjs-lib.standalone.min.js?v=20251218"></script>
+  <script src="/wp-content/uploads/crypto_files/solana-bundle.standalone.min.js?v=20251218"></script>
+
+  <!-- 业务脚本：覆盖到这里，并把 v 参数改新以防缓存 -->
+  <script defer src="/wp-content/uploads/crypto_files/bip39_lucky.js?v=20251218C"></script>
+
+  <style>
+    /* ✅ 关键：所有样式只作用于本工具容器，避免影响同页其他工具/主题 */
+    #doremii-lucky-app{
+      --maxw: 900px; /* ✅ 桌面默认宽度改为 900px */
+      --bd: rgba(0,0,0,.14);
+      --fg: #111;
+      --muted:#666;
+      --bg: #fafafa;
+      --card:#fff;
+      --shadow: 0 6px 22px rgba(0,0,0,.06);
+      --radius: 14px;
+      --pad: 14px;
+      --btn-bg:#fff;
+      --btn-fg:var(--fg);
+      --btn-dis-bg:#f3f4f6;
+      --btn-dis-fg:#9ca3af;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+
+      color: var(--fg);
+      background: var(--bg);
+      font-family: var(--sans);
+      margin: 0;
+      padding: 0;
+    }
+    /* 容器内统一盒模型，不污染全站 */
+    #doremii-lucky-app *{ box-sizing:border-box; }
+
+    /* 暗色主题：只改本工具容器变量，不动全局 html/body */
+    html[data-theme="dark"] #doremii-lucky-app{
+      --bd: rgba(255,255,255,.14);
+      --fg: #f8fafc;
+      --muted: rgba(248,250,252,.70);
+      --bg: #0b1220;
+      --card: #0f172a;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --btn-bg: #111827;
+      --btn-fg: #f8fafc;
+      --btn-dis-bg:#0b1020;
+      --btn-dis-fg: rgba(248,250,252,.45);
+    }
+    @media (prefers-color-scheme: dark){
+      html:not([data-theme]) #doremii-lucky-app{
+        --bd: rgba(255,255,255,.14);
+        --fg: #f8fafc;
+        --muted: rgba(248,250,252,.70);
+        --bg: #0b1220;
+        --card: #0f172a;
+        --shadow: 0 10px 30px rgba(0,0,0,.35);
+        --btn-bg: #111827;
+        --btn-fg: #f8fafc;
+        --btn-dis-bg:#0b1020;
+        --btn-dis-fg: rgba(248,250,252,.45);
+      }
+    }
+
+    #doremii-lucky-app .wrap{ max-width:var(--maxw); margin:18px auto 28px; padding:0 12px; }
+    #doremii-lucky-app .title{ text-align:center; font-weight:900; margin:8px 0 6px; font-size:18px; }
+    #doremii-lucky-app .sub{ text-align:center; margin:0 0 14px; color:var(--muted); font-size:12.5px; line-height:1.35; }
+    #doremii-lucky-app .card{ background:var(--card); border:1px solid var(--bd); border-radius:var(--radius); box-shadow:var(--shadow); padding:var(--pad); margin:10px 0; }
+
+    #doremii-lucky-app label{ display:block; font-size:12px; color:var(--muted); margin:0 0 6px; }
+
+    #doremii-lucky-app textarea,
+    #doremii-lucky-app input,
+    #doremii-lucky-app select{
+      width:100%; font-size:13px; padding:10px 10px;
+      border:1px solid var(--bd); border-radius:12px; outline:none;
+      background:var(--btn-bg); color:var(--fg);
+    }
+    #doremii-lucky-app textarea{ min-height:92px; resize:vertical; }
+
+    #doremii-lucky-app .mono{ font-family:var(--mono); }
+    #doremii-lucky-app .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; }
+    #doremii-lucky-app .grow{ flex:1 1 240px; }
+    #doremii-lucky-app .btnbar{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+
+    #doremii-lucky-app button{
+      border:1px solid var(--bd); background:var(--btn-bg); color:var(--btn-fg);
+      border-radius:12px; padding:10px 12px; font-size:13px; cursor:pointer;
+    }
+    #doremii-lucky-app button.primary{ background:#111; color:#fff; border-color:#111; }
+    #doremii-lucky-app button.warn{ background:#b00020; color:#fff; border-color:#b00020; }
+    #doremii-lucky-app button:disabled{ opacity:1; cursor:not-allowed; background:var(--btn-dis-bg); color:var(--btn-dis-fg); }
+
+    #doremii-lucky-app .hint{ margin-top:8px; font-size:12px; color:var(--muted); line-height:1.35; }
+    #doremii-lucky-app .status{
+      margin-top:10px; font-size:12.5px; padding:10px 12px; border-radius:12px;
+      border:1px solid var(--bd); background:rgba(255,255,255,.04); white-space:pre-wrap;
+    }
+    #doremii-lucky-app .ok{ border-color: rgba(20,160,80,.35); background: rgba(20,160,80,.06); }
+    #doremii-lucky-app .bad{ border-color: rgba(220,50,50,.35); background: rgba(220,50,50,.06); }
+
+    #doremii-lucky-app .out{ display:grid; gap:10px; margin-top:10px; }
+    #doremii-lucky-app .kv{ border:1px solid var(--bd); border-radius:12px; padding:10px 12px; background:rgba(255,255,255,.03); }
+    #doremii-lucky-app .k{ font-size:12px; color:var(--muted); margin-bottom:6px; }
+    #doremii-lucky-app .v{ font-family:var(--mono); font-size:12.5px; line-height:1.35; word-break:break-all; }
+    #doremii-lucky-app .minirow{ display:flex; gap:8px; align-items:center; justify-content:flex-end; margin-top:8px; flex-wrap:wrap; }
+    #doremii-lucky-app .copy{ padding:7px 10px; font-size:12px; border-radius:10px; }
+
+    #doremii-lucky-app .hist-head{ display:flex; gap:10px; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; }
+    #doremii-lucky-app .hist-meta{ font-size:12px; color:var(--muted); line-height:1.35; }
+    #doremii-lucky-app .hist-list{ margin-top:10px; display:grid; gap:10px; }
+    #doremii-lucky-app .badge{ font-family:var(--mono); font-size:11.5px; padding:2px 8px; border:1px solid var(--bd); border-radius:999px; background:rgba(255,255,255,.03); color:var(--muted); }
+    #doremii-lucky-app .flt{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    #doremii-lucky-app .flt label{ margin:0; display:flex; gap:6px; align-items:center; color:var(--muted); font-size:12.5px; }
+    #doremii-lucky-app .flt input{ width:auto; }
+
+    #doremii-lucky-app .cnbox{
+      margin-top:8px; padding:10px 12px; border-radius:12px; border:1px dashed var(--bd);
+      background:rgba(255,255,255,.02); font-family:var(--mono); font-size:12.5px; line-height:1.45;
+      white-space:pre-wrap; word-break:break-word;
+    }
+    #doremii-lucky-app .cnbox.muted{ color:var(--muted); }
+
+    /* ✅ Passphrase 启用开关（仅本工具作用域内） */
+    #doremii-lucky-app .pp-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    #doremii-lucky-app .pp-toggle{
+      margin:0;
+      display:flex;
+      gap:6px;
+      align-items:center;
+      color:var(--muted);
+      font-size:12.5px;
+      user-select:none;
+    }
+    #doremii-lucky-app .pp-toggle input{ width:auto; }
+  </style>
+</head>
+
+<body>
+  <!-- ✅ 工具独立容器（命名空间） -->
+  <div id="doremii-lucky-app">
+    <div class="wrap">
+      <div class="title">离线 BIP39 → BTC / ETH / SOL / TRX 地址生成器（英文助记词）</div>
+      <div class="sub">LUCKY 在访问者浏览器本机多线程跑（吃访问者 CPU，不吃 VPS）。</div>
+
+      <div class="card">
+        <label>助记词（Mnemonic，12/15/18/21/24 词；英文空格分隔）</label>
+        <textarea id="mnemonic" placeholder="输入 24 个英文单词，用空格分隔"></textarea>
+        <div id="cnPreview" class="cnbox"></div>
+
+        <div class="row" style="margin-top:10px;">
+          <div class="grow">
+            <div class="pp-head">
+              <label for="passphrase">BIP39 Passphrase（可选）</label>
+              <label class="pp-toggle">
+                <input id="usePassphrase" type="checkbox" />
+                启用
+              </label>
+            </div>
+
+            <!-- ✅ 默认禁用：不勾选不可输入 -->
+            <input id="passphrase" type="password" placeholder="未启用（勾选启用）" disabled />
+          </div>
+
+          <div style="flex: 0 0 140px;">
+            <label>地址索引</label>
+            <input id="addrIndex" class="mono" value="0" inputmode="numeric" />
+          </div>
+        </div>
+
+        <div class="btnbar">
+          <button class="primary" id="btnRand24">生成钱包</button>
+          <button id="btnLucky">LUCKY</button>
+          <button id="btnToggleSecrets">显示/隐藏私钥</button>
+          <button id="btnClear">清空</button>
+        </div>
+
+        <div id="status" class="status">加载中…</div>
+        <div class="hint">
+          记录规则（新）：仅当 <b>BTC / ETH / SOL / TRX</b> 任一链地址的 <b>末 4 位</b> 为“顺子4/豹子4”才记录。<br/>
+          顺子顺序：<b>0-9 → a-z</b>（忽略大小写，不回绕）；豹子：4 位完全相同。
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="row">
+          <div style="flex: 0 0 200px;">
+            <label>BTC 网络</label>
+            <select id="btcNet">
+              <option value="mainnet">Mainnet（主网）</option>
+              <option value="testnet">Testnet（测试网）</option>
+            </select>
+          </div>
+          <div class="grow">
+            <label>BTC 地址类型</label>
+            <select id="btcType">
+              <option value="p2pkh">Legacy P2PKH（1... / m/44'）</option>
+              <option value="p2sh-p2wpkh">Nested SegWit（3... / m/49'）</option>
+              <option value="p2wpkh" selected>Native SegWit（bc1... / m/84'）</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <div class="grow">
+            <label>BTC 派生路径（支持 {index}）</label>
+            <input id="btcPath" class="mono" value="m/84'/0'/0'/0/{index}" />
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <div class="grow">
+            <label>ETH 派生路径（支持 {index}）</label>
+            <input id="ethPath" class="mono" value="m/44'/60'/0'/0/{index}" />
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <div class="grow">
+            <label>SOL 派生路径（ed25519；支持 {index}；默认 account=0）</label>
+            <input id="solPath" class="mono" value="m/44'/501'/{index}'/0'" />
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <div class="grow">
+            <label>TRX 派生路径（支持 {index}）</label>
+            <input id="trxPath" class="mono" value="m/44'/195'/0'/0/{index}" />
+          </div>
+        </div>
+
+        <div class="out" id="out"></div>
+      </div>
+
+      <div class="card">
+        <div class="hist-head">
+          <div>
+            <div style="font-weight:800;">Lucky历史记录</div>
+            <div class="hist-meta">
+              <span class="badge" id="hitCount">hits: 0</span>
+              <span class="badge" id="tryCount">tries: 0</span>
+              <span class="badge" id="rate">rate: 0/s</span>
+              <span class="badge" id="workers">workers: 0</span>
+            </div>
+          </div>
+
+          <!-- ✅ 这里的 4 个链筛选，id 必须是：fltBTC / fltETH / fltSOL / fltTRX -->
+          <div class="flt">
+            <label><input id="fltRun" type="checkbox" checked />只看顺子</label>
+            <label><input id="fltSame" type="checkbox" checked />只看豹子</label>
+            <label><input id="fltBTC" type="checkbox" checked />只看BTC</label>
+            <label><input id="fltETH" type="checkbox" checked />只看ETH</label>
+            <label><input id="fltSOL" type="checkbox" checked />只看SOL</label>
+            <label><input id="fltTRX" type="checkbox" checked />只看TRX</label>
+            <button id="btnClearHist">清空历史</button>
+          </div>
+        </div>
+
+        <div class="hist-list" id="histList"></div>
+      </div>
+    </div>
+
+    <!-- ✅ Passphrase 开关逻辑：不改 bip39_lucky.js -->
+    <script>
+      (function(){
+        var cb = document.getElementById('usePassphrase');
+        var ip = document.getElementById('passphrase');
+        if(!cb || !ip) return;
+
+        function sync(){
+          var on = !!cb.checked;
+          ip.disabled = !on;
+          ip.placeholder = on ? '可留空' : '未启用（勾选启用）';
+          if(!on) ip.value = ''; // 关闭时清空，避免误用
+        }
+
+        cb.addEventListener('change', sync);
+        sync();
+      })();
+    </script>
+
+    <script>
+      setTimeout(function(){
+        if(!window.__BIP39_APP_LOADED){
+          var s=document.getElementById('status');
+          if(s) s.textContent = "❌ bip39_lucky.js 未执行：请看 F12 Console/Network 是否 404 或 MIME/CORS 拦截，然后 Ctrl+F5 强刷。";
+        }
+      }, 1200);
+    </script>
+  </div>
+</body>
+</html>

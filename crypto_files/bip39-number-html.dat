@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mnemonics ↔ Numbers</title>
+
+  <!-- JS 引用放在开头：短加载器（同目录 → WP uploads → /index/ uploads） -->
+  <script>
+  (function(){
+    var urls = [
+      "./bip39-mnemonic-number.js",
+      "/wp-content/uploads/crypto_files/bip39-mnemonic-number.js",
+      "/index/wp-content/uploads/crypto_files/bip39-mnemonic-number.js"
+    ];
+    var i = 0;
+    function next(){
+      if (window.DOREMII_B39NUM_LOADED) return;
+      if (i >= urls.length){
+        var root = document.querySelector('.doremii-b39num');
+        var st = root && root.querySelector('[data-field="status"]');
+        if(st) st.textContent = "JS 未加载";
+        return;
+      }
+      var s = document.createElement("script");
+      s.defer = true;
+      s.src = urls[i++] + "?v=" + Date.now();
+      s.onload = function(){ setTimeout(function(){ if(!window.DOREMII_B39NUM_LOADED) next(); }, 0); };
+      s.onerror = next;
+      document.head.appendChild(s);
+    }
+    next();
+  })();
+  </script>
+
+  <style>
+    .doremii-b39num{
+      --w:900px;              /* PC 桌面默认宽度：900px（按你要求） */
+      --w-m:520px;            /* 手机宽度 */
+      --r:16px;
+
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --border:#e5e7eb;
+      --text:#0f172a;
+      --muted:#64748b;
+      --btn:#0f172a;
+      --btnfg:#ffffff;
+      --shadow:0 10px 28px rgba(2,6,23,.08);
+    }
+
+    /* 跟随站点暗色标记（优先） */
+    html[data-theme="dark"] .doremii-b39num,
+    body[data-theme="dark"] .doremii-b39num,
+    html.dark .doremii-b39num,
+    body.dark .doremii-b39num{
+      --bg:#0b1220;
+      --card:#101a2b;
+      --border:#22314d;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --btn:#e5e7eb;
+      --btnfg:#0b1220;
+      --shadow:0 10px 28px rgba(0,0,0,.35);
+    }
+
+    /* 没有站点标记时，跟随系统深色偏好（兜底） */
+    @media (prefers-color-scheme: dark){
+      html:not([data-theme]):not(.dark) .doremii-b39num{
+        --bg:#0b1220;
+        --card:#101a2b;
+        --border:#22314d;
+        --text:#e5e7eb;
+        --muted:#94a3b8;
+        --btn:#e5e7eb;
+        --btnfg:#0b1220;
+        --shadow:0 10px 28px rgba(0,0,0,.35);
+      }
+    }
+
+    .doremii-b39num, .doremii-b39num *{ box-sizing:border-box; }
+    .doremii-b39num .wrap{ width:var(--w-m); max-width:100%; margin:16px auto; }
+    @media (min-width: 900px){ .doremii-b39num .wrap{ width:var(--w); } }
+
+    .doremii-b39num .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--r);
+      box-shadow:var(--shadow);
+      padding:14px;
+      color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;
+    }
+
+    .doremii-b39num h1{ margin:0 0 10px; text-align:center; font-size:18px; }
+
+    .doremii-b39num .grid{ display:grid; grid-template-columns:1fr; gap:12px; }
+    @media (min-width: 900px){ .doremii-b39num .grid{ grid-template-columns:1fr 1fr; } }
+
+    .doremii-b39num .box{
+      border:1px solid var(--border);
+      border-radius:12px;
+      overflow:hidden;
+      background:rgba(255,255,255,0.02);
+    }
+
+    .doremii-b39num .head{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:10px;
+      border-bottom:1px solid var(--border);
+      background:rgba(2,6,23,0.03);
+    }
+    html[data-theme="dark"] .doremii-b39num .head,
+    body[data-theme="dark"] .doremii-b39num .head,
+    html.dark .doremii-b39num .head,
+    body.dark .doremii-b39num .head{
+      background:rgba(255,255,255,0.03);
+    }
+
+    .doremii-b39num .label{ font-size:13px; color:var(--muted); user-select:none; }
+    .doremii-b39num .btns{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+
+    .doremii-b39num .btn{
+      border:0; border-radius:10px;
+      padding:6px 10px;
+      font-size:12px;
+      cursor:pointer;
+      background:var(--btn);
+      color:var(--btnfg);
+      line-height:1;
+    }
+
+    /* 强制按钮配色不被站点全局样式覆盖（暗色下 Trans 要白底黑字） */
+    .doremii-b39num .btn:not(.ghost){
+      background:var(--btn) !important;
+      color:var(--btnfg) !important;
+    }
+    .doremii-b39num .btn.ghost{
+      background:transparent !important;
+      color:var(--text) !important;
+      border:1px solid var(--border) !important;
+    }
+    .doremii-b39num .btn.ghost{
+      background:transparent;
+      color:var(--text);
+      border:1px solid var(--border);
+    }
+    .doremii-b39num .btn:active{ transform:translateY(1px); }
+
+    .doremii-b39num textarea{
+      width:100%;
+      min-height:170px;
+      padding:10px;
+      border:0;
+      outline:none;
+      background:transparent;
+      color:var(--text);
+      font-size:13px;
+      line-height:1.45;
+      resize:vertical;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+    }
+
+    .doremii-b39num .foot{
+      margin-top:12px;
+      border-top:1px solid var(--border);
+      padding-top:10px;
+    }
+    .doremii-b39num .status{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.35;
+      white-space:pre-wrap;
+      word-break:break-word;
+      min-height:1.35em;
+    }
+    .doremii-b39num .status.ok{ color:#065f46; }
+    .doremii-b39num .status.err{ color:#b91c1c; }
+  </style>
+</head>
+
+<body>
+  <div class="doremii-b39num" data-tool="b39num" data-wordlist-url="">
+    <div class="wrap">
+      <div class="card">
+        <h1>Mnemonics ↔ Numbers</h1>
+
+        <div class="grid">
+          <div class="box">
+            <div class="head">
+              <div class="label">Mnemonics</div>
+              <div class="btns">
+                <button class="btn" type="button" data-action="mn2num">Trans</button>
+                <button class="btn ghost" type="button" data-action="copy-mn">Copy</button>
+                <button class="btn ghost" type="button" data-action="clear-mn">Clear</button>
+              </div>
+            </div>
+            <textarea data-field="mn" spellcheck="false" placeholder="abandon ability able ..."></textarea>
+          </div>
+
+          <div class="box">
+            <div class="head">
+              <div class="label">Numbers</div>
+              <div class="btns">
+                <button class="btn" type="button" data-action="num2mn">Trans</button>
+                <button class="btn ghost" type="button" data-action="copy-num">Copy</button>
+                <button class="btn ghost" type="button" data-action="clear-num">Clear</button>
+              </div>
+            </div>
+            <textarea data-field="num" spellcheck="false" placeholder="0001 0256 1024 / 000102561024 / 00010610 2000 1024"></textarea>
+          </div>
+        </div>
+
+        <div class="foot">
+          <div class="status" data-field="status" role="status" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
