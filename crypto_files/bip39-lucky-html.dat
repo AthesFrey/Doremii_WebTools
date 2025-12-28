@@ -159,7 +159,7 @@
       <div class="card">
         <label>助记词（Mnemonic，12/15/18/21/24 词；英文空格分隔）</label>
 
-		<textarea id="mnemonic" maxlength="7000" placeholder="输入英文单词，用空格分隔（<7000 字符）"></textarea>
+		<textarea id="mnemonic" maxlength="1000" placeholder="输入英文单词，用空格分隔（<1000 字符）"></textarea>
 
         <div id="cnPreview" class="cnbox"></div>
 
@@ -305,3 +305,4 @@
   </div>
 </body>
 </html>
+
