@@ -1,40 +1,52 @@
 <!-- 引用 JS（注意版本号） -->
-<script src="/wp-content/uploads/base-tool.js?v=20260125a"></script>
-<script defer src="/wp-content/uploads/txttrans-tool.js?v=20260125a"></script>
+<script src="/wp-content/uploads/base-tool.js?v=20260125c"></script>
+<script defer src="/wp-content/uploads/txttrans-tool.js?v=20260125c"></script>
 
-<!-- 解锁区 -->
+<!-- 解锁区：暗黑模式更清晰 -->
 <div id="txttrans-gate" style="
   margin:0 auto 12px;
   width:calc(100vw - 24px);
   max-width:520px;
-  background:#E8F5E9;
-  border:1px solid #A5D6A7;
-  border-radius:12px;
-  padding:12px;
+
+  /* 关键：提高暗色背景下对比度 */
+  background:rgba(10, 18, 14, 0.88);
+  border:1px solid rgba(165, 214, 167, 0.55);
+  border-radius:14px;
+  padding:14px;
   box-sizing:border-box;
-  color:#1B5E20;
+
+  color:#EAF6EC;
   font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial;
 ">
-  <div style="font-size:18px;font-weight:700;margin:0 0 10px;">Txttrans Tool</div>
+  <div style="
+    font-size:18px;
+    font-weight:800;
+    margin:0 0 10px;
+    color:#EAF6EC;
+  ">Txttrans Tool</div>
 
-  <div style="display:flex;gap:8px;align-items:center;">
+  <div style="display:flex;gap:10px;align-items:center;">
     <input id="txttrans-pass" type="password" autocomplete="off"
-      placeholder="input public key"
+      placeholder="PBK code"
       style="
         flex:1;
-        padding:10px 12px;
-        border:1px solid #A5D6A7;
-        border-radius:10px;
+        padding:12px 12px;
+        border:1px solid rgba(165, 214, 167, 0.45);
+        border-radius:12px;
         outline:none;
         font-size:16px;
         box-sizing:border-box;
+
+        /* 输入框在暗背景下更清晰 */
+        background:rgba(255,255,255,0.10);
+        color:#F4FFF6;
       "
     />
     <button id="txttrans-unlock" type="button"
       style="
-        padding:10px 14px;
+        padding:12px 16px;
         border:0;
-        border-radius:10px;
+        border-radius:12px;
         background:#4CAF50;
         color:#fff;
         font-size:16px;
@@ -44,7 +56,12 @@
     >check</button>
   </div>
 
-  <div id="txttrans-msg" style="margin-top:8px;font-size:13px;opacity:.85;"></div>
+  <div id="txttrans-msg" style="
+    margin-top:8px;
+    font-size:13px;
+    opacity:1;
+    color:#D9F4DC;
+  "></div>
 </div>
 
 <!-- 工具区：默认隐藏；解锁后固定 520px -->
@@ -92,6 +109,13 @@
   const inp  = document.getElementById("txttrans-pass");
   const btn  = document.getElementById("txttrans-unlock");
   const msg  = document.getElementById("txttrans-msg");
+
+  // 让 placeholder 在暗色背景下更清晰（不影响解锁后）
+  const style = document.createElement("style");
+  style.textContent = `
+    #txttrans-pass::placeholder { color: rgba(244, 255, 246, 0.55); }
+  `;
+  document.head.appendChild(style);
 
   function unlock() {
     if ((inp.value || "").trim() === PASS) {
