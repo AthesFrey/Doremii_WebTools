@@ -1,0 +1,112 @@
+<!-- 引用 JS（注意版本号） -->
+<script src="/wp-content/uploads/base-tool.js?v=20260125a"></script>
+<script defer src="/wp-content/uploads/txttrans-tool.js?v=20260125a"></script>
+
+<!-- 解锁区 -->
+<div id="txttrans-gate" style="
+  margin:0 auto 12px;
+  width:calc(100vw - 24px);
+  max-width:520px;
+  background:#E8F5E9;
+  border:1px solid #A5D6A7;
+  border-radius:12px;
+  padding:12px;
+  box-sizing:border-box;
+  color:#1B5E20;
+  font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial;
+">
+  <div style="font-size:18px;font-weight:700;margin:0 0 10px;">Txttrans Tool</div>
+
+  <div style="display:flex;gap:8px;align-items:center;">
+    <input id="txttrans-pass" type="password" autocomplete="off"
+      placeholder="input public key"
+      style="
+        flex:1;
+        padding:10px 12px;
+        border:1px solid #A5D6A7;
+        border-radius:10px;
+        outline:none;
+        font-size:16px;
+        box-sizing:border-box;
+      "
+    />
+    <button id="txttrans-unlock" type="button"
+      style="
+        padding:10px 14px;
+        border:0;
+        border-radius:10px;
+        background:#4CAF50;
+        color:#fff;
+        font-size:16px;
+        cursor:pointer;
+        white-space:nowrap;
+      "
+    >check</button>
+  </div>
+
+  <div id="txttrans-msg" style="margin-top:8px;font-size:13px;opacity:.85;"></div>
+</div>
+
+<!-- 工具区：默认隐藏；解锁后固定 520px -->
+<div id="txttrans-app" style="
+  display:none;
+  margin:0 auto;
+  width:520px;
+  max-width:520px;
+">
+  <h2 style="
+    font-size:22px;
+    color:#2E7D32;
+    text-align:center;
+    margin:0 auto 10px;
+  ">
+    Txttrans Tool
+  </h2>
+
+  <doremii-text-recorder
+    accent="#4CAF50"
+    style="
+      /* 琥珀绿色系 + 柔和背景 */
+      --bg:#F6FFF8;
+      --card-bg:#E8F5E9;
+      --card-border:#A5D6A7;
+      --text:#1B5E20;
+      --button-bg:#4CAF50;
+      --button-fg:#ffffff;
+      --result-bg:#FFB74D;
+      --result-fg:#3E2723;
+      --hist-bg:#F1F8E9;
+
+      display:block;
+      width:100%;
+      max-width:520px;
+    ">
+  </doremii-text-recorder>
+</div>
+
+<script>
+(function () {
+  const PASS = "thankgod";
+  const gate = document.getElementById("txttrans-gate");
+  const app  = document.getElementById("txttrans-app");
+  const inp  = document.getElementById("txttrans-pass");
+  const btn  = document.getElementById("txttrans-unlock");
+  const msg  = document.getElementById("txttrans-msg");
+
+  function unlock() {
+    if ((inp.value || "").trim() === PASS) {
+      gate.style.display = "none";
+      app.style.display = "block";
+    } else {
+      msg.textContent = "public key format wrong";
+      inp.focus();
+      inp.select();
+    }
+  }
+
+  btn.addEventListener("click", unlock);
+  inp.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") unlock();
+  });
+})();
+</script>
