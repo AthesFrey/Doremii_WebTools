@@ -1,6 +1,33 @@
 <!-- 引用 JS（注意版本号） -->
-<script src="/wp-content/uploads/base-tool.js?v=20260125c"></script>
-<script defer src="/wp-content/uploads/txttrans-tool.js?v=20260125c"></script>
+<script src="/wp-content/uploads/base-tool.js?v=20260126c"></script>
+<script defer src="/wp-content/uploads/txttrans-tool.js?v=20260126c"></script>
+<!-- 亮色模式解锁区修正：仅覆盖主题相关样式（最保守改动） -->
+<style id="txttrans-gate-lightfix">
+  /* 主题开关：暗色时 data-theme="dark"，亮色时为空或不存在 */
+  :root:not([data-theme="dark"]) #txttrans-gate{
+    background: rgba(255, 255, 255, 0.92) !important;
+    border-color: rgba(17, 24, 39, 0.12) !important;
+    color: #111827 !important;
+    box-shadow: 0 10px 28px rgba(17, 24, 39, 0.08);
+  }
+  :root:not([data-theme="dark"]) #txttrans-gate > div:first-child{
+    color: #111827 !important;
+  }
+  :root:not([data-theme="dark"]) #txttrans-msg{
+    color: rgba(17, 24, 39, 0.65) !important;
+  }
+  :root:not([data-theme="dark"]) #txttrans-pass{
+    background: rgba(17, 24, 39, 0.04) !important;
+    color: #111827 !important;
+    border-color: rgba(17, 24, 39, 0.14) !important;
+  }
+  /* 仅亮色模式下修正 placeholder（避免被暗色 placeholder 规则影响） */
+  :root:not([data-theme="dark"]) #txttrans-pass::placeholder{
+    color: rgba(107, 114, 128, 0.85) !important;
+    opacity: 1 !important;
+  }
+</style>
+
 
 <!-- 解锁区：暗黑模式更清晰 -->
 <div id="txttrans-gate" style="

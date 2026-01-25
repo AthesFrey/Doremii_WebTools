@@ -28,6 +28,7 @@ function u_strlen(string $s): int {
 }
 
 
+
 if (!isset($_SERVER['REQUEST_METHOD']) || $_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['ok' => false, 'error' => '仅支持 POST。'], JSON_UNESCAPED_UNICODE);
@@ -38,6 +39,44 @@ function json_fail(int $status, string $msg) {
     http_response_code($status);
     echo json_encode(['ok' => false, 'error' => $msg], JSON_UNESCAPED_UNICODE);
     exit;
+}
+
+header('Referrer-Policy: no-referrer');
+
+// ===== 传输安全（建议）=====
+// 说明：公共 Wi‑Fi 下，若允许 HTTP，会被动嗅探/中间人直接看到 code 与明文。
+// 这里选择“保守但有效”的策略：只允许 HTTPS。
+function is_https_request(): bool {
+    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') return true;
+    if (!empty($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443) return true;
+
+    // 反代/Cloudflare/Nginx 等常见转发头
+    if (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower((string)$_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https') return true;
+    if (!empty($_SERVER['HTTP_X_FORWARDED_SSL']) && strtolower((string)$_SERVER['HTTP_X_FORWARDED_SSL']) === 'on') return true;
+    if (!empty($_SERVER['HTTP_X_HTTPS']) && strtolower((string)$_SERVER['HTTP_X_HTTPS']) === 'on') return true;
+
+    // Cloudflare: CF-Visitor: {"scheme":"https"}
+    if (!empty($_SERVER['HTTP_CF_VISITOR'])) {
+        $v = json_decode((string)$_SERVER['HTTP_CF_VISITOR'], true);
+        if (is_array($v) && isset($v['scheme']) && $v['scheme'] === 'https') return true;
+    }
+    return false;
+}
+
+if (!is_https_request()) {
+    json_fail(400, '仅允许 HTTPS 访问。');
+}
+
+// ===== 轻量 CSRF / 跨站调用防护（可选但推荐）=====
+// 有 Origin 头时要求同源；没有 Origin 头则放行（兼容性更好）。
+$origin = isset($_SERVER['HTTP_ORIGIN']) ? (string)$_SERVER['HTTP_ORIGIN'] : '';
+$host   = isset($_SERVER['HTTP_HOST'])   ? (string)$_SERVER['HTTP_HOST']   : '';
+if ($origin !== '' && $host !== '') {
+    $originHost = parse_url($origin, PHP_URL_HOST);
+    $hostNoPort = preg_replace('/:\d+$/', '', $host);
+    if (is_string($originHost) && $originHost !== '' && strcasecmp($originHost, $hostNoPort) !== 0) {
+        json_fail(403, 'Origin 不允许。');
+    }
 }
 
 function safe_mkdir(string $dir, int $mode = 0700): bool {
@@ -155,7 +194,7 @@ $code   = isset($data['code'])   ? (string)$data['code'] : '';
 $code   = trim($code);
 
 $MAX_CODE_LEN = 60;
-$MAX_CHARS    = 1000000;
+$MAX_CHARS    = 8000000; // 允许端到端加密后的密文（base64 + padding）体积更大
 
 // ===== 校验取回密码 =====
 if ($code === '') {
@@ -174,7 +213,9 @@ if (!preg_match('/^[0-9A-Za-z._-]+$/u', $code)) {
 // ===== 存储目录选择 =====
 // 按你的要求：仅使用旧版的 temp 文件夹存储（/wp-content/uploads/temp/）
 // 注意：仍然使用不可枚举文件名 + 可选加密，且接口不返回文件名/目录，减少被跟踪/枚举风险
-$BASE_DIR = __DIR__ . DIRECTORY_SEPARATOR . 'temp';
+
+$BASE_DIR = dirname(__DIR__, 3) . '/temp';
+
 if (!safe_mkdir($BASE_DIR, 0700)) {
     json_fail(500, '无法创建 temp 存储目录，请检查权限。');
 }
