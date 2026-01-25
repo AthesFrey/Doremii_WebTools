@@ -1,0 +1,7 @@
+<!-- 计算器挂载容器（推荐明确指定位置） -->
+<div id="complex_calcu"></div>
+
+<!-- 引用你的本地扩展脚本（按你的格式要求） -->
+<script defer src="/wp-content/uploads/complex_calcu.js?v=20260126b"></script>
+
+
