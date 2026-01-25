@@ -181,6 +181,9 @@
       '    <button type="button" data-insert="sin(">sin</button>' +
       '    <button type="button" data-insert="cos(">cos</button>' +
       '    <button type="button" data-insert="tan(">tan</button>' +
+      '    <button type="button" data-insert="sind(">sind</button>' +
+      '    <button type="button" data-insert="cosd(">cosd</button>' +
+      '    <button type="button" data-insert="tand(">tand</button>' +
       '    <button type="button" data-insert="asin(">asin</button>' +
       '    <button type="button" data-insert="acos(">acos</button>' +
       '    <button type="button" data-insert="atan(">atan</button>' +
@@ -399,6 +402,15 @@
               math.import({
                 log10: function (x) { return math.log(x, 10); }
               }, { override: false });
+            }
+            // degree trig: sind/cosd/tand (degrees)
+            if (typeof math.sind !== 'function' || typeof math.cosd !== 'function' || typeof math.tand !== 'function') {
+              var __ccalcu_deg2rad = math.divide(math.pi, 180);
+              var __ccalcu_degFns = {};
+              if (typeof math.sind !== 'function') __ccalcu_degFns.sind = function (x) { return math.sin(math.multiply(x, __ccalcu_deg2rad)); };
+              if (typeof math.cosd !== 'function') __ccalcu_degFns.cosd = function (x) { return math.cos(math.multiply(x, __ccalcu_deg2rad)); };
+              if (typeof math.tand !== 'function') __ccalcu_degFns.tand = function (x) { return math.tan(math.multiply(x, __ccalcu_deg2rad)); };
+              math.import(__ccalcu_degFns, { override: false });
             }
           }
         }
