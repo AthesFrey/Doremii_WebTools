@@ -34,6 +34,182 @@ class DoreTxttransTool extends BaseTool {
     // 后端 API 地址
     const API_URL = '/wp-content/uploads/txttrans-tool.php';
 
+// ===== 安全：强制 HTTPS（防公共 Wi‑Fi 被动嗅探 / 中间人）=====
+const REQUIRE_HTTPS = true; // 建议保持 true
+const isHttps = (typeof location !== 'undefined' && location.protocol === 'https:');
+const isSecureCtx = !!(window && window.isSecureContext);
+if (REQUIRE_HTTPS && (!isHttps || !isSecureCtx)) {
+  try {
+    alert('⚠️ 当前不是 HTTPS 安全环境。为避免公共 Wi‑Fi 抓包/中间人，本工具已禁用 save / fetch。\n请用 https:// 打开同一站点后再试。');
+  } catch (e) {}
+  if (saveBtn)  saveBtn.disabled  = true;
+  if (fetchBtn) fetchBtn.disabled = true;
+}
+
+// ===== 传输端 E2E 加密 + 流量填充（抗抓包/流量分析）=====
+// 说明：
+// - 开启后：上传/下载的 text 字段将变为密文（前缀 e2e1:），服务器只保存/返回密文，不再接触明文内容
+// - 兼容旧数据：服务器返回明文时（无 e2e1: 前缀）会按旧逻辑直接显示
+const E2E_ENABLED = true;
+const E2E_PREFIX  = 'e2e1:';
+const PBKDF2_ITERS = 150000; // 迭代越高越抗暴力破解（也越慢），可按设备性能调整
+const PAD_BLOCK = 4096;      // 4KB 对齐，减弱“明文长度≈流量长度”的相关性
+const SALT_LEN = 16;
+const IV_LEN   = 12;
+
+const _te = (typeof TextEncoder !== 'undefined') ? new TextEncoder() : null;
+const _td = (typeof TextDecoder !== 'undefined') ? new TextDecoder() : null;
+
+const hasWebCrypto = () => {
+  try {
+    return !!(window && window.crypto && window.crypto.subtle && _te && _td);
+  } catch (e) { return false; }
+};
+
+function _concatBytes(...arrs) {
+  let total = 0;
+  for (const a of arrs) total += a.length;
+  const out = new Uint8Array(total);
+  let off = 0;
+  for (const a of arrs) { out.set(a, off); off += a.length; }
+  return out;
+}
+
+function _bytesToB64(bytes) {
+  // 避免一次性展开大数组导致 call stack overflow
+  let bin = '';
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+  }
+  return btoa(bin);
+}
+
+function _b64ToBytes(b64) {
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+function _packLen32(n) {
+  const out = new Uint8Array(4);
+  out[0] = (n >>> 24) & 255;
+  out[1] = (n >>> 16) & 255;
+  out[2] = (n >>> 8) & 255;
+  out[3] = n & 255;
+  return out;
+}
+
+function _unpackLen32(b4) {
+  return (b4[0] * 16777216) + (b4[1] * 65536) + (b4[2] * 256) + b4[3];
+}
+
+function _padPlainBytes(plainBytes) {
+  const len = plainBytes.length >>> 0;
+  const header = _packLen32(len);
+  const needed = 4 + len;
+  const total  = Math.ceil(needed / PAD_BLOCK) * PAD_BLOCK;
+  const padLen = total - needed;
+
+  const pad = new Uint8Array(padLen);
+  if (padLen > 0) crypto.getRandomValues(pad);
+
+  return _concatBytes(header, plainBytes, pad);
+}
+
+function _unpadPlainBytes(padded) {
+  if (!padded || padded.length < 4) {
+    throw new Error('数据格式错误（长度不足）。');
+  }
+  const len = _unpackLen32(padded.subarray(0, 4));
+  if (len > (padded.length - 4)) {
+    throw new Error('数据格式错误（长度字段异常）。');
+  }
+  return padded.subarray(4, 4 + len);
+}
+
+async function _deriveAesKeyFromCode(code, salt) {
+  const baseKey = await crypto.subtle.importKey(
+    'raw',
+    _te.encode(code),
+    { name: 'PBKDF2' },
+    false,
+    ['deriveKey']
+  );
+
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt, iterations: PBKDF2_ITERS, hash: 'SHA-256' },
+    baseKey,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
+
+async function e2eEncryptText(code, plainText) {
+  if (!E2E_ENABLED) return plainText || '';
+  if (!hasWebCrypto()) {
+    throw new Error('浏览器不支持 WebCrypto（无法启用端到端加密）。请换 Chrome/Edge/Firefox 或升级浏览器。');
+  }
+
+  const salt = crypto.getRandomValues(new Uint8Array(SALT_LEN));
+  const iv   = crypto.getRandomValues(new Uint8Array(IV_LEN));
+  const key  = await _deriveAesKeyFromCode(code, salt);
+
+  const plainBytes = _te.encode(plainText || '');
+  const padded     = _padPlainBytes(plainBytes);
+
+  const cipherBuf  = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv, tagLength: 128 },
+    key,
+    padded
+  );
+
+  const cipherBytes = new Uint8Array(cipherBuf);
+  const packed      = _concatBytes(salt, iv, cipherBytes);
+
+  return E2E_PREFIX + _bytesToB64(packed);
+}
+
+async function e2eDecryptText(code, payloadText) {
+  if (!E2E_ENABLED) return payloadText || '';
+  if (typeof payloadText !== 'string') return '';
+
+  // 兼容旧数据：没有 e2e 前缀就当作明文
+  if (!payloadText.startsWith(E2E_PREFIX)) return payloadText;
+
+  if (!hasWebCrypto()) {
+    throw new Error('浏览器不支持 WebCrypto（无法解密）。');
+  }
+
+  const packed = _b64ToBytes(payloadText.slice(E2E_PREFIX.length));
+  if (packed.length < (SALT_LEN + IV_LEN + 16)) {
+    throw new Error('加密数据损坏或格式不正确。');
+  }
+
+  const salt = packed.subarray(0, SALT_LEN);
+  const iv   = packed.subarray(SALT_LEN, SALT_LEN + IV_LEN);
+  const ct   = packed.subarray(SALT_LEN + IV_LEN);
+
+  const key = await _deriveAesKeyFromCode(code, salt);
+
+  let plainBuf;
+  try {
+    plainBuf = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv, tagLength: 128 },
+      key,
+      ct
+    );
+  } catch (e) {
+    throw new Error('解密失败：取回密码错误或数据被篡改。');
+  }
+
+  const padded = new Uint8Array(plainBuf);
+  const plainBytes = _unpadPlainBytes(padded);
+  return _td.decode(plainBytes);
+}
+
     // 隐藏 BaseTool 默认的 result / hist 区域
     const hideIfExists = (el) => {
       if (!el) return;
@@ -260,6 +436,12 @@ if (typeof requestAnimationFrame === 'function') {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
+
+        // 减少不必要的“侧信道”信息
+        cache: 'no-store',
+        credentials: 'omit',
+        referrerPolicy: 'no-referrer',
+        mode: 'same-origin',
       });
 
       let data = null;
@@ -297,10 +479,12 @@ if (typeof requestAnimationFrame === 'function') {
 
       saveBtn.disabled = true;
       try {
+        const uploadText = await e2eEncryptText(code, text);
+
         const data = await callApi({
           action: 'save',
           code,
-          text,
+          text: uploadText,
         });
         alert('保存成功！\n（已写入服务器私有存储，不再返回文件名/目录）');
 
@@ -324,6 +508,10 @@ if (typeof requestAnimationFrame === 'function') {
         });
 
         let text = data.text || '';
+
+        // 端到端加密：若服务器返回的是密文（e2e1:），这里解密后再显示
+        text = await e2eDecryptText(code, text);
+
         const linesArr = text.split(/\r\n|\r|\n/);
         if (linesArr.length > MAX_LINES) {
           alert('服务器返回的文本超过 10,000 行，仅加载前 10,000 行。');

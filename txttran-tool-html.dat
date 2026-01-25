@@ -1,6 +1,6 @@
 <!-- 引用 JS（注意版本号） -->
-<script src="/wp-content/uploads/base-tool.js?v=20260126c"></script>
-<script defer src="/wp-content/uploads/txttrans-tool.js?v=20260126c"></script>
+<script src="/wp-content/uploads/base-tool.js?v=20260126d"></script>
+<script defer src="/wp-content/uploads/txttrans-tool.js?v=20260126d"></script>
 <!-- 亮色模式解锁区修正：仅覆盖主题相关样式（最保守改动） -->
 <style id="txttrans-gate-lightfix">
   /* 主题开关：暗色时 data-theme="dark"，亮色时为空或不存在 */
@@ -161,3 +161,7 @@
   });
 })();
 </script>
+
+
+
+
