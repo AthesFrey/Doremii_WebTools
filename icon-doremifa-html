@@ -1,36 +1,150 @@
-<!-- doremifa · 方案0927 · 上行音符 × 金币环（纯图形，无文字） -->
-<div class="logo-center" style="max-width:450px; margin:0 auto;">
-  <svg viewBox="0 0 1024 1024" role="img" aria-label="doremifa icon"
-       style="display:block; width:100%; height:auto;" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <linearGradient id="goldGradBig" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="#FBBF24"/>
-        <stop offset="100%" stop-color="#F59E0B"/>
-      </linearGradient>
-    </defs>
-<!-- 金币（外环加粗：内白圈r=356；金币本体r=430；实心白r=340） -->
-    <g transform="translate(512,512)">
-      <circle cx="0" cy="0" r="430" fill="url(#goldGradBig)"/>
-      <circle cx="0" cy="0" r="356" fill="#ffffff" opacity="0.92"/>
-      <circle cx="0" cy="0" r="340" fill="#ffffff"/>
-    </g>
-<!-- 上行音符（方案A：旋转9°，整体缩放1.105并下移26px） -->
-    <g transform="rotate(9 512 512) translate(512 512) scale(1.105) translate(-512 -512) translate(0 26)">
-      <!-- 音符圆点 -->
-      <g fill="#0EA5A5">
-        <circle cx="360" cy="620" r="46"/>
-        <circle cx="452" cy="572" r="46"/>
-        <circle cx="545" cy="524" r="46"/>
-        <circle cx="637" cy="476" r="46"/>
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>doremifa logo（7点钟解锁 6s）</title>
+
+  <style>
+    /* 暗色主题：把 LOGO 里的白底改成深蓝 */
+    html[data-theme="dark"] .logo-center svg circle[fill="#ffffff"],
+    html[data-theme="dark"] .logo-center svg circle[fill="#FFFFFF"]{
+      fill:#0B1D3A !important;
+    }
+
+    /* 只是页面居中展示用，不影响 SVG 图案 */
+    body{ margin:0; padding:24px; display:flex; justify-content:center; }
+  </style>
+</head>
+
+<body>
+  <!-- doremifa LOGO 上行音符 × 金币环（纯图形，无文字） -->
+  <div class="logo-center" style="max-width:450px; margin:0 auto; width:100%;">
+    <svg id="doremifaLogo" viewBox="0 0 1024 1024" role="img" aria-label="doremifa icon"
+         style="display:block; width:100%; height:auto;" xmlns="http://www.w3.org/2000/svg"
+         xmlns:xlink="http://www.w3.org/1999/xlink">
+      <defs>
+        <linearGradient id="goldGradBig" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#FBBF24"/>
+          <stop offset="100%" stop-color="#F59E0B"/>
+        </linearGradient>
+      </defs>
+
+      <!-- 金币（外环加粗：内白圈r=356；金币本体r=430；实心白r=340） -->
+      <g transform="translate(512,512)">
+        <circle cx="0" cy="0" r="430" fill="url(#goldGradBig)"/>
+        <circle cx="0" cy="0" r="356" fill="#ffffff" opacity="0.92"/>
+        <circle cx="0" cy="0" r="340" fill="#ffffff"/>
+
+        <!-- ✅ 七点钟“扇形热区”（进一步缩小：更窄、更短的弧段） -->
+        <path id="unlockHotspot"
+              d="M -226.532 365.454
+                 A 430 430 0 0 1 -203.579 378.833
+                 L -168.265 314.864
+                 A 356 356 0 0 0 -187.127 303.871
+                 Z"
+              fill="#000" fill-opacity="0.001"
+              stroke="none"
+              pointer-events="all"
+              style="cursor:pointer"/>
       </g>
-      <!-- 音符立柱 + 连梁 -->
-      <g stroke="#0EA5A5" stroke-width="46" stroke-linecap="round" fill="none">
-        <line x1="360" y1="620" x2="360" y2="430"/>
-        <line x1="452" y1="572" x2="452" y2="382"/>
-        <line x1="545" y1="524" x2="545" y2="334"/>
-        <line x1="637" y1="476" x2="637" y2="286"/>
-        <path d="M360 430 L637 286"/>
+
+      <!-- 上行音符（方案A：旋转9°，整体缩放1.105并下移26px） -->
+      <g transform="rotate(9 512 512) translate(512 512) scale(1.105) translate(-512 -512) translate(0 26)">
+
+        <!-- ✅ 四个音节链接（默认会被脚本锁定：移除 href + 禁用 pointer-events） -->
+        <g id="noteLinks">
+          <g fill="#0EA5A5">
+            <a href="https://doremii.top/Concentration-Exercise/" xlink:href="https://doremii.top/Concentration-Exercise/" target="_blank">
+              <circle cx="360" cy="620" r="46" style="cursor:pointer;"/>
+            </a>
+            <a href="https://doremii.top/quick-response-code/" xlink:href="https://doremii.top/quick-response-code/" target="_blank">
+              <circle cx="452" cy="572" r="46" style="cursor:pointer;"/>
+            </a>
+            <a href="https://doremii.top/document-interface/" xlink:href="https://doremii.top/document-interface/" target="_blank">
+              <circle cx="545" cy="524" r="46" style="cursor:pointer;"/>
+            </a>
+            <a href="https://doremii.top/mnemonics-creator/" xlink:href="https://doremii.top/Mnemonics-creator/" target="_blank">
+              <circle cx="637" cy="476" r="46" style="cursor:pointer;"/>
+            </a>
+          </g>
+        </g>
+
+        <!-- 音符立柱 + 连梁 -->
+        <g stroke="#0EA5A5" stroke-width="46" stroke-linecap="round" fill="none">
+          <line x1="360" y1="620" x2="360" y2="430"/>
+          <line x1="452" y1="572" x2="452" y2="382"/>
+          <line x1="545" y1="524" x2="545" y2="334"/>
+          <line x1="637" y1="476" x2="637" y2="286"/>
+          <path d="M360 430 L637 286"/>
+        </g>
       </g>
-    </g>
-  </svg>
-</div>
+    </svg>
+  </div>
+
+  <script>
+    (function () {
+      const svg = document.getElementById('doremifaLogo');
+      if (!svg) return;
+
+      const noteLinks = svg.querySelector('#noteLinks');
+      const hotspot   = svg.querySelector('#unlockHotspot');
+      if (!noteLinks || !hotspot) return;
+
+      const XLINK_NS = 'http://www.w3.org/1999/xlink';
+      const anchors = Array.from(noteLinks.querySelectorAll('a'));
+
+      // 备份原始链接（只做一次）
+      anchors.forEach(a => {
+        if (!a.dataset.hrefBak) {
+          const href = a.getAttribute('href') || '';
+          const xhref = a.getAttribute('xlink:href')
+                     || a.getAttributeNS(XLINK_NS, 'href')
+                     || '';
+          a.dataset.hrefBak  = href;
+          a.dataset.xhrefBak = xhref;
+        }
+      });
+
+      let timer = null;
+
+      function lock() {
+        anchors.forEach(a => {
+          a.style.pointerEvents = 'none';
+          a.removeAttribute('href');
+          a.removeAttribute('xlink:href');
+          try { a.removeAttributeNS(XLINK_NS, 'href'); } catch (_) {}
+        });
+        timer = null;
+      }
+
+      function unlockFor(ms) {
+        anchors.forEach(a => {
+          a.style.pointerEvents = 'auto';
+          if (a.dataset.hrefBak)  a.setAttribute('href', a.dataset.hrefBak);
+          if (a.dataset.xhrefBak) {
+            a.setAttribute('xlink:href', a.dataset.xhrefBak);
+            try { a.setAttributeNS(XLINK_NS, 'href', a.dataset.xhrefBak); } catch (_) {}
+          }
+        });
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(lock, ms);
+      }
+
+      // 初始必须锁定
+      lock();
+
+      // ✅ 用 pointerdown 比 click 稳（手机更不容易“点丢”）
+      hotspot.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        unlockFor(6000);
+      }, { passive: false });
+    })();
+  </script>
+</body>
+</html>
+
+
+
+
