@@ -1,295 +1,244 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <script src="/wp-content/uploads/time-diff-tool.js?v=20260128B" defer></script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>时刻间隔（天/小时）计算器</title>
+  <script src="/wp-content/uploads/time-diff-tool.js?v=20260128B" defer></script>
 
   <style>
-    /*
-      目标：
-      1) 强制 520px 宽并稳定居中（不受主题 layout / float / flex 影响）
-      2) 统一字号与控件高度，解决「输入框/文字偏大、与按钮不成比例」
-      3) 继续隔离站点主题 CSS（只作用于本工具命名空间）
-    */
-
-    /* 根容器：回退外部样式 + 重新建立我们自己的排版基线 */
+    /* 工具命名空间：尽量隔离主题样式 + 固定居中布局 */
     .tdt{
       all: revert;
-      float:none !important;
-      clear:both !important;
+      display:flex;
+      justify-content:center;
+      padding:14px;
+      width:100vw;
+      margin-inline:calc(50% - 50vw);
+      overflow-x:hidden;
 
-      /* 关键：让内部 wrap 作为 flex item 被稳定居中 */
-      display:flex !important;
-      justify-content:center !important;
-
-      width:100vw !important;
-      margin-left:calc(50% - 50vw) !important;
-      margin-right:calc(50% - 50vw) !important;
-      overflow-x:hidden !important;
-      padding:14px !important;
-
-      /* 基线：避免继承到主题的超大字号 */
-      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif !important;
-      font-size:14px !important;
-      line-height:1.25 !important;
+      font:14px/1.25 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
       -webkit-text-size-adjust:100%;
       text-size-adjust:100%;
 
-      --tdt-accent:#2563eb;
-      --tdt-bg:#f5f7fb;
-      --tdt-card:#ffffff;
-      --tdt-border:#dbe3f0;
-      --tdt-text:#0f172a;
-      --tdt-muted:#64748b;
-      --tdt-good:#16a34a;
-      --tdt-warn:#ef4444;
-      --tdt-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --accent:#2563eb;
+      --bg:#f5f7fb;
+      --card:#fff;
+      --border:#dbe3f0;
+      --text:#0f172a;
+      --muted:#64748b;
+      --mono: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+      --h:44px;
 
-      background:var(--tdt-bg) !important;
-      color:var(--tdt-text) !important;
+      background:var(--bg);
+      color:var(--text);
     }
 
     html[data-theme="dark"] .tdt{
-      --tdt-bg:#0b1220;
-      --tdt-card:#0f1a2f;
-      --tdt-border:#22314f;
-      --tdt-text:#e5e7eb;
-      --tdt-muted:#9ca3af;
-      --tdt-accent:#60a5fa;
+      --bg:#0b1220;
+      --card:#0f1a2f;
+      --border:#22314f;
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --accent:#60a5fa;
     }
     @media (prefers-color-scheme: dark){
       html:not([data-theme="light"]) .tdt{
-        --tdt-bg:#0b1220;
-        --tdt-card:#0f1a2f;
-        --tdt-border:#22314f;
-        --tdt-text:#e5e7eb;
-        --tdt-muted:#9ca3af;
-        --tdt-accent:#60a5fa;
+        --bg:#0b1220;
+        --card:#0f1a2f;
+        --border:#22314f;
+        --text:#e5e7eb;
+        --muted:#9ca3af;
+        --accent:#60a5fa;
       }
     }
 
-    /* 盒模型统一，避免主题改 box-sizing */
-    .tdt, .tdt *, .tdt *::before, .tdt *::after{ box-sizing:border-box !important; }
-
-    /* wrap：固定 520 并稳定居中（flex 已居中，这里再兜底） */
-    .tdt-wrap{
-      width:520px !important;
-      max-width:calc(100vw - 28px) !important;
-      margin:0 auto !important;
-      float:none !important;
-      clear:both !important;
-      position:relative;
-    }
+    .tdt, .tdt :where(*, *::before, *::after){ box-sizing:border-box; }
 
     .tdt-card{
-      background:var(--tdt-card) !important;
-      border:1px solid var(--tdt-border) !important;
-      border-radius:16px !important;
-      padding:16px !important;
-      box-shadow:0 10px 30px rgba(0,0,0,.06) !important;
+      width:520px;
+      max-width:calc(100vw - 28px);
+      margin:0 auto;
+
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:16px;
+      box-shadow:0 10px 30px rgba(0,0,0,.06);
     }
 
     .tdt-title{
-      text-align:center !important;
-      font-size:22px !important;
-      font-weight:700 !important;
-      color:var(--tdt-accent) !important;
-      letter-spacing:.2px !important;
-      margin:2px 0 12px !important;
+      text-align:center;
+      font-size:22px;
+      font-weight:700;
+      color:var(--accent);
+      letter-spacing:.2px;
+      margin:2px 0 12px;
     }
 
-    .tdt-section{ margin:0 0 14px !important; }
+    .tdt-section{ margin:0 0 14px; }
     .tdt-field{
-      display:grid !important;
-      grid-template-columns:92px 1fr !important;
-      gap:12px !important;
-      align-items:start !important;
+      display:grid;
+      grid-template-columns:92px 1fr;
+      gap:12px;
+      align-items:start;
     }
     .tdt-label{
-      font-size:14px !important;
-      font-weight:600 !important;
-      color:var(--tdt-muted) !important;
-      padding-top:10px !important;
-      margin:0 !important;
+      font-size:14px;
+      font-weight:600;
+      color:var(--muted);
+      padding-top:10px;
+      margin:0;
     }
-
-    .tdt-main{ display:block !important; }
 
     .tdt-dt{
-      width:100% !important;
-      height:44px !important;
-      min-height:44px !important;
+      width:100%;
+      height:var(--h);
+      min-height:var(--h);
+      padding:10px 12px;
 
-      padding:10px 12px !important;
-      border-radius:12px !important;
-      border:1px solid var(--tdt-border) !important;
-      background:transparent !important;
-      color:var(--tdt-text) !important;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:transparent;
+      color:var(--text);
 
-      font-size:16px !important; /* iOS 防止聚焦放大，且比例更协调 */
-      line-height:1.2 !important;
-      outline:none !important;
+      font-size:16px; /* iOS 聚焦不放大 + 比例协调 */
+      line-height:1.2;
+      outline:none;
     }
     .tdt-dt:focus{
-      border-color:color-mix(in srgb, var(--tdt-accent) 60%, var(--tdt-border)) !important;
-      box-shadow:0 0 0 3px color-mix(in srgb, var(--tdt-accent) 18%, transparent) !important;
+      border-color:color-mix(in srgb, var(--accent) 60%, var(--border));
+      box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
     }
     .tdt-dt::-webkit-calendar-picker-indicator{
-      width:18px !important;
-      height:18px !important;
+      width:18px;
+      height:18px;
       opacity:.9;
       cursor:pointer;
     }
 
     .tdt-controls{
-      display:flex !important;
-      align-items:center !important;
-      gap:10px !important;
-      flex-wrap:wrap !important;
-      margin-top:10px !important;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
     }
 
     .tdt-btn{
-      height:44px !important;
-      min-height:44px !important;
+      height:var(--h);
+      min-height:var(--h);
+      padding:0 14px;
 
-      border:1px solid var(--tdt-border) !important;
-      background:var(--tdt-accent) !important;
-      color:#fff !important;
+      border:1px solid var(--border);
+      border-radius:12px;
 
-      padding:0 14px !important;
-      border-radius:12px !important;
-      cursor:pointer !important;
-      font-size:15px !important;
-      font-weight:600 !important;
-      white-space:nowrap !important;
+      background:var(--accent);
+      color:#fff;
+
+      cursor:pointer;
+      font-size:15px;
+      font-weight:600;
+      white-space:nowrap;
     }
     .tdt-btn:active{ transform:translateY(1px); }
-
-    .tdt-btn.tdt-secondary{
-      background:transparent !important;
-      color:var(--tdt-text) !important;
-    }
+    .tdt-btn.tdt-secondary{ background:transparent; color:var(--text); }
 
     .tdt-chk{
-      display:inline-flex !important;
-      align-items:center !important;
-      gap:8px !important;
-      font-size:14px !important;
-      color:var(--tdt-muted) !important;
-      margin:0 !important;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:14px;
+      color:var(--muted);
+      margin:0;
       user-select:none;
     }
-    .tdt-chk input[type="checkbox"]{
-      width:18px !important;
-      height:18px !important;
-      margin:0 !important;
-    }
+    .tdt-chk input[type="checkbox"]{ width:18px; height:18px; margin:0; }
 
-    .tdt-hr{
-      height:1px !important;
-      background:var(--tdt-border) !important;
-      margin:10px 0 12px !important;
-    }
+    .tdt-hr{ height:1px; background:var(--border); margin:10px 0 12px; }
 
     .tdt-result{
-      border:1px dashed var(--tdt-border) !important;
-      background:color-mix(in srgb, var(--tdt-accent) 6%, transparent) !important;
-      border-radius:14px !important;
-      padding:12px !important;
+      border:1px dashed var(--border);
+      background:color-mix(in srgb, var(--accent) 6%, transparent);
+      border-radius:14px;
+      padding:12px;
     }
-    .tdt-big{
-      font-size:20px !important;
-      font-weight:800 !important;
-      margin:0 0 6px !important;
-    }
-    .tdt-small{
-      font-size:13px !important;
-      color:var(--tdt-muted) !important;
-      line-height:1.35 !important;
-    }
-    .tdt-mono{ font-family:var(--tdt-mono) !important; }
+    .tdt-big{ font-size:20px; font-weight:800; margin:0 0 6px; }
+    .tdt-small{ font-size:13px; color:var(--muted); line-height:1.35; }
+    .tdt-mono{ font-family:var(--mono); }
 
     .tdt-footer{
-      margin-top:10px !important;
-      font-size:13px !important;
-      color:var(--tdt-muted) !important;
-      text-align:center !important;
+      margin-top:10px;
+      font-size:13px;
+      color:var(--muted);
+      text-align:center;
     }
 
     @media (max-width:560px){
-      .tdt-field{ grid-template-columns:1fr !important; gap:8px !important; }
-      .tdt-label{ padding-top:0 !important; }
-      .tdt-controls{ margin-top:8px !important; }
-      .tdt-title{ font-size:20px !important; }
+      .tdt-field{ grid-template-columns:1fr; gap:8px; }
+      .tdt-label{ padding-top:0; }
+      .tdt-controls{ margin-top:8px; }
+      .tdt-title{ font-size:20px; }
     }
   </style>
 </head>
+
 <body>
-<div class="tdt">
-    <div class="tdt-wrap">
-      <div class="tdt-card">
-        <div class="tdt-title">时刻间隔（天 / 小时）计算器</div>
+  <div class="tdt">
+    <div class="tdt-card">
+      <div class="tdt-title">时刻间隔（天 / 小时）计算器</div>
 
-        <div class="tdt-section">
-          <div class="tdt-field">
-            <div class="tdt-label">起点时刻</div>
-            <div class="tdt-main">
-              <input id="start" class="tdt-dt" type="datetime-local" />
-              <div class="tdt-controls">
-                <button id="startNow" class="tdt-btn" type="button">设为当前</button>
-                <label class="tdt-chk">
-                  <input id="startFollow" type="checkbox" />
-                  跟随当前
-                </label>
-              </div>
+      <div class="tdt-section">
+        <div class="tdt-field">
+          <div class="tdt-label">起点时刻</div>
+          <div>
+            <input id="start" class="tdt-dt" type="datetime-local" />
+            <div class="tdt-controls">
+              <button id="startNow" class="tdt-btn" type="button">设为当前</button>
+              <label class="tdt-chk">
+                <input id="startFollow" type="checkbox" /> 跟随当前
+              </label>
             </div>
           </div>
         </div>
-
-        <div class="tdt-section">
-          <div class="tdt-field">
-            <div class="tdt-label">终点时刻</div>
-            <div class="tdt-main">
-              <input id="end" class="tdt-dt" type="datetime-local" />
-              <div class="tdt-controls">
-                <button id="endNow" class="tdt-btn" type="button">设为当前</button>
-                <label class="tdt-chk">
-                  <input id="endFollow" type="checkbox" />
-                  跟随当前
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="tdt-section">
-          <div class="tdt-field">
-            <div class="tdt-label">操作</div>
-            <div class="tdt-main">
-              <div class="tdt-controls">
-                <button id="swap" class="tdt-btn tdt-secondary" type="button">交换起点/终点</button>
-                <button id="copy" class="tdt-btn tdt-secondary" type="button">复制结果</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="tdt-hr"></div>
-
-        <div class="tdt-result" id="resultBox">
-          <div class="tdt-big" id="mainLine">请先选择两个时刻</div>
-          <div class="tdt-small" id="subLine"></div>
-          <div class="tdt-small tdt-mono" id="detailLine"></div>
-        </div>
-
-        <div class="tdt-footer">说明：按“终点 - 起点”计算；为正表示“剩余”，为负表示“已过”。</div>
       </div>
+
+      <div class="tdt-section">
+        <div class="tdt-field">
+          <div class="tdt-label">终点时刻</div>
+          <div>
+            <input id="end" class="tdt-dt" type="datetime-local" />
+            <div class="tdt-controls">
+              <button id="endNow" class="tdt-btn" type="button">设为当前</button>
+              <label class="tdt-chk">
+                <input id="endFollow" type="checkbox" /> 跟随当前
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tdt-section">
+        <div class="tdt-field">
+          <div class="tdt-label">操作</div>
+          <div class="tdt-controls">
+            <button id="swap" class="tdt-btn tdt-secondary" type="button">交换起点/终点</button>
+            <button id="copy" class="tdt-btn tdt-secondary" type="button">复制结果</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tdt-hr"></div>
+
+      <div class="tdt-result" id="resultBox">
+        <div class="tdt-big" id="mainLine">请先选择两个时刻</div>
+        <div class="tdt-small" id="subLine"></div>
+        <div class="tdt-small tdt-mono" id="detailLine"></div>
+      </div>
+
+      <div class="tdt-footer">说明：按“终点 - 起点”计算；为正表示“剩余”，为负表示“已过”。</div>
     </div>
   </div>
 </body>
 </html>
-
 
