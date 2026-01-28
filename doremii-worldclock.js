@@ -71,6 +71,7 @@
         --dw-dt-w:280px; /* datetime 输入框统一宽度基准 */
         font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
         color:var(--dw-text);
+        color-scheme: light;
         padding:0 12px; /* 手机/窄屏别贴边 */
       }
       .${WIDGET_CLASS} *{box-sizing:border-box;}
@@ -172,6 +173,8 @@
         border-radius:12px;
         font-size:13px;
         background:#fff;
+        color:var(--dw-text);
+        -webkit-text-fill-color:var(--dw-text);
         height:40px;
       }
       .dw-foot{
@@ -210,6 +213,8 @@
         border-radius:12px;
         font-size:13px;
         background:#fff;
+        color:var(--dw-text);
+        -webkit-text-fill-color:var(--dw-text);
         height:40px;
       }
 
@@ -256,6 +261,7 @@
         background: rgba(255,255,255,.06);
         border-color: var(--dw-border);
         color: var(--dw-text);
+        -webkit-text-fill-color: var(--dw-text);
       }
 
       :root[data-theme="dark"] .${WIDGET_CLASS} .dw-warn{
