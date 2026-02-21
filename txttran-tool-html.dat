@@ -1,6 +1,7 @@
 <!-- 引用 JS（注意版本号） -->
-<script src="/wp-content/uploads/base-tool.js?v=20260126d"></script>
-<script defer src="/wp-content/uploads/txttrans-tool.js?v=20260126d"></script>
+<script src="/wp-content/uploads/base-tool.js?v=20260221a"></script>
+<script defer src="/wp-content/uploads/txttrans-tool.js?v=20260221a"></script>
+
 <!-- 亮色模式解锁区修正：仅覆盖主题相关样式（最保守改动） -->
 <style id="txttrans-gate-lightfix">
   /* 主题开关：暗色时 data-theme="dark"，亮色时为空或不存在 */
@@ -53,7 +54,13 @@
   ">Txttrans Tool</div>
 
   <div style="display:flex;gap:10px;align-items:center;">
-    <input id="txttrans-pass" type="password" autocomplete="off"
+    <!-- 方案A：更可靠地抑制浏览器自动填充保存密码 -->
+    <input id="txttrans-pass" type="password"
+      autocomplete="new-password"
+      name="pbk_code"
+      inputmode="text"
+      autocapitalize="off"
+      spellcheck="false"
       placeholder="PBK code"
       style="
         flex:1;
@@ -91,12 +98,13 @@
   "></div>
 </div>
 
-<!-- 工具区：默认隐藏；解锁后固定 520px -->
+<!-- 工具区：默认隐藏；解锁后手机自适应，桌面最多 520px -->
 <div id="txttrans-app" style="
   display:none;
   margin:0 auto;
-  width:520px;
+  width:calc(100vw - 24px);
   max-width:520px;
+  box-sizing:border-box;
 ">
   <h2 style="
     font-size:22px;
@@ -123,7 +131,6 @@
 
       display:block;
       width:100%;
-      max-width:520px;
     ">
   </doremii-text-recorder>
 </div>
@@ -161,7 +168,3 @@
   });
 })();
 </script>
-
-
-
-
