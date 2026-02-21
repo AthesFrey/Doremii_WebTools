@@ -12,11 +12,10 @@
 
   function apply(mode){
     // mode: 'light' | 'dark' | null(auto)
-    if (!mode) {
-      root.dataset.theme = prefersDark() ? 'dark' : '';
-      return;
-    }
-    root.dataset.theme = (mode === 'dark') ? 'dark' : '';
+    const t = mode ? mode : (prefersDark() ? 'dark' : 'light');
+
+    root.dataset.theme = t;
+    if (document.body) document.body.dataset.theme = t; // 兼容只看 body 的模块
   }
 
   function setMode(mode){
@@ -68,11 +67,14 @@
 
   // 3) 系统主题变化：只有“未保存选择(=auto)”才跟随
   const mq = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
-  if (mq && mq.addEventListener) {
-    mq.addEventListener('change', () => {
+  if (mq) {
+    const onChange = () => {
       if (!getSaved()) apply(null);
       updateBtn();
-    });
+    };
+
+    if (mq.addEventListener) mq.addEventListener('change', onChange);
+    else if (mq.addListener) mq.addListener(onChange); // iOS Safari 老版本回退
   }
 
   // 可选：给你调试用
