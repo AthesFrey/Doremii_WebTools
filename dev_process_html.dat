@@ -1,6 +1,6 @@
-<!-- 程序员计算器（太空蓝·426 版） -->
+<!-- 程序员计算器 -->
 <!-- 每次更新 JS 请改 ?v= 强制刷新缓存；JS 文件保持现版不变 -->
-<script defer src="/wp-content/uploads/dev-process.js?v=20251106a"></script>
+<script defer src="/wp-content/uploads/dev-process.fixed.js?v=20260221PM"></script>
 
 <style>
   :root{
@@ -44,6 +44,7 @@
 
   /* ✅ 暗色主题下：结果区更暗；浅色按钮也不要“发白” */
   html[data-theme="dark"],
+  body[data-theme="dark"], /* ✅ 保守补丁：兼容主题工具把 data-theme 放在 body 的情况 */
   :root[data-theme="dark"]{
     --result-box-bg:#0b1220;
     --result-box-fg:#e5e7eb;
