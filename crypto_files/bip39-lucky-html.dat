@@ -6,9 +6,9 @@
   <title>离线 BIP39 → BTC / ETH / SOL / TRX 地址生成器</title>
 
   <!-- 依赖与业务脚本（放在前几行；用于嵌入 WordPress 页面时也不会跑到站点根目录之外） -->
-  <script src="/wp-content/uploads/crypto_files/ethers.umd.min.js?v=20251218"></script>
-  <script src="/wp-content/uploads/crypto_files/bitcoinjs-lib.standalone.min.js?v=20251218"></script>
-  <script src="/wp-content/uploads/crypto_files/solana-bundle.standalone.min.js?v=20251218"></script>
+  <script src="/wp-content/uploads/crypto_files/ethers.umd.min.js?v=20251218a"></script>
+  <script src="/wp-content/uploads/crypto_files/bitcoinjs-lib.standalone.min.js?v=20251218a"></script>
+  <script src="/wp-content/uploads/crypto_files/solana-bundle.standalone.min.js?v=20251218a"></script>
 
   <!-- 业务脚本：覆盖到这里，并把 v 参数改新以防缓存 -->
   <script defer src="/wp-content/uploads/crypto_files/bip39_lucky.js?v=20251218C"></script>
@@ -275,21 +275,73 @@
       </div>
     </div>
 
-    <!-- ✅ Passphrase 开关逻辑：不改 bip39_lucky.js -->
+    <!-- ✅ Passphrase 开关逻辑：不改 bip39_lucky.js（最小改动版：定时强制回写 + 事件兜底） -->
     <script>
       (function(){
         var cb = document.getElementById('usePassphrase');
-        var ip = document.getElementById('passphrase');
-        if(!cb || !ip) return;
+        if(!cb) return;
+
+        function getIp(){
+          // ✅ 如果 bip39_lucky.js 某些流程“重建”了 input，这里也能拿到最新节点
+          return document.getElementById('passphrase');
+        }
 
         function sync(){
+          var ip = getIp();
+          if(!ip) return;
+
           var on = !!cb.checked;
-          ip.disabled = !on;
-          ip.placeholder = on ? '可留空' : '未启用（勾选启用）';
-          if(!on) ip.value = ''; // 关闭时清空，避免误用
+
+          if(on){
+            ip.disabled = false;
+            ip.readOnly = false;
+            ip.removeAttribute('tabindex');
+            ip.placeholder = '可留空';
+          }else{
+            // ✅ 双保险：disabled + readonly
+            ip.disabled = true;
+            ip.readOnly = true;
+
+            // ✅ 可选：彻底不让 Tab 聚焦（更符合“各种情况都不允许输入”）
+            ip.setAttribute('tabindex','-1');
+
+            ip.placeholder = '未启用（勾选启用）';
+            if(ip.value) ip.value = ''; // 关闭时清空，避免误用
+            if(document.activeElement === ip) ip.blur();
+          }
         }
 
         cb.addEventListener('change', sync);
+
+        // ✅ 关键：无论 lucky/停止计算/任何流程改动 input 状态，都会被很快纠正
+        setInterval(sync, 250);
+
+        // ✅ 兜底：如果极端情况下被激活并触发输入事件，立刻清空并锁回去
+        document.addEventListener('focusin', function(e){
+          var ip = getIp();
+          if(ip && e.target === ip && !cb.checked){
+            ip.blur();
+            sync();
+          }
+        }, true);
+
+        document.addEventListener('input', function(e){
+          var ip = getIp();
+          if(ip && e.target === ip && !cb.checked){
+            ip.value = '';
+            sync();
+          }
+        }, true);
+
+        document.addEventListener('paste', function(e){
+          var ip = getIp();
+          if(ip && e.target === ip && !cb.checked){
+            e.preventDefault();
+            ip.value = '';
+            sync();
+          }
+        }, true);
+
         sync();
       })();
     </script>
@@ -305,4 +357,3 @@
   </div>
 </body>
 </html>
-
