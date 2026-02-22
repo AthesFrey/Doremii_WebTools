@@ -1,6 +1,6 @@
-<!-- 引用 JS（注意版本号） -->
-<script src="/wp-content/uploads/base-tool.js?v=20260221a"></script>
-<script defer src="/wp-content/uploads/txttrans-tool.js?v=20260221a"></script>
+<!-- 引用 JS（注意版本号，改一下防缓存） -->
+<script src="/wp-content/uploads/base-tool.js?v=20260222e"></script>
+<script defer src="/wp-content/uploads/txttrans-tool.js?v=20260222e"></script>
 
 <!-- 亮色模式解锁区修正：仅覆盖主题相关样式（最保守改动） -->
 <style id="txttrans-gate-lightfix">
@@ -29,14 +29,12 @@
   }
 </style>
 
-
 <!-- 解锁区：暗黑模式更清晰 -->
 <div id="txttrans-gate" style="
   margin:0 auto 12px;
   width:calc(100vw - 24px);
   max-width:520px;
 
-  /* 关键：提高暗色背景下对比度 */
   background:rgba(10, 18, 14, 0.88);
   border:1px solid rgba(165, 214, 167, 0.55);
   border-radius:14px;
@@ -54,13 +52,17 @@
   ">Txttrans Tool</div>
 
   <div style="display:flex;gap:10px;align-items:center;">
-    <!-- 方案A：更可靠地抑制浏览器自动填充保存密码 -->
-    <input id="txttrans-pass" type="password"
-      autocomplete="new-password"
+    <!-- ✅ 防“保存密码”弹窗：用 text + text-security 伪装密码显示（仍是 ●●●） -->
+    <input id="txttrans-pass"
+      type="text"
+      autocomplete="off"
       name="pbk_code"
       inputmode="text"
       autocapitalize="off"
+      autocorrect="off"
       spellcheck="false"
+      data-lpignore="true"
+      data-1p-ignore="true"
       placeholder="PBK code"
       style="
         flex:1;
@@ -71,9 +73,11 @@
         font-size:16px;
         box-sizing:border-box;
 
-        /* 输入框在暗背景下更清晰 */
         background:rgba(255,255,255,0.10);
         color:#F4FFF6;
+
+        -webkit-text-security: disc;
+        text-security: disc;
       "
     />
     <button id="txttrans-unlock" type="button"
@@ -98,13 +102,21 @@
   "></div>
 </div>
 
-<!-- 工具区：默认隐藏；解锁后手机自适应，桌面最多 520px -->
+<!-- 工具区：默认隐藏；解锁后宽度与初始 gate 一致 -->
 <div id="txttrans-app" style="
   display:none;
   margin:0 auto;
   width:calc(100vw - 24px);
   max-width:520px;
   box-sizing:border-box;
+
+  background:rgba(246, 255, 248, 0.92);
+  border:1px solid rgba(165, 214, 167, 0.55);
+  border-radius:14px;
+  padding:14px;
+
+  /* 防止内层强制 100% 后出现圆角外溢 */
+  overflow:hidden;
 ">
   <h2 style="
     font-size:22px;
@@ -118,7 +130,6 @@
   <doremii-text-recorder
     accent="#4CAF50"
     style="
-      /* 琥珀绿色系 + 柔和背景 */
       --bg:#F6FFF8;
       --card-bg:#E8F5E9;
       --card-border:#A5D6A7;
@@ -131,6 +142,8 @@
 
       display:block;
       width:100%;
+      max-width:none; /* ✅ 防止宿主元素自己被限制 */
+      box-sizing:border-box;
     ">
   </doremii-text-recorder>
 </div>
@@ -144,7 +157,7 @@
   const btn  = document.getElementById("txttrans-unlock");
   const msg  = document.getElementById("txttrans-msg");
 
-  // 让 placeholder 在暗色背景下更清晰（不影响解锁后）
+  // placeholder 在暗色背景更清晰
   const style = document.createElement("style");
   style.textContent = `
     #txttrans-pass::placeholder { color: rgba(244, 255, 246, 0.55); }
@@ -153,6 +166,8 @@
 
   function unlock() {
     if ((inp.value || "").trim() === PASS) {
+      // ✅ 解锁成功后清空输入，进一步降低浏览器误判为“密码”
+      inp.value = "";
       gate.style.display = "none";
       app.style.display = "block";
     } else {
