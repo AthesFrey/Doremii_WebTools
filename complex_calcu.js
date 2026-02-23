@@ -4,8 +4,6 @@
  *  - 扩展：三角函数（math.js）、常见微分（math.js derivative）、常见积分（Algebrite 符号不定积分 + 数值定积分）
  *  - 样式隔离：优先使用 Shadow DOM，避免影响网页其他模块的主题/宽度
  *
- * 你在页面里引用：
- *   <script defer src="/wp-content/uploads/complex_calcu.js?v=20260125c"></script>
  */
 (function () {
   'use strict';
@@ -149,22 +147,24 @@
       hostSel + '{display:block;width:520px;max-width:100%;box-sizing:border-box;text-align:left;margin:12px auto;--ccalcu-bg: var(--d-card, transparent);--ccalcu-field-bg: var(--d-card, rgba(255,255,255,.85));--ccalcu-border: var(--d-border, rgba(0,0,0,.18));--ccalcu-text: var(--d-text, inherit);--ccalcu-muted: var(--d-muted, rgba(0,0,0,.7));--ccalcu-kbd-bg: var(--d-card, rgba(255,255,255,.75));color: var(--ccalcu-text);}',
       scopeSel + '.ccalcu{box-sizing:border-box;font-family:inherit;}',
       scopeSel + '.ccalcu *{box-sizing:border-box;}',
-      scopeSel + '.wrap{width:100%;max-width:100%;border:1px solid var(--ccalcu-border);border-radius:12px;padding:12px;background:transparent;}',
+      scopeSel + '.wrap{width:100%;max-width:100%;border:1px solid var(--ccalcu-border);border-radius:12px;padding:14px;background:transparent;}',
       scopeSel + '.head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;}',
-      scopeSel + '.title{font-weight:700;font-size:16px;line-height:1.2;}',
-      scopeSel + '.status{font-size:12px;opacity:.75;white-space:nowrap;}',
-      scopeSel + '.input{width:100%;min-height:180px;resize:vertical;padding:10px;border:1px solid var(--ccalcu-border);border-radius:10px;outline:none;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-size:14px;line-height:1.4;background:var(--ccalcu-field-bg);color:var(--ccalcu-text);} ',
+      scopeSel + '.title{font-weight:700;font-size:18px;line-height:1.2;}',
+      scopeSel + '.status{font-size:13px;opacity:.75;white-space:nowrap;}',
+      scopeSel + '.input{width:100%;min-height:180px;resize:vertical;padding:11px;border:1px solid var(--ccalcu-border);border-radius:10px;outline:none;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-size:15px;line-height:1.45;background:var(--ccalcu-field-bg);color:var(--ccalcu-text);} ',
       scopeSel + '.row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}',
       scopeSel + '.input::placeholder{color:var(--ccalcu-muted);opacity:1;}',
-      scopeSel + 'button{cursor:pointer;border:1px solid var(--ccalcu-border);background:var(--ccalcu-field-bg);color:var(--ccalcu-text);border-radius:10px;padding:7px 10px;font-size:13px;line-height:1;transition:transform .02s ease;}',
+      scopeSel + 'button{cursor:pointer;border:1px solid var(--ccalcu-border);background:var(--ccalcu-field-bg);color:var(--ccalcu-text);border-radius:10px;padding:8px 12px;font-size:14px;line-height:1;transition:transform .02s ease;}',
       scopeSel + 'button:active{transform:translateY(1px);} ',
       scopeSel + '.primary{font-weight:800;background:#0f766e;color:#ffffff;border-color:#0f766e;}',
-      scopeSel + '.output{margin-top:10px;padding:10px;border-radius:10px;border:1px dashed var(--ccalcu-border);background:var(--ccalcu-bg);color:var(--ccalcu-text);font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-size:14px;line-height:1.5;white-space:pre-wrap;word-break:break-word;}',
-      scopeSel + '.hint{margin-top:8px;font-size:12px;opacity:.78;line-height:1.5;}',
+      scopeSel + '.output{margin-top:10px;padding:11px;border-radius:10px;border:1px dashed var(--ccalcu-border);background:var(--ccalcu-bg);color:var(--ccalcu-text);font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-size:15px;line-height:1.55;white-space:pre-wrap;word-break:break-word;}',
+      scopeSel + '.hint{margin-top:8px;font-size:13px;opacity:.78;line-height:1.55;}',
+      scopeSel + '.helpbox{margin-top:8px;}',
+      scopeSel + '.helpTitle{font-size:13px;opacity:.8;font-weight:700;}',
       scopeSel + 'details{margin-top:8px;}',
-      scopeSel + 'summary{cursor:pointer;font-size:12px;opacity:.8;}',
-      scopeSel + '.help{margin-top:6px;font-size:12px;opacity:.85;line-height:1.6;}',
-      scopeSel + '.kbd{display:inline-block;padding:0 6px;border:1px solid var(--ccalcu-border);border-radius:6px;font-family:inherit;font-size:12px;background:var(--ccalcu-kbd-bg);} ',
+      scopeSel + 'summary{cursor:pointer;font-size:13px;opacity:.8;}',
+      scopeSel + '.help{margin-top:6px;font-size:13px;opacity:.85;line-height:1.65;}',
+      scopeSel + '.kbd{display:inline-block;padding:0 6px;border:1px solid var(--ccalcu-border);border-radius:6px;font-family:inherit;font-size:13px;background:var(--ccalcu-kbd-bg);} ',
     ].join('\n');
 
     // ----- dom -----
@@ -178,6 +178,21 @@
       '  </div>' +
       '  <textarea class="input" spellcheck="false" placeholder="输入表达式，例如：\n  2+3*4\n  sin(pi/6)\n  diff(sin(x^2), x)\n  int(x^2, x)\n  defint(sin(x), x, 0, pi)\n\n提示：按 Ctrl+Enter 快速计算"></textarea>' +
       '  <div class="row">' +
+	  '    <button type="button" data-insert="0">0</button>' +
+      '    <button type="button" data-insert="1">1</button>' +
+      '    <button type="button" data-insert="2">2</button>' +
+      '    <button type="button" data-insert="3">3</button>' +
+      '    <button type="button" data-insert="4">4</button>' +
+      '    <button type="button" data-insert="5">5</button>' +
+      '    <button type="button" data-insert="6">6</button>' +
+      '    <button type="button" data-insert="7">7</button>' +
+      '    <button type="button" data-insert="8">8</button>' +
+      '    <button type="button" data-insert="9">9</button>' +
+      '    <button type="button" data-insert="+">+</button>' +
+      '    <button type="button" data-insert="-">-</button>' +
+      '    <button type="button" data-insert="*">*</button>' +
+      '    <button type="button" data-insert="/">/</button>' +
+      '    <button type="button" data-insert="%">%</button>' +	  
       '    <button type="button" data-insert="sin(">sin</button>' +
       '    <button type="button" data-insert="cos(">cos</button>' +
       '    <button type="button" data-insert="tan(">tan</button>' +
@@ -198,21 +213,44 @@
       '    <button type="button" data-insert="diff(, x)">diff</button>' +
       '    <button type="button" data-insert="int(, x)">int</button>' +
       '    <button type="button" data-insert="defint(, x, 0, 1)">defint</button>' +
+      '    <button type="button" data-insert="abs(">abs</button>' +
+      '    <button type="button" data-insert="arg(">arg</button>' +
+      '    <button type="button" data-insert="det(">det</button>' +
+      '    <button type="button" data-insert="inv(">inv</button>' +
+      '    <button type="button" data-insert="mean(">mean</button>' +
+      '    <button type="button" data-insert="variance(">variance</button>' +
+      '    <button type="button" data-insert="simplify(">simplify</button>' +
+
       '    <button type="button" class="primary" data-action="calc">计算</button>' +
       '    <button type="button" data-action="clear">清空</button>' +
+      '    <button type="button" data-insert="(">(</button>' +
+      '    <button type="button" data-insert=")">)</button>' +
+      '    <button type="button" data-insert=",">,</button>' +
+
       '  </div>' +
       '  <div class="output" role="status"></div>' +
       '  <div class="hint">说明：三角函数默认使用弧度制。结果（数值）固定显示到小数点后 10 位。</div>' +
-      '  <details>' +
-      '    <summary>命令说明（点击展开）</summary>' +
+            '  <div class="helpbox">' +
+      '    <div class="helpTitle">命令说明</div>' +
       '    <div class="help">' +
       '      <div><b>普通计算</b>：直接输入表达式，如 <span class="kbd">1/3</span>、<span class="kbd">sin(pi/6)</span></div>' +
+      '      <div><b>矩阵乘法</b>：如 <span class="kbd">[[1,2],[3,4]] * [[5],[6]]</span></div>' +
+      '      <div><b>复数计算</b>：如 <span class="kbd">(2 + 3i) * (4 - i)</span></div>' +
+      '      <div><b>解线性方程组</b>：<span class="kbd">lusolve(A, b)</span>，如 <span class="kbd">lusolve([[2,1],[1,3]],[1,2])</span></div>' +
+      '      <div><b>单位与换算</b>：如 <span class="kbd">5 cm + 2 inch</span>；<span class="kbd">to(10 mile/hour, m/s)</span></div>' +
+      '      <div><b>abs</b>：<span class="kbd">abs(x)</span>，如 <span class="kbd">abs(-3)</span>、<span class="kbd">abs(3+4i)</span></div>' +
+      '      <div><b>arg</b>：<span class="kbd">arg(z)</span>，如 <span class="kbd">arg(1+i)</span></div>' +
+      '      <div><b>det</b>：<span class="kbd">det(A)</span>，如 <span class="kbd">det([[1,2],[3,4]])</span></div>' +
+      '      <div><b>inv</b>：<span class="kbd">inv(A)</span>，如 <span class="kbd">inv([[1,2],[3,4]])</span></div>' +
+      '      <div><b>mean</b>：<span class="kbd">mean([1,2,3])</span></div>' +
+      '      <div><b>variance</b>：<span class="kbd">variance([1,2,3])</span></div>' +
+      '      <div><b>simplify</b>：<span class="kbd">simplify(表达式)</span>，如 <span class="kbd">simplify((x^2-1)/(x-1))</span></div>' +
       '      <div><b>微分</b>：<span class="kbd">diff(表达式, 变量)</span>，如 <span class="kbd">diff(sin(x^2), x)</span></div>' +
       '      <div><b>不定积分（符号）</b>：<span class="kbd">int(表达式, 变量)</span>，如 <span class="kbd">int(x^2, x)</span></div>' +
       '      <div><b>定积分（数值）</b>：<span class="kbd">defint(表达式, 变量, 下限, 上限)</span>，如 <span class="kbd">defint(sin(x), x, 0, pi)</span></div>' +
       '      <div style="margin-top:6px;opacity:.9;">提示：若符号积分不支持某些复杂表达式，可改用定积分（数值）计算。</div>' +
       '    </div>' +
-      '  </details>' +
+      '  </div>' +
       '</div>';
 
     root.appendChild(style);
@@ -428,6 +466,17 @@
           return;
         }
 
+
+        // simplify(...)
+        if (call && call.name.toLowerCase() === 'simplify') {
+          var sexpr = call.args[0] || '';
+          if (!sexpr) throw new Error('simplify() 需要表达式参数');
+          if (typeof math.simplify !== 'function') throw new Error('当前 math.js 版本不支持 simplify()');
+          var snode = math.simplify(String(sexpr));
+          setOutput(String(snode));
+          return;
+        }
+
         // int(...)
         if (call && (call.name.toLowerCase() === 'int' || call.name.toLowerCase() === 'integral')) {
           var iexpr = call.args[0] || '';
@@ -578,7 +627,6 @@
         compute();
       }
     });
-
     // 初次加载 math.js（让用户点按钮时更快）
     setStatus('加载中…');
     ensureMath().then(function () {
@@ -587,6 +635,8 @@
       setStatus('库加载失败');
     });
   }
+
+
 
   domReady(function () {
     var mount = createMountPoint();
