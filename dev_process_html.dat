@@ -1,6 +1,6 @@
 <!-- 程序员计算器 -->
 <!-- 每次更新 JS 请改 ?v= 强制刷新缓存；JS 文件保持现版不变 -->
-<script defer src="/wp-content/uploads/dev-process.fixed.js?v=20260221PM"></script>
+<script defer src="/wp-content/uploads/dev-process.js?v=20260221PM"></script>
 
 <style>
   :root{
@@ -231,3 +231,4 @@
   <div class="muted" id="process-label">process results:</div>
   <div id="result-box" class="result-box"></div>
 </div>
+
