@@ -9,6 +9,7 @@
 (function () {
   'use strict';
 
+	
   // 防止重复初始化
   if (window.__complex_calcu_inited__) return;
   window.__complex_calcu_inited__ = true;
