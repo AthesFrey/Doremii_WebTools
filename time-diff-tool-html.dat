@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>时刻间隔（天/小时）计算器</title>
-  <script src="/wp-content/uploads/time-diff-tool.js?v=20260128B" defer></script>
+  <script src="/wp-content/uploads/time-diff-tool.js?v=20260223a" defer></script>
 
   <style>
     /* 工具命名空间：尽量隔离主题样式 + 固定居中布局 */
@@ -13,9 +13,6 @@
       display:flex;
       justify-content:center;
       padding:14px;
-      width:100vw;
-      margin-inline:calc(50% - 50vw);
-      overflow-x:hidden;
 
       font:14px/1.25 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
       -webkit-text-size-adjust:100%;
@@ -30,7 +27,6 @@
       --mono: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
       --h:44px;
 
-      background:var(--bg);
       color:var(--text);
     }
 
@@ -241,4 +237,3 @@
   </div>
 </body>
 </html>
-
