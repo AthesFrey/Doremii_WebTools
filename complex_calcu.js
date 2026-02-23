@@ -5,7 +5,7 @@
  *  - 样式隔离：优先使用 Shadow DOM，避免影响网页其他模块的主题/宽度
  *
  */
-
+ 
 (function () {
   'use strict';
 
@@ -195,7 +195,8 @@
       '    <button type="button" data-insert="-">-</button>' +
       '    <button type="button" data-insert="*">*</button>' +
       '    <button type="button" data-insert="/">/</button>' +
-      '    <button type="button" data-insert="%">%</button>' +	  
+      '    <button type="button" data-insert="%">%</button>' +	
+      '    <button type="button" data-insert=".">.</button>' +		  
       '    <button type="button" data-insert="sin(">sin</button>' +
       '    <button type="button" data-insert="cos(">cos</button>' +
       '    <button type="button" data-insert="tan(">tan</button>' +
@@ -682,6 +683,7 @@
       setStatus('库加载失败');
     });
   }
+
 
   domReady(function () {
     var mount = createMountPoint();
