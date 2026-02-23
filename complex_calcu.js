@@ -151,7 +151,7 @@
       scopeSel + '.head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;}',
       scopeSel + '.title{font-weight:700;font-size:16px;line-height:1.2;}',
       scopeSel + '.status{font-size:12px;opacity:.75;white-space:nowrap;}',
-      scopeSel + '.input{width:100%;min-height:220px;resize:vertical;padding:10px;border:1px solid var(--ccalcu-border);border-radius:10px;outline:none;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-size:14px;line-height:1.4;background:var(--ccalcu-field-bg);color:var(--ccalcu-text);} ',
+      scopeSel + '.input{width:100%;min-height:60px;height:60px;resize:vertical;padding:10px;border:1px solid var(--ccalcu-border);border-radius:10px;outline:none;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-size:14px;line-height:1.4;background:var(--ccalcu-field-bg);color:var(--ccalcu-text);} ',
       scopeSel + '.row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}',
       scopeSel + '.input::placeholder{color:var(--ccalcu-muted);opacity:1;}',
       scopeSel + 'button{cursor:pointer;border:1px solid var(--ccalcu-border);background:var(--ccalcu-field-bg);color:var(--ccalcu-text);border-radius:10px;padding:7px 10px;font-size:13px;line-height:1;transition:transform .02s ease;}',
@@ -176,8 +176,10 @@
       '    <div class="title"></div>' +
       '    <div class="status" aria-live="polite"></div>' +
       '  </div>' +
-      '  <textarea class="input" spellcheck="false" placeholder="输入表达式，例如：\n  2+3*4\n  sin(pi/6)\n  diff(sin(x^2), x)\n  int(x^2, x)\n  defint(sin(x), x, 0, pi)\n\n提示：按 Ctrl+Enter 快速计算"></textarea>' +
+      '  <textarea class="input" spellcheck="false" rows="2"></textarea>' +
       '  <div class="row">' +
+      '    <button type="button" class="primary" data-action="calc">计算</button>' +
+      '    <button type="button" data-action="clear">清空</button>' +
 	  '    <button type="button" data-insert="0">0</button>' +
       '    <button type="button" data-insert="1">1</button>' +
       '    <button type="button" data-insert="2">2</button>' +
@@ -192,7 +194,10 @@
       '    <button type="button" data-insert="-">-</button>' +
       '    <button type="button" data-insert="*">*</button>' +
       '    <button type="button" data-insert="/">/</button>' +
-      '    <button type="button" data-insert="%">%</button>' +	  
+      '    <button type="button" data-insert="%">%</button>' +	 
+      '    <button type="button" data-insert="(">(</button>' +
+      '    <button type="button" data-insert=")">)</button>' +
+      '    <button type="button" data-insert=",">,</button>' +
       '    <button type="button" data-insert="sin(">sin</button>' +
       '    <button type="button" data-insert="cos(">cos</button>' +
       '    <button type="button" data-insert="tan(">tan</button>' +
@@ -220,12 +225,6 @@
       '    <button type="button" data-insert="mean(">mean</button>' +
       '    <button type="button" data-insert="variance(">variance</button>' +
       '    <button type="button" data-insert="simplify(">simplify</button>' +
-
-      '    <button type="button" class="primary" data-action="calc">计算</button>' +
-      '    <button type="button" data-action="clear">清空</button>' +
-      '    <button type="button" data-insert="(">(</button>' +
-      '    <button type="button" data-insert=")">)</button>' +
-      '    <button type="button" data-insert=",">,</button>' +
 
       '  </div>' +
       '  <div class="output" role="status"></div>' +
@@ -638,6 +637,7 @@
 
 
 
+	
   domReady(function () {
     var mount = createMountPoint();
     buildUI(mount);
