@@ -5,11 +5,9 @@
  *  - 样式隔离：优先使用 Shadow DOM，避免影响网页其他模块的主题/宽度
  *
  */
-
 (function () {
   'use strict';
 
-	
   // 防止重复初始化
   if (window.__complex_calcu_inited__) return;
   window.__complex_calcu_inited__ = true;
@@ -196,7 +194,7 @@
       '    <button type="button" data-insert="-">-</button>' +
       '    <button type="button" data-insert="*">*</button>' +
       '    <button type="button" data-insert="/">/</button>' +
-      '    <button type="button" data-insert="%">%</button>' +	 
+      '    <button type="button" data-insert="%">%</button>' +	  
       '    <button type="button" data-insert="sin(">sin</button>' +
       '    <button type="button" data-insert="cos(">cos</button>' +
       '    <button type="button" data-insert="tan(">tan</button>' +
@@ -212,9 +210,9 @@
       '    <button type="button" data-insert="pi">π</button>' +
       '    <button type="button" data-insert="e">e</button>' +
       '    <button type="button" data-insert="^">^</button>' +
-      '    <button type="button" data-insert="(">(</button>' +
+	  '    <button type="button" data-insert="(">(</button>' +
       '    <button type="button" data-insert=")">)</button>' +
-      '    <button type="button" data-insert=",">,</button>' +	  	   	  
+      '    <button type="button" data-insert=",">,</button>' +
       '  </div>' +
       '  <div class="row">' +
       '    <button type="button" data-insert="diff(, x)">diff</button>' +
@@ -227,6 +225,7 @@
       '    <button type="button" data-insert="mean(">mean</button>' +
       '    <button type="button" data-insert="variance(">variance</button>' +
       '    <button type="button" data-insert="simplify(">simplify</button>' +
+
 
       '  </div>' +
       '  <div class="output" role="status"></div>' +
@@ -273,6 +272,7 @@
     }
 
     function insertTextAtCursor(text) {
+      // 返回插入范围，便于后续精准移动光标（避免 lastIndexOf 在有重复模板时定位错误）
       var el = $input;
       el.focus();
       var start = el.selectionStart || 0;
@@ -281,6 +281,7 @@
       el.value = val.slice(0, start) + text + val.slice(end);
       var newPos = start + text.length;
       el.setSelectionRange(newPos, newPos);
+      return { start: start, end: newPos };
     }
 
     function parseFunctionCall(input) {
@@ -469,12 +470,63 @@
 
 
         // simplify(...)
+        // 说明：math.js 的 simplify 偏“规则化简”，对有理式约分（例如 (x^2-1)/(x-1) -> x+1）通常不会做，
+        //       以避免改变表达式定义域（x=1 处原式无定义）。这里对“化简”做增强：
+        //       1) 先用 math.simplify（轻量、覆盖函数更多）
+        //       2) 若结果基本无变化，再用 Algebrite 做一次更强的代数化简（可约分/因式分解）
         if (call && call.name.toLowerCase() === 'simplify') {
           var sexpr = call.args[0] || '';
           if (!sexpr) throw new Error('simplify() 需要表达式参数');
           if (typeof math.simplify !== 'function') throw new Error('当前 math.js 版本不支持 simplify()');
-          var snode = math.simplify(String(sexpr));
-          setOutput(String(snode));
+
+          var exprStr = String(sexpr);
+          var snode = math.simplify(exprStr);
+          var outStr = String(snode);
+
+          function norm(s) {
+            return String(s || '').replace(/\s+/g, '');
+          }
+
+          // 只有在“明显没变”时才尝试加载更重的 CAS
+          var looksUnchanged = norm(outStr) === norm(exprStr);
+          var maybeSymbolic = /[a-zA-Z]/.test(exprStr) || exprStr.indexOf('^') >= 0 || exprStr.indexOf('/') >= 0;
+
+          if (looksUnchanged && maybeSymbolic) {
+            setStatus('加载化简库…');
+            ensureAlgebrite().then(function (Algebrite) {
+              setStatus('就绪');
+              var casOut = '';
+              try {
+                if (Algebrite.eval) {
+                  casOut = Algebrite.eval('simplify(' + exprStr + ')').toString();
+                } else if (Algebrite.run) {
+                  casOut = String(Algebrite.run('simplify(' + exprStr + ')') || '');
+                } else {
+                  throw new Error('Algebrite 接口不可用');
+                }
+              } catch (e1) {
+                // 兜底：有些表达式 simplify 失败时，试一次 factor
+                try {
+                  if (Algebrite.eval) casOut = Algebrite.eval('factor(' + exprStr + ')').toString();
+                } catch (e2) {
+                  casOut = '';
+                }
+              }
+
+              if (String(casOut || '').trim()) {
+                setOutput(String(casOut));
+              } else {
+                setOutput(outStr);
+              }
+            }).catch(function () {
+              // 化简库加载失败就退回 math.js 结果
+              setStatus('就绪');
+              setOutput(outStr);
+            });
+            return;
+          }
+
+          setOutput(outStr);
           return;
         }
 
@@ -587,17 +639,10 @@
       var action = t.getAttribute('data-action');
 
       if (insert) {
-        // 特殊：diff/int/defint 模板，放到光标位置并把光标移到逗号前
-        insertTextAtCursor(insert);
-
-        // 若模板里有 ",", 尝试把光标移到第一个逗号前（方便输入表达式）
-        var idx = ($input.value || '').lastIndexOf(insert);
-        if (idx >= 0) {
-          var commaPos = ($input.value || '').indexOf(',', idx);
-          if (commaPos > idx) {
-            $input.setSelectionRange(idx + calloutPrefixLen(insert), idx + calloutPrefixLen(insert));
-          }
-        }
+        // 放到光标位置，并把光标移到 "(" 后（diff/int/defint 模板也适用）
+        var range = insertTextAtCursor(insert);
+        var pos = range.start + calloutPrefixLen(insert);
+        $input.setSelectionRange(pos, pos);
         return;
       }
 
