@@ -683,8 +683,6 @@
     });
   }
 
-
-
   domReady(function () {
     var mount = createMountPoint();
     buildUI(mount);
