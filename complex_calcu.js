@@ -195,9 +195,6 @@
       '    <button type="button" data-insert="*">*</button>' +
       '    <button type="button" data-insert="/">/</button>' +
       '    <button type="button" data-insert="%">%</button>' +	 
-      '    <button type="button" data-insert="(">(</button>' +
-      '    <button type="button" data-insert=")">)</button>' +
-      '    <button type="button" data-insert=",">,</button>' +
       '    <button type="button" data-insert="sin(">sin</button>' +
       '    <button type="button" data-insert="cos(">cos</button>' +
       '    <button type="button" data-insert="tan(">tan</button>' +
@@ -213,6 +210,9 @@
       '    <button type="button" data-insert="pi">π</button>' +
       '    <button type="button" data-insert="e">e</button>' +
       '    <button type="button" data-insert="^">^</button>' +
+      '    <button type="button" data-insert="(">(</button>' +
+      '    <button type="button" data-insert=")">)</button>' +
+      '    <button type="button" data-insert=",">,</button>' +	  	   	  
       '  </div>' +
       '  <div class="row">' +
       '    <button type="button" data-insert="diff(, x)">diff</button>' +
@@ -637,7 +637,7 @@
 
 
 
-	
+
   domReady(function () {
     var mount = createMountPoint();
     buildUI(mount);
