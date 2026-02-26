@@ -150,7 +150,7 @@
       scopeSel + '.ccalcu *{box-sizing:border-box;}',
       scopeSel + '.wrap{width:100%;max-width:100%;border:1px solid var(--ccalcu-border);border-radius:12px;padding:12px;background:transparent;}',
       scopeSel + '.head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;}',
-      scopeSel + '.title{font-weight:700;font-size:16px;line-height:1.2;}',
+      scopeSel + '.title{font-weight:700;font-size:18px;line-height:1.2;}',
       scopeSel + '.status{font-size:12px;opacity:.75;white-space:nowrap;}',
       scopeSel + '.input{width:100%;min-height:60px;height:60px;resize:vertical;padding:10px;border:1px solid var(--ccalcu-border);border-radius:10px;outline:none;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-size:14px;line-height:1.4;background:var(--ccalcu-field-bg);color:var(--ccalcu-text);} ',
       scopeSel + '.row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}',
