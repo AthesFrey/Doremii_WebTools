@@ -1,0 +1,135 @@
+/* doremii-dict.css */
+:root{
+  --dd-bg: var(--d-bg, #ffffff);
+  --dd-text: var(--d-text, #111827);
+  --dd-muted: var(--d-muted, #6b7280);
+  --dd-card: var(--d-card, rgba(17,24,39,.04));
+  --dd-border: var(--d-border, rgba(17,24,39,.12));
+  --dd-radius: 12px;
+  --dd-shadow: 0 16px 40px rgba(0,0,0,.14);
+  --dd-font: system-ui,-apple-system,Segoe UI,Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+}
+
+:root[data-theme="dark"]{
+  --dd-bg: var(--d-bg, #0b1220);
+  --dd-text: var(--d-text, #e5e7eb);
+  --dd-muted: var(--d-muted, #9ca3af);
+  --dd-card: var(--d-card, rgba(255,255,255,.05));
+  --dd-border: var(--d-border, rgba(255,255,255,.14));
+}
+
+/* 面板 */
+.doremii-dict-app{
+  font-family: var(--dd-font);
+  color: var(--dd-text);
+  background: var(--dd-bg);
+  border: 1px solid var(--dd-border);
+  border-radius: var(--dd-radius);
+  overflow: hidden;
+
+  /* 字体整体缩小一些（标题 / 生词本 / 历史及内容都会跟随） */
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.dd-topbar{
+  display:flex; gap:10px; align-items:center; justify-content:space-between;
+  padding:8px 10px; background: var(--dd-card); border-bottom:1px solid var(--dd-border);
+}
+.dd-title{ font-weight:800; font-size:14px; }
+.dd-controls{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+
+.dd-toggle{ display:flex; gap:6px; align-items:center; font-size:12px; user-select:none; color: var(--dd-muted); }
+.dd-search{ display:flex; gap:8px; padding:8px 10px; border-bottom:1px solid var(--dd-border); }
+.dd-input{
+  flex:1; min-width: 200px;
+  padding:7px 9px; border-radius:10px;
+  border:1px solid var(--dd-border); background: transparent; color: var(--dd-text); outline:none;
+  font-size: 13px;
+}
+.dd-btn{
+  padding:7px 10px; border-radius:10px; border:1px solid var(--dd-border);
+  background: transparent; color: var(--dd-text); cursor:pointer;
+  font-size: 13px;
+}
+.dd-btn:hover{ box-shadow: 0 0 0 2px rgba(96,165,250,.18); }
+
+.dd-body{
+  display:grid;
+  grid-template-columns: 1fr;
+}
+@media (max-width: 900px){ .dd-body{ grid-template-columns:1fr; } }
+.dd-pane{ padding: 10px; }
+.dd-pane + .dd-pane{ border-left:1px solid var(--dd-border); }
+@media (max-width: 900px){ .dd-pane + .dd-pane{ border-left:none; border-top:1px solid var(--dd-border);} }
+
+.dd-card{
+  border:1px solid var(--dd-border);
+  background: var(--dd-card);
+  border-radius: 12px;
+  padding: 9px;
+}
+.dd-card b{ font-size: 13px; }
+.dd-muted{ color: var(--dd-muted); font-size: 12px; }
+.dd-list{ margin-top: 10px; display:flex; flex-direction:column; gap:8px; }
+
+.dd-item{
+  border:1px solid var(--dd-border);
+  border-radius: 12px;
+  padding: 9px;
+  background: transparent;
+}
+.dd-item .w{ font-weight:800; }
+.dd-item .t{ margin-top:6px; }
+.dd-row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+
+.dd-mini-btn{
+  font-size:11px; padding:5px 7px; border-radius:10px; border:1px solid var(--dd-border);
+  background: transparent; color: var(--dd-text); cursor:pointer;
+}
+.dd-mini-btn:hover{ border-color: rgba(96,165,250,.6); }
+
+/* 右侧弹卡片 */
+#doremiiDictCard{
+  position: fixed;
+  right: max(12px, env(safe-area-inset-right));
+  top: calc(max(12px, env(safe-area-inset-top)) + 56px);
+  width: min(360px, calc(100vw - 24px));
+  max-height: 72vh;
+  overflow:auto;
+  z-index: 2147483000;
+  border-radius: 14px;
+  border: 1px solid var(--dd-border);
+  box-shadow: var(--dd-shadow);
+  background: var(--dd-bg);
+  color: var(--dd-text);
+  display:none;
+  font-size: 13px;
+  line-height: 1.35;
+}
+#doremiiDictCard.dd-open{ display:block; }
+#doremiiDictCard .hd{
+  padding:8px 10px; border-bottom:1px solid var(--dd-border); background: var(--dd-card);
+  display:flex; justify-content:space-between; gap:10px;
+}
+#doremiiDictCard .title{ font-weight:900; font-size:15px; }
+#doremiiDictCard .sub{ margin-top:4px; font-size:11px; color: var(--dd-muted); }
+#doremiiDictCard .close{
+  border:1px solid var(--dd-border); border-radius:10px; background: transparent; color: var(--dd-text);
+  padding:5px 7px; cursor:pointer;
+  font-size: 13px;
+}
+#doremiiDictCard .bd{ padding:10px 10px 12px; }
+#doremiiDictCard .hr{ height:1px; background: var(--dd-border); margin:10px 0; }
+
+
+/* 小标签 */
+.dd-tag{
+  display:inline-flex;
+  align-items:center;
+  padding:2px 6px;
+  border-radius:999px;
+  border:1px solid var(--dd-border);
+  font-size:11px;
+  color: var(--dd-muted);
+}

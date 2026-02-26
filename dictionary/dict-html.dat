@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Doremii 中英词典</title>
+
+  <!-- 词典样式：替换为我给你的新版 doremii-dict.online.css 后，路径保持不变即可 -->
+  <link rel="stylesheet" href="/wp-content/uploads/dictionary/doremii-dict.css?v=20260226c">
+
+  <style>
+    @media (hover: hover) and (pointer: fine) {
+      #doremiiDictMount { max-width: 520px; margin: 0 auto; }
+    }
+  </style>
+
+  <script>
+    window.DOREMII_DICT = {
+      mount: "#doremiiDictMount",
+      targetSelector: "body",
+      defaultMode: "en2zh",
+
+      online: {
+        dictionaryApiDevEnabled: true,
+        myMemoryEnabled: true
+      },
+
+      mw: {
+        enabled: true,
+        proxyUrl: "/wp-content/uploads/dictionary/doremii-mw-proxy.php?v=20260226c",
+        directKey: ""
+      }
+    };
+  </script>
+
+  <!-- 词典脚本：替换为我给你的新版 doremii-dict.online.js 后，路径保持不变即可 -->
+  <script src="/wp-content/uploads/dictionary/doremii-dict.js?v=20260226c" defer></script>
+</head>
+
+<body>
+  <div id="doremiiDictMount"></div>
+</body>
+</html>
