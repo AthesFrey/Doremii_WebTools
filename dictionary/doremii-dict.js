@@ -310,7 +310,7 @@
     }
 
     if (mw.type === "entries") {
-      let html = `<div class="dd-muted">Merriam-Webster（旧版 API）</div>`;
+      let html = `<div class="dd-muted">Merriam-Webster</div>`;
       for (const e of (mw.entries||[])) {
         html += `<div class="dd-card" style="margin-top:8px;">
           <div class="dd-row"><b>${esc(e.headword||t)}</b><span class="dd-muted">${esc(e.fl||"")}</span></div>
@@ -521,3 +521,7 @@
     init();
   }
 })();
+
+
+
+
