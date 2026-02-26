@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Doremii 中英词典</title>
+  <title>在线中英词典</title>
 
   <!-- 词典样式：替换为我给你的新版 doremii-dict.online.css 后，路径保持不变即可 -->
   <link rel="stylesheet" href="/wp-content/uploads/dictionary/doremii-dict.css?v=20260226c">
@@ -40,4 +40,5 @@
 <body>
   <div id="doremiiDictMount"></div>
 </body>
+
 </html>
