@@ -463,7 +463,7 @@
 
     mountEl.innerHTML = `
       <div class="dd-topbar">
-        <div class="dd-title">Doremii 中英词典</div>
+        <div class="dd-title">在线中英词典</div>
         <div class="dd-controls">
           <button class="dd-btn" id="ddModeBtn"></button>
         </div>
