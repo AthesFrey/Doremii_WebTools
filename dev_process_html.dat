@@ -1,32 +1,11 @@
 <!-- 程序员计算器 -->
-<!-- 每次更新 JS 请改 ?v= 强制刷新缓存；JS 文件保持现版不变 -->
-<script defer src="/wp-content/uploads/dev-process.js?v=20260221PM"></script>
+<script defer src="/wp-content/uploads/dev-process.js?v=20260226"></script>
 
 <style>
-  :root{
-    /* 主题色 */
-    --accent:#C1440E;
-    --card-bg:#FFF2EC;
-    --card-border:#E7B29F;
-    --text:#0f172a;
-    --muted:#64748b;
-    --button-bg:var(--accent);
-    --button-fg:#ffffff;
-    --result-bg:#FFE1D6;
-    --result-fg:#7A2F1B;
-    --badge-bg:#FBE1D7;
-    --badge-border:#C1440E;
-    --badge-fg:#7A2F1B;
-
-    /* ✅ 发白按钮（copy/split/ccase）改成“橙白之间”的柔和色 + 更清晰文字 */
-    --soft-btn-bg:#FFD6C6;        /* 介于橙色和白色之间（蜜桃橙） */
-    --soft-btn-border:#E7B29F;    /* 用卡片边框同系色，增强分界 */
-    --soft-btn-fg:#6B2A17;        /* 深一点的棕橙字，提升对比 */
-
-    /* ✅ 结果区背景（默认浅色；暗色主题会覆盖） */
-    --result-box-bg:#ffffff;
-    --result-box-fg:var(--text);
-
+  /* ==========================
+     作用域容器（避免 .card/.btn 等通用 class 被外部 CSS 覆盖）
+     ========================== */
+  #doremii-dev-process{
     /* 尺寸（520 定宽 & 适配收缩） */
     --font-title:20px;
     --font-text:13px;
@@ -40,22 +19,73 @@
     --maxw-card:520px;
     --input-basis:200px;
     --input-maxw:220px;
+
+    /* 主题色（默认：亮色） */
+    --accent:#C1440E;
+
+    --dp-card-bg:#FFF2EC;
+    --dp-card-border:#E7B29F;
+
+    --dp-text:#0f172a;
+    --dp-muted:#64748b;
+
+    --dp-button-bg:var(--accent);
+    --dp-button-fg:#ffffff;
+
+    /* ✅ copy/split/ccase */
+    --dp-soft-btn-bg:#FFD6C6;
+    --dp-soft-btn-border:#E7B29F;
+    --dp-soft-btn-fg:#6B2A17;
+
+    /* ✅ 输入框 */
+    --dp-input-bg:#ffffff;
+    --dp-input-fg:var(--dp-text);
+
+    /* ✅ 结果区 */
+    --dp-result-box-bg:#ffffff;
+    --dp-result-box-fg:var(--dp-text);
+
+    /* ✅ factor 预览 badge */
+    --dp-badge-bg:#FBE1D7;
+    --dp-badge-border:#C1440E;
+    --dp-badge-fg:#7A2F1B;
+
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+    color:var(--dp-text);
+    color-scheme: light; /* 防某些浏览器“自动暗化表单控件” */
   }
 
-  /* ✅ 暗色主题下：结果区更暗；浅色按钮也不要“发白” */
-  html[data-theme="dark"],
-  body[data-theme="dark"], /* ✅ 保守补丁：兼容主题工具把 data-theme 放在 body 的情况 */
-  :root[data-theme="dark"]{
-    --result-box-bg:#0b1220;
-    --result-box-fg:#e5e7eb;
+  /* ✅ 暗色主题下：尽量吃全站主题切换器的变量（存在就用，不存在就用兜底） */
+  html[data-theme="dark"] #doremii-dev-process,
+  body[data-theme="dark"] #doremii-dev-process,
+  #doremii-dev-process[data-theme="dark"]{
+    --dp-card-bg: var(--card-bg, var(--d-card, rgba(255,255,255,.06)));
+    --dp-card-border: var(--card-border, var(--d-border, rgba(255,255,255,.14)));
 
-    /* 让 copy/split/ccase 在暗色下仍然“橙白之间”但不刺眼 */
-    --soft-btn-bg:#2a1a14;
-    --soft-btn-border:#3b261e;
-    --soft-btn-fg:#ffd8c7;
+    --dp-text: var(--text, var(--d-text, #e5e7eb));
+    --dp-muted: var(--muted, var(--d-muted, #9ca3af));
+
+    --dp-input-bg: rgba(255,255,255,.06);
+    --dp-input-fg: var(--dp-text);
+
+    --dp-result-box-bg:#0b1220;
+    --dp-result-box-fg: var(--dp-text);
+
+    --dp-soft-btn-bg:#2a1a14;
+    --dp-soft-btn-border:#3b261e;
+    --dp-soft-btn-fg:#ffd8c7;
+
+    --dp-badge-bg: rgba(255,255,255,.06);
+    --dp-badge-border: var(--dp-card-border);
+    --dp-badge-fg: var(--dp-text);
+
+    color-scheme: dark;
   }
 
-  .tool-title{
+  /* ==========================
+     样式（全部挂在 #doremii-dev-process 下，彻底隔离外部 CSS）
+     ========================== */
+  #doremii-dev-process .tool-title{
     color:#2563EB;
     font:600 var(--font-title)/1.25 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
     text-align:center;
@@ -63,9 +93,9 @@
     max-width:var(--maxw-card);
   }
 
-  .card{
-    background:var(--card-bg);
-    border:1px solid var(--card-border);
+  #doremii-dev-process .card{
+    background:var(--dp-card-bg) !important;
+    border:1px solid var(--dp-card-border) !important;
     border-radius:var(--radius);
     padding:var(--pad-card);
     max-width:var(--maxw-card);
@@ -73,34 +103,35 @@
     margin:0 auto;
     box-sizing:border-box;
     box-shadow:var(--shadow);
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-    color:var(--text);
+    color:var(--dp-text);
   }
 
-  .row{
+  #doremii-dev-process .row{
     display:flex;
     align-items:center;
     gap:8px;
     flex-wrap:wrap;
     margin:8px 0;
   }
-  .row .label{
+  #doremii-dev-process .row .label{
     min-width:80px;
-    color:var(--muted);
+    color:var(--dp-muted);
     font-size:var(--font-text);
   }
 
-  .card input[type="text"]{
+  #doremii-dev-process .card input[type="text"]{
     flex:1 1 var(--input-basis);
     max-width:var(--input-maxw);
     padding:var(--pad-input);
-    border:1px solid var(--card-border);
+    border:1px solid var(--dp-card-border);
     border-radius:10px;
     font-size:var(--font-mono);
     font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    background:var(--dp-input-bg);
+    color:var(--dp-input-fg);
   }
 
-  .btn{
+  #doremii-dev-process .btn{
     padding:var(--pad-btn-y) var(--pad-btn-x);
     border:none;
     border-radius:10px;
@@ -109,54 +140,51 @@
     font-size:var(--font-text);
     line-height:1.1;
   }
-  .btn.convert{ background:var(--button-bg); color:var(--button-fg); }
+  #doremii-dev-process .btn.convert{ background:var(--dp-button-bg); color:var(--dp-button-fg); }
 
-  /* ✅ 这类“发白按钮”统一改色 + 加边框 + 加深文字 */
-  .btn.copy{
-    background:var(--soft-btn-bg);
-    color:var(--soft-btn-fg);
-    border:1px solid var(--soft-btn-border);
+  #doremii-dev-process .btn.copy{
+    background:var(--dp-soft-btn-bg);
+    color:var(--dp-soft-btn-fg);
+    border:1px solid var(--dp-soft-btn-border);
     font-weight:600;
   }
-
-  /* ✅ 禁用态别“漂白到看不清” */
-  .btn.copy:disabled{
-    opacity:0.88;          /* 轻微变淡，但仍清晰 */
+  #doremii-dev-process .btn.copy:disabled{
+    opacity:0.88;
     cursor:not-allowed;
   }
 
-  .divider{ height:1px; background:var(--card-border); margin:10px 0; }
-  .error{ color:#b91c1c; font-size:12px; }
+  #doremii-dev-process .divider{ height:1px; background:var(--dp-card-border); margin:10px 0; }
+  #doremii-dev-process .error{ color:#b91c1c; font-size:12px; }
 
-  .muted{ color:var(--muted); margin-top:6px; font-size:var(--font-text); }
+  #doremii-dev-process .muted{ color:var(--dp-muted); margin-top:6px; font-size:var(--font-text); }
 
-  .result-box{
+  #doremii-dev-process .result-box{
     margin-top:8px;
-    border:1px dashed var(--card-border);
+    border:1px dashed var(--dp-card-border);
     border-radius:10px;
     padding:8px 10px;
-    background:var(--result-box-bg);
-    color:var(--result-box-fg);
+    background:var(--dp-result-box-bg);
+    color:var(--dp-result-box-fg);
   }
 
-  .result-row{
+  #doremii-dev-process .result-row{
     display:flex;
     align-items:center;
     gap:8px;
     margin:6px 0;
     font-size:var(--font-text);
   }
-  .result-row .val{
+  #doremii-dev-process .result-row .val{
     font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
     font-size:var(--font-mono);
     word-break:break-all;
   }
 
-  .binary-badge{
+  #doremii-dev-process .binary-badge{
     padding:3px 8px;
-    background:var(--badge-bg);
-    color:var(--badge-fg);
-    border:1px solid var(--badge-border);
+    background:var(--dp-badge-bg);
+    color:var(--dp-badge-fg);
+    border:1px solid var(--dp-badge-border);
     border-radius:999px;
     font-size:11px;
     white-space:nowrap;
@@ -166,12 +194,11 @@
     vertical-align:middle;
   }
 
-  /* 三枚位运算按钮同一排 */
   .ops{
     flex-wrap:nowrap !important;
     width:100%;
   }
-  .ops .btn{
+  #doremii-dev-process .ops .btn{
     flex:1 1 0;
     min-width:0;
     padding:9px 6px;
@@ -182,53 +209,54 @@
   }
 </style>
 
-<h3 class="tool-title">程序员计算器</h3>
+<div id="doremii-dev-process">
+  <h3 class="tool-title">程序员计算器</h3>
 
-<div class="card">
-  <div class="row">
-    <div class="label">decimal</div>
-    <input id="decimal-input" type="text" placeholder="输入十进制（非负整数）" />
-    <button id="decimal-convert" class="btn convert">Convert</button>
-    <button id="decimal-copy" class="btn copy">copy</button>
-    <button id="decimal-split" class="btn copy">split</button>
+  <div class="card">
+    <div class="row">
+      <div class="label">decimal</div>
+      <input id="decimal-input" type="text" placeholder="输入十进制（非负整数）" />
+      <button id="decimal-convert" class="btn convert">Convert</button>
+      <button id="decimal-copy" class="btn copy">copy</button>
+      <button id="decimal-split" class="btn copy">split</button>
+    </div>
+    <div id="decimal-error" class="error"></div>
+
+    <div class="row">
+      <div class="label">hex</div>
+      <input id="hex-input" type="text" placeholder="输入十六进制（如: 1A3F）" />
+      <button id="hex-convert" class="btn convert">Convert</button>
+      <button id="hex-copy" class="btn copy">copy</button>
+      <button id="hex-split" class="btn copy">split</button>
+      <button id="hex-ccase" class="btn copy">ccase</button>
+    </div>
+    <div id="hex-error" class="error"></div>
+
+    <div class="row">
+      <div class="label">binary</div>
+      <input id="binary-input" type="text" placeholder="输入二进制（如: 101101）" />
+      <button id="binary-convert" class="btn convert">Convert</button>
+      <button id="binary-copy" class="btn copy">copy</button>
+      <button id="binary-split" class="btn copy">split</button>
+    </div>
+    <div id="binary-error" class="error"></div>
+
+    <div class="divider"></div>
+
+    <div class="row">
+      <div class="label">factor (dec)</div>
+      <input id="factor-input" type="text" placeholder="只能输入十进制（非负整数）" />
+      <span id="factor-binary-preview" class="binary-badge"></span>
+    </div>
+    <div id="factor-error" class="error"></div>
+
+    <div class="ops row">
+      <button id="bitand-btn" class="btn convert">bitand</button>
+      <button id="bitor-btn" class="btn convert">bitor</button>
+      <button id="bitxor-btn" class="btn convert">bitxor</button>
+    </div>
+
+    <div class="muted" id="process-label">process results:</div>
+    <div id="result-box" class="result-box"></div>
   </div>
-  <div id="decimal-error" class="error"></div>
-
-  <div class="row">
-    <div class="label">hex</div>
-    <input id="hex-input" type="text" placeholder="输入十六进制（如: 1A3F）" />
-    <button id="hex-convert" class="btn convert">Convert</button>
-    <button id="hex-copy" class="btn copy">copy</button>
-    <button id="hex-split" class="btn copy">split</button>
-    <button id="hex-ccase" class="btn copy">ccase</button>
-  </div>
-  <div id="hex-error" class="error"></div>
-
-  <div class="row">
-    <div class="label">binary</div>
-    <input id="binary-input" type="text" placeholder="输入二进制（如: 101101）" />
-    <button id="binary-convert" class="btn convert">Convert</button>
-    <button id="binary-copy" class="btn copy">copy</button>
-    <button id="binary-split" class="btn copy">split</button>
-  </div>
-  <div id="binary-error" class="error"></div>
-
-  <div class="divider"></div>
-
-  <div class="row">
-    <div class="label">factor (dec)</div>
-    <input id="factor-input" type="text" placeholder="只能输入十进制（非负整数）" />
-    <span id="factor-binary-preview" class="binary-badge"></span>
-  </div>
-  <div id="factor-error" class="error"></div>
-
-  <div class="ops row">
-    <button id="bitand-btn" class="btn convert">bitand</button>
-    <button id="bitor-btn" class="btn convert">bitor</button>
-    <button id="bitxor-btn" class="btn convert">bitxor</button>
-  </div>
-
-  <div class="muted" id="process-label">process results:</div>
-  <div id="result-box" class="result-box"></div>
 </div>
-
