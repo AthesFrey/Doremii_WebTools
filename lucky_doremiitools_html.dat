@@ -11,7 +11,6 @@
   --tool-max-width: 520px; /* 关键：让所有组件跟随 520 */
   }
 
-
   /* 标题全部居中：本身不额外顶开（空白由下面“组件+标题”规则负责） */
   .tool-center > h2 { text-align: center; margin: 0 0 10px; }
 
@@ -112,4 +111,5 @@
     "></doremii-uuid>
 
 </div>
+
 
