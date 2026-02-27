@@ -1,5 +1,5 @@
 <!-- 程序员计算器 -->
-<script defer src="/wp-content/uploads/dev-process.js?v=20260226"></script>
+<script defer src="/wp-content/uploads/dev-process.js?v=20260221PM"></script>
 
 <style>
   /* ==========================
@@ -32,20 +32,20 @@
     --dp-button-bg:var(--accent);
     --dp-button-fg:#ffffff;
 
-    /* ✅ copy/split/ccase */
+    /* copy/split/ccase */
     --dp-soft-btn-bg:#FFD6C6;
     --dp-soft-btn-border:#E7B29F;
     --dp-soft-btn-fg:#6B2A17;
 
-    /* ✅ 输入框 */
+    /* 输入框 */
     --dp-input-bg:#ffffff;
     --dp-input-fg:var(--dp-text);
 
-    /* ✅ 结果区 */
+    /* 结果区 */
     --dp-result-box-bg:#ffffff;
     --dp-result-box-fg:var(--dp-text);
 
-    /* ✅ factor 预览 badge */
+    /* factor 预览 badge */
     --dp-badge-bg:#FBE1D7;
     --dp-badge-border:#C1440E;
     --dp-badge-fg:#7A2F1B;
@@ -55,7 +55,7 @@
     color-scheme: light; /* 防某些浏览器“自动暗化表单控件” */
   }
 
-  /* ✅ 暗色主题下：尽量吃全站主题切换器的变量（存在就用，不存在就用兜底） */
+  /* 暗色主题下：尽量吃全站主题切换器的变量（存在就用，不存在就用兜底） */
   html[data-theme="dark"] #doremii-dev-process,
   body[data-theme="dark"] #doremii-dev-process,
   #doremii-dev-process[data-theme="dark"]{
@@ -91,6 +91,9 @@
     text-align:center;
     margin:0 auto 8px;
     max-width:var(--maxw-card);
+
+    /* ✅ 标题向上挪 px（不受 margin 折叠影响） */
+    transform: translateY(-20px);
   }
 
   #doremii-dev-process .card{
