@@ -74,11 +74,11 @@
       .dd-audio{ display:inline-flex; align-items:center; gap:6px; margin-right:10px; }
       .doremii-dict-app.dd-compact .dd-body{ grid-template-columns: 1fr !important; }
       /* 输入框右侧清除按钮（X） */
-      .dd-input-wrap{ position:relative; flex:1; min-width:0; align-self:stretch; display:flex; }
-      .dd-input-wrap .dd-input{ flex:1; width:100%; height:100%; padding-right:34px; box-sizing:border-box; }
+      .dd-input-wrap{ position:relative; z-index:0; flex:1; min-width:0; align-self:stretch; display:flex; }
+      .dd-input-wrap .dd-input{ position:relative; z-index:1; flex:1; width:100%; height:100%; padding-right:34px; box-sizing:border-box; }
       .dd-clear{
-        position:absolute; right:8px; top:50%; transform:translateY(-50%);
-        z-index:3; touch-action:manipulation; -webkit-tap-highlight-color: transparent; user-select:none;
+        position:absolute; right:8px; top:0; bottom:0; margin:auto 0; transform:none;
+        z-index:9999; touch-action:manipulation; -webkit-tap-highlight-color: transparent; user-select:none; pointer-events:auto;
         width:24px; height:24px; border-radius:12px;
         border:1px solid var(--dd-border, rgba(0,0,0,.18));
         background: var(--dd-card, var(--dd-bg, #fff));
@@ -578,7 +578,4 @@
     init();
   }
 })();
-
-
-
 
