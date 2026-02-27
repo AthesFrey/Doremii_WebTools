@@ -229,6 +229,7 @@
     return { ok:true, translatedText, matches };
   }
 
+  
   // ====== Merriam-Webster（可选在线） ======
   async function mwLookup(term){
     if (!MW_ENABLED) return null;
