@@ -7,7 +7,7 @@
   .tool-center{
   width: 520px;
   max-width: 100%;
-  margin: 0 auto;
+  margin: 6px auto;
   --tool-max-width: 520px; /* 关键：让所有组件跟随 520 */
   }
 
@@ -112,3 +112,4 @@
     "></doremii-uuid>
 
 </div>
+
