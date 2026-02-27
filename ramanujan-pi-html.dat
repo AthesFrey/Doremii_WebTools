@@ -55,7 +55,7 @@
 </style>
 
 <!-- 标题 -->
-<h2 style="font-size:22px; color:#0EA5A5; text-align:center; margin:0 auto 10px; max-width:520px;">
+<h2 style="font-size:22px; color:#0EA5A5; text-align:center; margin:6px auto 10px; max-width:520px;">
   Ramanujan π（拉马努金进度器）
 </h2>
 
