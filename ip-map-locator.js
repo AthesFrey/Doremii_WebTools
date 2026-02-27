@@ -1,5 +1,5 @@
 // ip-map-locator.js
-// 版本号：v20251125V7
+// 版本号：v20260227S1（稳定版：修复亮色模式下地图误用暗色样式）
 // 修复：手动 track 海外 IP 时，高德逆地理可能返回空 → 文字显示“定位成功（无详细地址）”
 // 方案：逆地理为空时，用坐标源(ipwho/ipapi)的 region/city/isp 兜底显示；国家用中文(按国家码映射)
 // 追加（保守）：暗色主题下，地图初始化使用高德暗色 mapStyle（不影响原有功能）
@@ -76,15 +76,22 @@ function isDarkThemeNow() {
     var de = document.documentElement;
     var b = document.body;
 
-    // 你全站按钮常见：html[data-theme="dark"]
-    var dt = de && de.getAttribute ? de.getAttribute('data-theme') : '';
+    // ✅ 先读 data-theme（html/body 任意一个有都算）
+    var dt = '';
+    if (de && de.getAttribute) dt = de.getAttribute('data-theme') || '';
+    if (!dt && b && b.getAttribute) dt = b.getAttribute('data-theme') || '';
+
+    // ✅ 明确 light 优先：强制亮色时不要被系统暗色兜底影响
+    if (dt === 'light') return false;
     if (dt === 'dark') return true;
 
-    // 兼容 class=dark
+    // 兼容 class
     if (de && de.classList && de.classList.contains('dark')) return true;
     if (b && b.classList && b.classList.contains('dark')) return true;
+    if (de && de.classList && de.classList.contains('light')) return false;
+    if (b && b.classList && b.classList.contains('light')) return false;
 
-    // 兜底：系统暗色
+    // 兜底：系统暗色（仅当没有明确主题时才用）
     if (window.matchMedia) return window.matchMedia('(prefers-color-scheme: dark)').matches;
   } catch (e) {}
   return false;
