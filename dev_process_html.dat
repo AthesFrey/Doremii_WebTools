@@ -23,6 +23,7 @@
     /* 主题色（默认：亮色） */
     --accent:#C1440E;
 
+
     --dp-card-bg:#FFF2EC;
     --dp-card-border:#E7B29F;
 
@@ -263,3 +264,4 @@
     <div id="result-box" class="result-box"></div>
   </div>
 </div>
+
