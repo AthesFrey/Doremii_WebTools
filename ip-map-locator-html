@@ -177,9 +177,9 @@
   <!-- TODO：换成你自己的 Web 端 JSAPI Key，并在高德控制台配置好当前域名白名单 -->
   <script src="https://webapi.amap.com/maps?v=2.0&key=6cd6a8409708cae39d0797b5a0c23c90"></script>
 
-  <!-- 3. 外部 JS 文件（新版 v20251125V2） -->
+  <!-- 3. 外部 JS 文件（新版） -->
   <!-- 建议你改个版本号强刷缓存，比如 ?v=20251125V7 -->
-  <script src="/wp-content/uploads/ip-map-locator.js?v=20251125V7"></script>
+  <script src="/wp-content/uploads/ip-map-locator.js?v=20260227S1"></script>
 </head>
 <body>
   <div class="ip-map-card">
