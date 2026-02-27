@@ -24,6 +24,7 @@
   // 挂载面板
   let mountEl = null;
 
+
   // ====== utils ======
   function esc(s){
     return String(s || "")
@@ -72,6 +73,25 @@
       .dd-kv .v{ margin-top:4px; }
       .dd-audio{ display:inline-flex; align-items:center; gap:6px; margin-right:10px; }
       .doremii-dict-app.dd-compact .dd-body{ grid-template-columns: 1fr !important; }
+      /* 输入框右侧清除按钮（X） */
+      .dd-input-wrap{ position:relative; flex:1; min-width:0; align-self:stretch; display:flex; }
+      .dd-input-wrap .dd-input{ flex:1; width:100%; height:100%; padding-right:34px; box-sizing:border-box; }
+      .dd-clear{
+        position:absolute; right:8px; top:50%; transform:translateY(-50%);
+        z-index:3; touch-action:manipulation; -webkit-tap-highlight-color: transparent; user-select:none;
+        width:24px; height:24px; border-radius:12px;
+        border:1px solid var(--dd-border, rgba(0,0,0,.18));
+        background: var(--dd-card, var(--dd-bg, #fff));
+        color: var(--dd-muted, #666);
+        cursor:pointer;
+        display:none; align-items:center; justify-content:center;
+        line-height:1; padding:0;
+      }
+      .dd-input-wrap.has-text .dd-clear{ display:flex; }
+      @media (hover: hover) and (pointer: fine){
+        .dd-clear:hover{ color: var(--dd-text, #111); }
+      }
+
     `;
     document.head.appendChild(s);
   }
@@ -397,7 +417,10 @@
 
       // 同步面板输入框
       const inp = mountEl?.querySelector("#ddQuery");
-      if (inp) inp.value = raw;
+      if (inp) {
+        inp.value = raw;
+        updateClearBtn();
+      }
 
       // 刷新历史（如果面板已打开）
       renderHistory();
@@ -412,6 +435,16 @@
     if (!mountEl) return;
     const btn = mountEl.querySelector("#ddModeBtn");
     if (btn) btn.textContent = mode === "en2zh" ? "英→中" : "中→英";
+  }
+
+
+  function updateClearBtn(){
+    if (!mountEl) return;
+    const inp = mountEl.querySelector("#ddQuery");
+    const wrap = mountEl.querySelector("#ddInputWrap");
+    if (!inp || !wrap) return;
+    if (inp.value && inp.value.length) wrap.classList.add("has-text");
+    else wrap.classList.remove("has-text");
   }
 
   function renderHistory(){
@@ -461,6 +494,7 @@
       injectExtraStyles();
     }catch{}
 
+
     mountEl.innerHTML = `
       <div class="dd-topbar">
         <div class="dd-title">在线中英词典</div>
@@ -470,8 +504,11 @@
       </div>
 
       <div class="dd-search">
-        <input class="dd-input" id="ddQuery" placeholder="输入单词/中文，回车查询" />
-        <button class="dd-btn" id="ddGo">查询</button>
+        <div class="dd-input-wrap" id="ddInputWrap">
+          <input class="dd-input" id="ddQuery" placeholder="输入单词/中文，回车查询" />
+          <button class="dd-clear" id="ddClear" type="button" aria-label="清除">×</button>
+        </div>
+        <button class="dd-btn" id="ddGo" type="button">查询</button>
       </div>
 
       <div class="dd-body">
@@ -490,6 +527,26 @@
 
     renderTopbar();
     renderHistory();
+
+    // 输入框右侧清除按钮（X）
+    const inp = mountEl.querySelector("#ddQuery");
+    const wrap = mountEl.querySelector("#ddInputWrap");
+    const clearBtn = mountEl.querySelector("#ddClear");
+    if (inp && wrap && clearBtn) {
+      inp.addEventListener("input", updateClearBtn);
+            const swallow = (e)=>{ try{ e.preventDefault(); e.stopPropagation(); }catch(_){ } };
+      // 让点击清除按钮不触发输入框失焦/外层点击逻辑，避免“抖动/多点才生效”
+      clearBtn.addEventListener("pointerdown", swallow);
+      clearBtn.addEventListener("mousedown", swallow);
+
+      clearBtn.addEventListener("click", (e)=>{
+        swallow(e);
+        inp.value = "";
+        updateClearBtn();
+        inp.focus();
+      });
+      updateClearBtn();
+    }
 
     mountEl.querySelector("#ddModeBtn").addEventListener("click", ()=>{
       mode = (mode === "en2zh") ? "zh2en" : "en2zh";
