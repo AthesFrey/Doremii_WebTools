@@ -179,7 +179,7 @@
 
   <!-- 3. 外部 JS 文件（新版） -->
   <!-- 建议你改个版本号强刷缓存，比如 ?v=20251125V7 -->
-  <script src="/wp-content/uploads/ip-map-locator.js?v=20260227S1"></script>
+  <script src="/wp-content/uploads/ip-map-locator.js?v=20260227S6"></script>
 </head>
 <body>
   <div class="ip-map-card">
