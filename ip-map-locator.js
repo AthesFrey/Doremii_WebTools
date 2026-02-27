@@ -1,5 +1,5 @@
 // ip-map-locator.js
-// 版本号：v20260227S1（稳定版：修复亮色模式下地图误用暗色样式）
+// 版本号：v20260227S6（稳定版：主题切换无需刷新；地图样式实时同步）
 // 修复：手动 track 海外 IP 时，高德逆地理可能返回空 → 文字显示“定位成功（无详细地址）”
 // 方案：逆地理为空时，用坐标源(ipwho/ipapi)的 region/city/isp 兜底显示；国家用中文(按国家码映射)
 // 追加（保守）：暗色主题下，地图初始化使用高德暗色 mapStyle（不影响原有功能）
@@ -339,7 +339,47 @@ function initIpMap() {
   }
   var map = new AMap.Map('map', mapOpts);
 
-  locateAutoVisitor(map, ipSpan, locSpan);
+/* === 新增：主题切换时实时同步地图样式（无需刷新页面） === */
+(function attachMapThemeSync() {
+  try {
+    var lastDark = null;
+
+    function apply() {
+      var dark = !!isDarkThemeNow();
+      if (dark === lastDark) return;
+      lastDark = dark;
+      if (map && map.setMapStyle) {
+        map.setMapStyle(dark ? 'amap://styles/dark' : 'amap://styles/normal');
+      }
+    }
+
+    // 初次应用（确保与当前 data-theme 一致）
+    apply();
+
+    // 监听 data-theme / class 变化（Doremii 切换器会改 html/body 的 data-theme）
+    if (window.MutationObserver) {
+      var obs = new MutationObserver(function () { apply(); });
+      var opt = { attributes: true, attributeFilter: ['data-theme', 'class'] };
+      if (document.documentElement) obs.observe(document.documentElement, opt);
+      if (document.body) obs.observe(document.body, opt);
+    }
+
+    // 系统主题变化：仅当没有明确 data-theme 时兜底跟随
+    if (window.matchMedia) {
+      var mm = window.matchMedia('(prefers-color-scheme: dark)');
+      var handler = function () {
+        var de = document.documentElement, b = document.body;
+        var dt = '';
+        if (de && de.getAttribute) dt = de.getAttribute('data-theme') || '';
+        if (!dt && b && b.getAttribute) dt = b.getAttribute('data-theme') || '';
+        if (dt === 'light' || dt === 'dark') return; // 已明确主题则不跟随系统
+        apply();
+      };
+      if (mm.addEventListener) mm.addEventListener('change', handler);
+      else if (mm.addListener) mm.addListener(handler);
+    }
+  } catch (e) {}
+})();locateAutoVisitor(map, ipSpan, locSpan);
 
   function trigger() {
     var value = (manualInput && manualInput.value ? manualInput.value : '').trim();
