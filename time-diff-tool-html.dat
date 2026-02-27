@@ -89,6 +89,9 @@
 
     .tdt-dt{
       width:100%;
+      box-sizing:border-box;
+      min-width:0;
+      max-width:100%;
       height:var(--h);
       min-height:var(--h);
       padding:10px 12px;
@@ -175,6 +178,27 @@
       .tdt-label{ padding-top:0; }
       .tdt-controls{ margin-top:8px; }
       .tdt-title{ font-size:20px; }
+
+/* 手机端：让工具外框突破主题内容列限制，占满视口宽度（更靠右） */
+.tdt{
+  width:100vw;
+  margin-left:calc(50% - 50vw);
+  margin-right:calc(50% - 50vw);
+  padding-left:max(14px, env(safe-area-inset-left));
+  padding-right:max(14px, env(safe-area-inset-right));
+}
+/* 手机端：卡片占满可用宽度 */
+.tdt-card{ width:100%; max-width:100%; }
+
+/* 兜底：避免 iOS/Safari 下输入框最小宽度导致溢出 */
+.tdt-field > :nth-child(2){ min-width:0; }
+.tdt-dt{ max-width:100%; }
+
+/* iOS/Safari（iPhone）兜底：datetime-local 在某些情况下仍会略溢出，直接整体收窄一点 */
+@supports (-webkit-touch-callout: none){
+  .tdt-dt{ width:calc(100% - 12px); }
+}
+
     }
   </style>
 </head>
