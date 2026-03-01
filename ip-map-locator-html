@@ -165,15 +165,10 @@
     }
   </style>
 
-  <!-- 1. 高德安全密钥：必须在加载 JSAPI 之前设置 -->
-  <script type="text/javascript">
-    window._AMapSecurityConfig = {
-      // TODO：换成你自己申请的 JSAPI 安全密钥 jscode
-      securityJsCode: '3f6fc59c90d8c7f8afad06ade9245bcb'
-    };
-  </script>
+  <!-- 1. 高德安全密钥：通过 PHP 读取（必须在加载 JSAPI 之前） -->
+  <script src="/wp-content/uploads/amap-security-config.php?v=20260301"></script>
 
-  <!-- 2. 直接加载高德 JS API（不用 loader.js） -->
+<!-- 2. 直接加载高德 JS API（不用 loader.js） -->
   <!-- TODO：换成你自己的 Web 端 JSAPI Key，并在高德控制台配置好当前域名白名单 -->
   <script src="https://webapi.amap.com/maps?v=2.0&key=6cd6a8409708cae39d0797b5a0c23c90"></script>
 
@@ -214,3 +209,4 @@
   </div>
 </body>
 </html>
+
