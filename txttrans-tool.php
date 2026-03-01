@@ -210,6 +210,27 @@ if (!preg_match('/^[0-9A-Za-z._-]+$/u', $code)) {
     json_fail(400, '取回密码只能包含大小写字母、数字、点、下划线、中划线。');
 }
 
+
+// ===== Gate 校验（用于前端解锁，不在 HTML/JS 中硬编码明文）=====
+// 约定：解锁口令存放在站点根目录同级的 mykeys/answerme.txt 内（按你的说明）。
+// 注意：请确保 mykeys 目录不可被 Web 直接访问（建议用服务器规则或 .htaccess 拦截）。
+if ($action === 'gate') {
+    $keyPath = dirname(__DIR__, 3) . '/mykeys/answerme.txt';
+    if (!is_file($keyPath)) {
+        json_fail(500, '服务器缺少解锁口令文件。');
+    }
+    $expected = @file_get_contents($keyPath);
+    if (!is_string($expected)) {
+        json_fail(500, '读取解锁口令失败。');
+    }
+    $expected = trim($expected);
+
+    // 常量时间比较，避免时序泄露
+    $ok = function_exists('hash_equals') ? hash_equals($expected, $code) : ($expected === $code);
+    echo json_encode(['ok' => $ok], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 // ===== 存储目录选择 =====
 // 按你的要求：仅使用旧版的 temp 文件夹存储（/wp-content/uploads/temp/）
 // 注意：仍然使用不可枚举文件名 + 可选加密，且接口不返回文件名/目录，减少被跟踪/枚举风险
@@ -316,3 +337,4 @@ if ($action === 'fetch') {
 
 // ===== 未知 action =====
 json_fail(400, '未知 action 参数。');
+
