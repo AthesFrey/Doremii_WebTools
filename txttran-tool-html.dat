@@ -150,7 +150,6 @@
 
 <script>
 (function () {
-  const PASS = "thankgod";
   const gate = document.getElementById("txttrans-gate");
   const app  = document.getElementById("txttrans-app");
   const inp  = document.getElementById("txttrans-pass");
@@ -164,22 +163,37 @@
   `;
   document.head.appendChild(style);
 
-  function unlock() {
-    if ((inp.value || "").trim() === PASS) {
-      // ✅ 解锁成功后清空输入，进一步降低浏览器误判为“密码”
-      inp.value = "";
-      gate.style.display = "none";
-      app.style.display = "block";
-    } else {
-      msg.textContent = "public key format wrong";
-      inp.focus();
-      inp.select();
+  async function unlock() {
+    const code = (inp.value || "").trim();
+    if (!code) { msg.textContent = "public key format wrong"; inp.focus(); return; }
+
+    try {
+      const res = await fetch("/wp-content/uploads/txttrans-tool.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({ action: "gate", code })
+      });
+      const j = await res.json().catch(() => ({}));
+
+      if (res.ok && j && j.ok === true) {
+        // ✅ 解锁成功后清空输入，进一步降低浏览器误判为“密码”
+        inp.value = "";
+        gate.style.display = "none";
+        app.style.display = "block";
+      } else {
+        msg.textContent = "public key format wrong";
+        inp.focus();
+        inp.select();
+      }
+    } catch (e) {
+      msg.textContent = "network error";
     }
   }
-
-  btn.addEventListener("click", unlock);
+btn.addEventListener("click", unlock);
   inp.addEventListener("keydown", (e) => {
     if (e.key === "Enter") unlock();
   });
 })();
 </script>
+
