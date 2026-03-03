@@ -23,6 +23,7 @@ class DoreBaseConverter extends BaseTool {
       </div>
     `;
   }
+  
 
   connectedCallback() {
     if (this.onReady) return;
@@ -51,6 +52,24 @@ class DoreBaseConverter extends BaseTool {
     };
     hideIfEmpty(this.root.querySelector('.result'));
     hideIfEmpty(this.root.querySelector('.hist'));
+
+    // —— 暗黑模式：修复 textarea 背景为深色，避免白底白字看不清 ——
+    // 使用 :host-context 让外部的 data-theme="dark" 能影响到 Shadow DOM 内部样式
+    if (!this.root.querySelector('#doreBaseConvTheme')) {
+      const st = document.createElement('style');
+      st.id = 'doreBaseConvTheme';
+      st.textContent = `
+        :host-context([data-theme="dark"]) textarea {
+          background: #0f172a;
+          color: #f8fafc;
+          border: 1px solid #334155;
+        }
+        :host-context([data-theme="dark"]) textarea::placeholder {
+          color: #94a3b8;
+        }
+      `;
+      this.root.appendChild(st);
+    }
 
     // 输入框样式：保持宽度与换行
 
