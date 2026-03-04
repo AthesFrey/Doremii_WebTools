@@ -78,11 +78,32 @@ class BaseTool extends HTMLElement {
 
 /* ✅兜底：手机/系统暗黑模式（即使没设置 data-theme，也强制历史区为深色底） */
 @media (prefers-color-scheme: dark){
-  .hist{
+          :host(:not([data-theme=\"light\"])) .hist{
     background: var(--hist-bg-dark, #0b1220);
   }
+        }
+        
+
+/* ✅补丁：当网页工具显式切到亮色（data-theme="light" / .light）时，历史区恢复亮色背景（覆盖系统暗黑兜底） */
+:host-context([data-theme="light"]) .hist,
+:host-context(html[data-theme="light"]) .hist,
+:host-context(body[data-theme="light"]) .hist,
+:host-context(html.light) .hist,
+:host-context(body.light) .hist,
+:host-context(.light) .hist{
+  background: var(--hist-bg, var(--hist-bg-base));
 }
-        .hist div{ margin:4px 0; }
+
+
+
+/* ✅iOS 兜底：把外层主题状态镜像到组件自身 data-theme，然后用 :host([data-theme=...]) 命中 */
+:host([data-theme="dark"]) .hist{
+  background: var(--hist-bg-dark, #0b1220);
+}
+:host([data-theme="light"]) .hist{
+  background: var(--hist-bg, var(--hist-bg-base));
+}
+.hist div{ margin:4px 0; }
         .msg{ font-size:12px; color: var(--muted, var(--muted-base)); }
         .msg.ok{ color: #0a7b1f; }  /* lucky! */
         .msg.no{ color: #a11212; }  /* ordinary! */
@@ -96,6 +117,39 @@ class BaseTool extends HTMLElement {
   }
   tpl(){ return ''; }
   accent(v){ this.style.setProperty('--accent', v); }
+
+
+// ✅iOS Safari 兜底：镜像页面主题到组件自身 data-theme，避免 :host-context 在部分移动端不更新
+initThemeSync(){
+  if(this.__themeSyncInited) return;
+  this.__themeSyncInited = true;
+
+  const syncTheme = () => {
+    try{
+      const html = document.documentElement;
+      const body = document.body;
+      const t =
+        (html && html.getAttribute('data-theme')) ||
+        (body && body.getAttribute('data-theme')) ||
+        (html && html.classList.contains('dark') ? 'dark' : (html && html.classList.contains('light') ? 'light' : '')) ||
+        (body && body.classList.contains('dark') ? 'dark' : (body && body.classList.contains('light') ? 'light' : ''));
+      if (t === 'dark' || t === 'light') this.setAttribute('data-theme', t);
+      else this.removeAttribute('data-theme');
+    }catch(e){}
+  };
+
+  syncTheme();
+
+  try{
+    this.__themeObs && this.__themeObs.disconnect();
+    if(typeof MutationObserver === 'undefined') return;
+    this.__themeObs = new MutationObserver(syncTheme);
+    const html = document.documentElement;
+    const body = document.body;
+    html && this.__themeObs.observe(html, { attributes:true, attributeFilter:['data-theme','class'] });
+    body && this.__themeObs.observe(body, { attributes:true, attributeFilter:['data-theme','class'] });
+  }catch(e){}
+}
 }
 
 
@@ -119,7 +173,31 @@ class DorePassword extends BaseTool {
     </div>`;
   }
   connectedCallback(){
-    if(this.onReady) return; this.onReady = true;
+    
+
+this.initThemeSync();
+    // ✅iOS Safari 兜底：镜像页面主题到组件自身 data-theme，避免 :host-context 在部分移动端不更新
+const syncTheme = () => {
+  const html = document.documentElement;
+  const body = document.body;
+  const t =
+    (html && html.getAttribute('data-theme')) ||
+    (body && body.getAttribute('data-theme')) ||
+    (html && html.classList.contains('dark') ? 'dark' : (html && html.classList.contains('light') ? 'light' : '')) ||
+    (body && body.classList.contains('dark') ? 'dark' : (body && body.classList.contains('light') ? 'light' : ''));
+  if (t === 'dark' || t === 'light') this.setAttribute('data-theme', t);
+  else this.removeAttribute('data-theme');
+};
+syncTheme();
+try{
+  this.__themeObs && this.__themeObs.disconnect();
+  this.__themeObs = new MutationObserver(syncTheme);
+  const html = document.documentElement;
+  const body = document.body;
+  html && this.__themeObs.observe(html, { attributes:true, attributeFilter:['data-theme','class'] });
+  body && this.__themeObs.observe(body, { attributes:true, attributeFilter:['data-theme','class'] });
+}catch(e){}
+if(this.onReady) return; this.onReady = true;
     const input = this.root.querySelector('input[type="number"]');
     const sc    = this.root.querySelector('input[data-role="sc"]'); // 改动2：SC checkbox
     const btn   = this.root.querySelector('button');
@@ -192,6 +270,7 @@ class DoreName extends BaseTool {
   tpl(){ return `<div class="row"><button>Generate</button></div>`; }
 
   connectedCallback(){
+    this.initThemeSync();
     if(this.onReady) return; this.onReady = true;
 
     const btn  = this.root.querySelector('button');
@@ -294,6 +373,7 @@ class DoreLucky extends BaseTool {
       </div>`;
   }
   connectedCallback(){
+    this.initThemeSync();
     if(this.onReady) return; this.onReady = true;
     const btn  = this.root.querySelector('button');                 // Generate
     const res  = this.$('.result');
@@ -401,6 +481,7 @@ class DoreUUID extends BaseTool {
   tpl(){ return `<div class="row"><button>Generate</button></div>`; }
 
   connectedCallback(){
+    this.initThemeSync();
     if(this.onReady) return; this.onReady = true;
     const btn  = this.root.querySelector('button');
     const res  = this.$('.result');
@@ -448,6 +529,7 @@ class DoreUUID extends BaseTool {
       }
       throw Error('生成受限 UUID 失败，请稍后重试或放宽限制');
     };
+
     const load=()=>{ try{ return JSON.parse(localStorage.getItem(KEY))||[] }catch{return[]} };
     const save=(a)=>localStorage.setItem(KEY, JSON.stringify(a.slice(0,MAX)));
     const push=(v)=>{ const a=[v,...load()].slice(0,MAX); save(a); return a; };
@@ -461,9 +543,11 @@ class DoreUUID extends BaseTool {
         row.appendChild(b); hist.appendChild(row);
       });
     };
+
     btn.onclick=()=>{ try{ const id=gen(); res.textContent=id; push(id); paint(); } catch(e){ res.textContent=e.message; } };
     paint();
   }
 }
 customElements.define('doremii-uuid', DoreUUID);
+
 console.log('doremii-tools ready (themeable colors) [2025-12-03]');
