@@ -170,10 +170,28 @@
               --button-fg: #ffffff;
               --grid-border:#e5e7eb;
 
+              /* 组件内需要单独指定的浅色底（暗黑模式下会被覆盖） */
+              --field-bg:#fff;   /* 输入框 / 小标签底色 */
+              --chip-bg:#fff;    /* RGB 小块底色 */
+              --code-bg:#fff;    /* 右侧 HEX 九宫格底色 */
+
               display:block; max-width:520px; color:var(--text);
               font-family:${font};
             }
-			
+
+            /* 暗黑模式：跟随站点 data-theme="dark"（以及系统暗色作为兜底） */
+            :host-context([data-theme="dark"]), :host-context([data-theme='dark']){
+              --field-bg:#0b1220;
+              --chip-bg:#0b1220;
+              --code-bg:#0b1220;
+            }
+            @media (prefers-color-scheme: dark){
+              :host{
+                --field-bg:#0b1220;
+                --chip-bg:#0b1220;
+                --code-bg:#0b1220;
+              }
+            }
             .card{
               margin:16px 0; padding:12px; border-radius:12px;
               background:var(--card-bg);
@@ -186,7 +204,7 @@
               padding:6px 8px; border:1px solid var(--card-border);
               border-radius:8px; min-height:36px; width:12em;
               font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-              background:#fff;
+              background:var(--field-bg);
             }
             button{
               padding:10px 16px; border:none; border-radius:8px; cursor:pointer;
@@ -197,7 +215,7 @@
               min-width:12em; display:flex; align-items:center; gap:8px; flex-wrap:wrap;
               font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
             }
-            .rgb{ padding:2px 6px; background:#fff; border:1px solid var(--card-border); border-radius:6px; }
+            .rgb{ padding:2px 6px; background:var(--chip-bg); border:1px solid var(--card-border); border-radius:6px; }
             .name{ color:#7A3E49; font-weight:600; }
             .err{ color:#b91c1c; font-size:12px; margin-left:4px; }
 
@@ -214,7 +232,7 @@
             .code{
               width:64px; height:64px; border:1px dashed var(--grid-border);
               border-radius:8px; display:flex; align-items:center; justify-content:center;
-              background:#fff;
+              background:var(--code-bg);
               font-size:12px; text-align:center; padding:2px;
               font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
               user-select: text;
@@ -336,3 +354,6 @@
     customElements.define('color-validator', ColorValidator);
   }
 })();
+
+
+
