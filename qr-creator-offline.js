@@ -75,23 +75,88 @@
       const accent = this.getAttribute('accent') || '#1e3a8a';
       const font   = 'system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial';
       this.root.innerHTML = `
-        <style>
-          :host{ --accent:${accent}; display:block; max-width:520px; font-family:${font}; }
-          .card{ margin:20px 0; padding:14px; color:var(--text,#0b1b34); background:var(--card-bg,#eff6ff); border:1px solid var(--card-border,#93c5fd); border-radius:12px; }
+                <style>
+          :host{
+            --accent:${accent};
+            /* Themeable tokens (light defaults) */
+            --card-bg:#eff6ff;
+            --card-border:#93c5fd;
+            --text:#0b1b34;
+            --muted:#1e3a8a;
+
+            --input-bg:#ffffff;
+            --input-fg:#0f172a;
+            --placeholder:#94a3b8;
+
+            --button-bg:#1d4ed8;
+            --button-bg-2:#0b1b34;
+            --button-fg:#ffffff;
+            --button-weight:400;
+
+            --result-bg:#ffffff;
+            --result-fg:#000000;
+
+            display:block;
+            max-width:520px;
+            font-family:${font};
+          }
+
+          :host([data-theme="dark"]){
+            --card-bg:#0b1220;
+            --card-border:#334155;
+            --text:#e2e8f0;
+            --muted:#94a3b8;
+
+            --input-bg:#0f172a;
+            --input-fg:#e2e8f0;
+            --placeholder:#64748b;
+
+            --button-bg:#2563eb;
+            --button-bg-2:#111827;
+            --button-fg:#ffffff;
+
+            --result-bg:#0b1220;
+            --result-fg:#e2e8f0;
+          }
+
+          .card{ margin:20px 0; padding:14px; color:var(--text); background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; }
           .row{ display:flex; align-items:flex-start; gap:10px; flex-wrap:wrap; }
-          label{ font-size:13px; color:var(--muted,#1e3a8a); line-height:28px; }
-          textarea{ flex:1 1 100%; min-height:84px; max-height:132px; padding:12px; border-radius:10px; outline:none; border:1px solid var(--card-border,#93c5fd); background:#fff; color:#0f172a; line-height:1.4; font-size:14px; resize:vertical; }
-          textarea::placeholder{ color:#94a3b8; }
+          label{ font-size:13px; color:var(--muted); line-height:28px; }
+          textarea{
+            flex:1 1 100%;
+            min-height:84px;
+            max-height:132px;
+            padding:12px;
+            border-radius:10px;
+            outline:none;
+            border:1px solid var(--card-border);
+            background:var(--input-bg);
+            color:var(--input-fg);
+            line-height:1.4;
+            font-size:14px;
+            resize:vertical;
+          }
+          textarea::placeholder{ color:var(--placeholder); }
           .btns{ display:flex; gap:10px; flex-wrap:wrap; }
-          button{ padding:12px 18px; border:none; border-radius:12px; cursor:pointer; background:var(--button-bg,#1d4ed8); color:var(--button-fg,#ffffff); font-weight:var(--button-weight,400); font-size:16px; }
-          button.secondary{ background:var(--button-bg-2,#0b1b34); color:#ffffff; }
+          button{
+            padding:12px 18px;
+            border:none;
+            border-radius:12px;
+            cursor:pointer;
+            background:var(--button-bg);
+            color:var(--button-fg);
+            font-weight:var(--button-weight);
+            font-size:16px;
+          }
+          button.secondary{ background:var(--button-bg-2); color:var(--button-fg); }
           /* 新增的大小写切换按钮颜色 */
           button.ccase{ background:#f97316; color:#ffffff; }
           button:active{ transform:translateY(1px); }
-          .msg{ margin-top:8px; font-size:13px; color:var(--muted,#1e3a8a); word-break:break-all; }
-          .result{ margin-top:12px; padding:10px; border-radius:10px; display:inline-block; text-align:center; background:var(--result-bg,#ffffff); color:var(--result-fg,#000000); border:1px dashed var(--card-border,#93c5fd); max-width:100%; }
+          .msg{ margin-top:8px; font-size:13px; color:var(--muted); word-break:break-all; }
+          .result{ margin-top:12px; padding:10px; border-radius:10px; display:inline-block; text-align:center; background:var(--result-bg); color:var(--result-fg); border:1px dashed var(--card-border); max-width:100%; }
           .result img,.result svg{ display:block; max-width:100%; height:auto; margin:0 auto; }
         </style>
+        
         <div class="card">
           <div class="row">
             <label>Text</label>
@@ -109,6 +174,42 @@
 
     async connectedCallback(){
       if (this._inited) return; this._inited = true;
+
+      // Sync theme from page (Doremii toggler updates html/body[data-theme])
+      const readTheme = ()=>{
+        const html = document.documentElement;
+        const body = document.body;
+        return (
+          (html && html.getAttribute('data-theme')) ||
+          (body && body.getAttribute('data-theme')) ||
+          (html && html.dataset && html.dataset.theme) ||
+          (body && body.dataset && body.dataset.theme) ||
+          ''
+        );
+      };
+      const syncTheme = ()=>{
+        const t = String(readTheme() || '').toLowerCase();
+        const theme = (t === 'dark') ? 'dark' : 'light';
+        if (this.getAttribute('data-theme') !== theme) this.setAttribute('data-theme', theme);
+      };
+      syncTheme();
+      this._themeMO = new MutationObserver(syncTheme);
+      try {
+        if (document.documentElement) {
+          this._themeMO.observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
+        }
+        if (document.body) {
+          this._themeMO.observe(document.body, {attributes:true, attributeFilter:['data-theme']});
+        } else {
+          // body may not exist yet; attach later
+          this._themeMO_bodyTimer = setInterval(()=>{
+            if (document.body) {
+              try { this._themeMO.observe(document.body, {attributes:true, attributeFilter:['data-theme']}); } catch(_e){}
+              clearInterval(this._themeMO_bodyTimer); this._themeMO_bodyTimer = null;
+            }
+          }, 50);
+        }
+      } catch(_e) {}
 
       const clamp = (v,min,max)=>Math.max(min, Math.min(max, v));
       const size  = clamp(Number(this.getAttribute('size')||520), 240, 1024);
@@ -210,6 +311,11 @@
 
       const preset = this.getAttribute('value');
       if (preset){ ta.value = preset; }
+    }
+
+    disconnectedCallback(){
+      try { if (this._themeMO) { this._themeMO.disconnect(); this._themeMO = null; } } catch(_e) {}
+      try { if (this._themeMO_bodyTimer) { clearInterval(this._themeMO_bodyTimer); this._themeMO_bodyTimer = null; } } catch(_e) {}
     }
   }
 
