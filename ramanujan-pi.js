@@ -55,14 +55,15 @@
           .actions{ margin-left:auto; display:flex; align-items:center; gap:10px; padding-right:2px; }
 
           .formula{
-            background:#fff; border-radius:8px; padding:10px; border:1px dashed #dbeafe;
-            color:#0f172a; overflow:auto;
+            background:var(--formula-bg,#fff); border-radius:8px; padding:10px;
+            border:1px dashed var(--formula-border,#dbeafe);
+            color:var(--formula-fg,#0f172a); overflow:auto;
           }
           math{ font-size:18px; }
 
           .kbox{
             font-size:14px; color:var(--muted); padding:6px 10px; border-radius:6px;
-            background:#f6fff9; border:1px solid #c9f1de;
+            background:var(--kbox-bg,#f6fff9); border:1px solid var(--kbox-border,#c9f1de);
           }
 
           /* 按钮（家族风格） */
@@ -75,10 +76,10 @@
           .btn:focus-visible{ box-shadow:0 0 0 3px rgba(14,165,165,.28); }
           .btn-primary{ background:var(--button-bg); color:var(--button-fg); }
           .btn-ghost{
-            background:#fff; color:var(--accent-base);
-            border:1px solid var(--accent-base);
+            background:var(--ghost-bg,#fff); color:var(--ghost-fg,var(--accent-base));
+            border:1px solid var(--ghost-border,var(--accent-base));
           }
-          .btn-ghost:hover{ background:#ecfffb; }
+          .btn-ghost:hover{ background:var(--ghost-hover,#ecfffb); }
 
           .result{
             background:var(--result-bg); color:var(--result-fg);
@@ -269,9 +270,8 @@
         const old = btn.textContent; btn.textContent = 'Copy failed'; setTimeout(()=>btn.textContent=old, 1200);
       }
     }
-    
+
     // BigInt 整数平方根（牛顿法）
-    
     bigSqrt(n){
       if (n < 0n) throw new Error('negative');
       if (n < 2n) return n;
