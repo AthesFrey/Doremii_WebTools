@@ -171,27 +171,26 @@
               --grid-border:#e5e7eb;
 
               /* 组件内需要单独指定的浅色底（暗黑模式下会被覆盖） */
-              --field-bg:#fff;   /* 输入框 / 小标签底色 */
-              --chip-bg:#fff;    /* RGB 小块底色 */
-              --code-bg:#fff;    /* 右侧 HEX 九宫格底色 */
+              --field-bg:#fff;   /* 输入框等控件背景 */
+              --chip-bg:#fff;    /* RGB 小标签背景 */
+              --code-bg:#fff;    /* 右侧 HEX 九宫格背景 */
 
               display:block; max-width:520px; color:var(--text);
               font-family:${font};
             }
 
-            /* 暗黑模式：跟随站点 data-theme="dark"（以及系统暗色作为兜底） */
-            :host-context([data-theme="dark"]), :host-context([data-theme='dark']){
+            /* 主题切换（iOS Safari 兼容）：JS 会把页面主题同步到组件自身 data-theme 属性上 */
+            :host([data-theme="light"]), :host([data-theme='light']){
+              --field-bg:#fff;
+              --chip-bg:#fff;
+              --code-bg:#fff;
+            }
+            :host([data-theme="dark"]), :host([data-theme='dark']){
               --field-bg:#0b1220;
               --chip-bg:#0b1220;
               --code-bg:#0b1220;
             }
-            @media (prefers-color-scheme: dark){
-              :host{
-                --field-bg:#0b1220;
-                --chip-bg:#0b1220;
-                --code-bg:#0b1220;
-              }
-            }
+}
             .card{
               margin:16px 0; padding:12px; border-radius:12px;
               background:var(--card-bg);
@@ -261,6 +260,45 @@
             <div class="result">提示：支持 3/6 位十六进制；相近色按通道 ±32 生成（至少相差 20 以上）。</div>
           </div>
         `;
+
+        // ---------- 主题同步（解决 iOS Safari 对 :host-context 在切换时不刷新的问题） ----------
+        const getPageTheme = () => {
+          const html = document.documentElement;
+          const body = document.body;
+          const t = (html && html.getAttribute('data-theme')) || (body && body.getAttribute('data-theme'));
+          if (t === 'dark' || t === 'light') return t;
+          // 若页面未显式设置 data-theme，则跟随系统
+          return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+        };
+
+        const applyTheme = () => {
+          const t = getPageTheme();
+          // 把主题写到组件自身上，CSS 用 :host([data-theme=...]) 可靠命中
+          this.setAttribute('data-theme', t);
+        };
+
+        applyTheme();
+
+        // 监听页面主题切换（Doremii 会改 html/body 的 data-theme）
+        const obs = new MutationObserver(() => applyTheme());
+        try{
+          if (document.documentElement) obs.observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
+          if (document.body) obs.observe(document.body, { attributes:true, attributeFilter:['data-theme'] });
+        }catch(e){}
+
+        // 监听系统主题变化（兜底）
+        if (window.matchMedia){
+          const mq = window.matchMedia('(prefers-color-scheme: dark)');
+          const onChange = () => {
+            // 只有页面没显式指定 data-theme 时才跟随系统
+            const html = document.documentElement;
+            const body = document.body;
+            const t = (html && html.getAttribute('data-theme')) || (body && body.getAttribute('data-theme'));
+            if (t !== 'dark' && t !== 'light') applyTheme();
+          };
+          if (mq.addEventListener) mq.addEventListener('change', onChange);
+          else if (mq.addListener) mq.addListener(onChange);
+        }
 
         // ---------- 脚本逻辑 ----------
         const $ = (sel)=> root.querySelector(sel);
@@ -354,6 +392,4 @@
     customElements.define('color-validator', ColorValidator);
   }
 })();
-
-
 
