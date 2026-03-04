@@ -23,7 +23,6 @@ class DoreBaseConverter extends BaseTool {
       </div>
     `;
   }
-  
 
   connectedCallback() {
     if (this.onReady) return;
@@ -53,24 +52,6 @@ class DoreBaseConverter extends BaseTool {
     hideIfEmpty(this.root.querySelector('.result'));
     hideIfEmpty(this.root.querySelector('.hist'));
 
-    // —— 暗黑模式：修复 textarea 背景为深色，避免白底白字看不清 ——
-    // 使用 :host-context 让外部的 data-theme="dark" 能影响到 Shadow DOM 内部样式
-    if (!this.root.querySelector('#doreBaseConvTheme')) {
-      const st = document.createElement('style');
-      st.id = 'doreBaseConvTheme';
-      st.textContent = `
-        :host-context([data-theme="dark"]) textarea {
-          background: #0f172a;
-          color: #f8fafc;
-          border: 1px solid #334155;
-        }
-        :host-context([data-theme="dark"]) textarea::placeholder {
-          color: #94a3b8;
-        }
-      `;
-      this.root.appendChild(st);
-    }
-
     // 输入框样式：保持宽度与换行
 
 	[decimalInput, base36Input, base62Input].forEach(t => {
@@ -80,6 +61,62 @@ class DoreBaseConverter extends BaseTool {
 	  t.style.wordWrap = 'break-word';
 	  t.style.whiteSpace = 'normal';
 	});
+
+    // —— iOS Safari 兜底：暗黑模式下强制 textarea 深色背景（避免白底白字）——
+    const applyDarkTextareaFix = () => {
+      try {
+        const de = document.documentElement;
+        const bd = document.body;
+        const hasDataTheme = (de && de.dataset && de.dataset.theme) || (bd && bd.dataset && bd.dataset.theme);
+        const isDark = hasDataTheme
+          ? ((de && de.dataset && de.dataset.theme) === 'dark') || ((bd && bd.dataset && bd.dataset.theme) === 'dark')
+          : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+        [decimalInput, base36Input, base62Input].forEach(t => {
+          if (!t) return;
+          if (isDark) {
+            t.style.backgroundColor = '#0f172a';
+            t.style.color = '#f8fafc';
+            t.style.border = '1px solid #334155';
+            // iOS Safari 有时会忽略 color，使用 -webkit-text-fill-color 更稳
+            t.style.setProperty('-webkit-text-fill-color', '#f8fafc');
+            t.style.caretColor = '#f8fafc';
+          } else {
+            // 不强制亮色主题样式，交给站点原样式/主题变量
+            t.style.backgroundColor = '';
+            t.style.color = '';
+            t.style.border = '';
+            t.style.removeProperty('-webkit-text-fill-color');
+            t.style.caretColor = '';
+          }
+        });
+      } catch (e) {
+        // 保持静默，避免影响工具加载
+      }
+    };
+
+    applyDarkTextareaFix();
+
+    // 监听 data-theme 变化（主题切换器）
+    if (window.MutationObserver) {
+      const mo = new MutationObserver(() => applyDarkTextareaFix());
+      try {
+        if (document.documentElement) mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+        if (document.body) mo.observe(document.body, { attributes: true, attributeFilter: ['data-theme'] });
+      } catch (e) {}
+    }
+
+    // 监听系统暗黑变化（当未使用 data-theme 时作为兜底）
+    if (window.matchMedia) {
+      const mql = window.matchMedia('(prefers-color-scheme: dark)');
+      const onChange = () => applyDarkTextareaFix();
+      try {
+        if (mql.addEventListener) mql.addEventListener('change', onChange);
+        else if (mql.addListener) mql.addListener(onChange); // 旧 Safari
+      } catch (e) {}
+    }
+
+
 		
 	const DIGITS    = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const DECIMAL_RE= /^(?:0|[1-9]\d*)$/;    // 非负整数字符串
@@ -200,5 +237,3 @@ class DoreBaseConverter extends BaseTool {
 if (!customElements.get('doremii-base-converter')) {
   customElements.define('doremii-base-converter', DoreBaseConverter);
 }
-
-
