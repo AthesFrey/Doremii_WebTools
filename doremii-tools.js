@@ -75,6 +75,13 @@ class BaseTool extends HTMLElement {
           background: var(--hist-bg-dark, #0b1220);
         }
 
+
+/* ✅兜底：手机/系统暗黑模式（即使没设置 data-theme，也强制历史区为深色底） */
+@media (prefers-color-scheme: dark){
+  .hist{
+    background: var(--hist-bg-dark, #0b1220);
+  }
+}
         .hist div{ margin:4px 0; }
         .msg{ font-size:12px; color: var(--muted, var(--muted-base)); }
         .msg.ok{ color: #0a7b1f; }  /* lucky! */
@@ -461,5 +468,14 @@ class DoreUUID extends BaseTool {
   }
 }
 customElements.define('doremii-uuid', DoreUUID);
+
+
+
+
+
+
+
+
+
 
 console.log('doremii-tools ready (themeable colors) [2025-12-03]');
