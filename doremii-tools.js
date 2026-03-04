@@ -448,7 +448,6 @@ class DoreUUID extends BaseTool {
       }
       throw Error('生成受限 UUID 失败，请稍后重试或放宽限制');
     };
-
     const load=()=>{ try{ return JSON.parse(localStorage.getItem(KEY))||[] }catch{return[]} };
     const save=(a)=>localStorage.setItem(KEY, JSON.stringify(a.slice(0,MAX)));
     const push=(v)=>{ const a=[v,...load()].slice(0,MAX); save(a); return a; };
@@ -462,20 +461,9 @@ class DoreUUID extends BaseTool {
         row.appendChild(b); hist.appendChild(row);
       });
     };
-
     btn.onclick=()=>{ try{ const id=gen(); res.textContent=id; push(id); paint(); } catch(e){ res.textContent=e.message; } };
     paint();
   }
 }
 customElements.define('doremii-uuid', DoreUUID);
-
-
-
-
-
-
-
-
-
-
 console.log('doremii-tools ready (themeable colors) [2025-12-03]');
