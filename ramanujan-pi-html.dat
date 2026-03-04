@@ -37,6 +37,20 @@
 
     --result-bg:#0f172a;
     --result-fg:#f8fafc; /* 关键：白字 */
+
+    /* 额外：暗色下公式 / k 信息条 / Copy 按钮背景改深色，避免白字看不清 */
+    --formula-bg:#0f172a;
+    --formula-fg:#f8fafc;
+    --formula-border:#1f2a3a;
+
+    --kbox-bg:#0f172a;
+    --kbox-border:#1f2a3a;
+
+    --ghost-bg:#0f172a;
+    --ghost-fg:var(--accent-base);
+    --ghost-border:#1f2a3a;
+    --ghost-hover:#111c33;
+
   }
 
   /* 兜底：如果没用 data-theme，而是跟随系统暗色 */
@@ -50,6 +64,20 @@
       --button-fg:#ffffff;
       --result-bg:#0f172a;
       --result-fg:#f8fafc;
+
+      /* 额外：暗色下公式 / k 信息条 / Copy 按钮背景改深色，避免白字看不清 */
+      --formula-bg:#0f172a;
+      --formula-fg:#f8fafc;
+      --formula-border:#1f2a3a;
+
+      --kbox-bg:#0f172a;
+      --kbox-border:#1f2a3a;
+
+      --ghost-bg:#0f172a;
+      --ghost-fg:var(--accent-base);
+      --ghost-border:#1f2a3a;
+      --ghost-hover:#111c33;
+
     }
   }
 </style>
