@@ -1,11 +1,11 @@
 <?php
 // /wp-content/uploads/file-recorderapi.php
 
-// ==== CORS 处理（允许从主站跨域调用 cloudpan 接口）====
+// ==== CORS 处理（允许从主站跨域调用 entrepot 接口）====
 $allowed_origins = [
     'https://doremii.top',
     'https://www.doremii.top',
-    'https://cloudpan.doremii.top',
+    'https://entrepot.doremii.top',
 ];
 
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
@@ -108,7 +108,7 @@ if ($method==='POST' && stripos($contentType,'multipart/form-data')!==false){
         'ok'=>true,
         'code'=>$code,
         'filename'=>$filename,
-        'download_url'=>'/wp-content/uploads/file-recorderdld.php?code='.rawurlencode($code)
+        'download_url'=>'https://entrepot.doremii.top/wp-content/uploads/file-recorderdld.php?code='.rawurlencode($code)
     ],JSON_UNESCAPED_UNICODE);
     exit;
 }
@@ -134,7 +134,7 @@ if($action==='check_fetch'){
         $files[]=[
             'filename'=>$fname,
             'abs_path'=>$p,
-            'download_url'=>'/wp-content/uploads/file-recorderdld.php?code='.rawurlencode($code)
+            'download_url'=>'https://entrepot.doremii.top/wp-content/uploads/file-recorderdld.php?code='.rawurlencode($code)
         ];
     }
 

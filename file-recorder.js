@@ -56,7 +56,7 @@ class DoreFileRecorder extends BaseTool {
     const uploadProgressText      = $('#uploadProgressText');
 
     // ⭐ 加入动态版本号，防缓存
-    const API_URL = 'https://cloudpan.doremii.top/wp-content/uploads/file-recorderapi.php?_v=' + Date.now();
+    const API_URL = 'https://entrepot.doremii.top/wp-content/uploads/file-recorderapi.php?_v=' + Date.now();
     const MAX_FILE_BYTES = 1170378588; // 约 1GB 上限
 
     const hideIfExists = (el) => {
@@ -308,7 +308,7 @@ function escapeHtml(str){
 
           files.forEach((f, idx) => {
   const fname = (f && typeof f.filename === 'string') ? f.filename : '';
-  const url = 'https://cloudpan.doremii.top/wp-content/uploads/file-recorderdld.php'
+  const url = 'https://entrepot.doremii.top/wp-content/uploads/file-recorderdld.php'
     + '?code=' + encodeURIComponent(code)
     + '&filename=' + encodeURIComponent(fname);
 
