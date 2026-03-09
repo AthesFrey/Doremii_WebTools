@@ -1,5 +1,5 @@
-<script src="/wp-content/uploads/base-tool.js?v=20251218A"></script>
-<script defer src="/wp-content/uploads/file-recorder.js?v=20251123V2A"></script>
+<script src="/wp-content/uploads/base-tool.js?v=20260309A"></script>
+<script defer src="/wp-content/uploads/file-recorder.js?v=20260309A"></script>
 
 <h2 style="
   font-size:22px;
@@ -9,7 +9,7 @@
   width:calc(100vw - 24px);
   max-width:520px;
 ">
-  临时网盘
+  Temporal Documents cabinet
 </h2>
 
 <doremii-file-recorder
